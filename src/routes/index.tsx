@@ -217,7 +217,7 @@ function HeroScene() {
         </pre>
       </div>
 
-      <div className="absolute bottom-0 left-[-10px] hidden h-[470px] w-[500px] lg:block">
+      <div className="absolute bottom-0 left-[-10px] hidden h-[500px] w-[500px] lg:block">
         <ScreenshotStack />
       </div>
     </div>
@@ -260,17 +260,17 @@ function CodeLine({ line }: { line: string }) {
 
 function ScreenshotStack() {
   return (
-    <div className="relative h-full">
+    <div className="flex h-full items-end gap-5">
       <DeviceFrame
         src="/screenshots/ios.png"
         alt="Whisker podcast example running on iOS"
-        className="absolute bottom-0 left-0 w-[225px] rotate-[-4deg]"
+        className="w-[210px]"
         label="iOS"
       />
       <DeviceFrame
         src="/screenshots/android.png"
         alt="Whisker podcast example running on Android"
-        className="absolute bottom-4 left-[198px] w-[225px] rotate-[5deg]"
+        className="w-[210px]"
         label="Android"
       />
     </div>
@@ -305,19 +305,30 @@ function DeviceFrame({
   className?: string
   label: string
 }) {
+  const labelClasses =
+    label === 'iOS'
+      ? 'border-sky-200/30 bg-sky-300/15 text-sky-100'
+      : 'border-lime-200/30 bg-lime-300/15 text-lime-100'
+
   return (
-    <figure
-      className={`overflow-hidden rounded-[1.7rem] border border-white/12 bg-black p-1.5 shadow-2xl shadow-black/60 ${className}`}
-    >
-      <div className="overflow-hidden rounded-[1.25rem] bg-black">
-        <img
-          src={src}
-          alt={alt}
-          className="aspect-[390/844] h-auto w-full object-cover object-top"
-          loading="eager"
-        />
+    <figure className={className}>
+      <figcaption className="mb-2 flex justify-center">
+        <span
+          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${labelClasses}`}
+        >
+          {label}
+        </span>
+      </figcaption>
+      <div className="overflow-hidden rounded-[1.7rem] border border-white/12 bg-black p-1.5 shadow-2xl shadow-black/60">
+        <div className="overflow-hidden rounded-[1.25rem] bg-black">
+          <img
+            src={src}
+            alt={alt}
+            className="aspect-[390/844] h-auto w-full object-cover object-top"
+            loading="eager"
+          />
+        </div>
       </div>
-      <figcaption className="sr-only">{label}</figcaption>
     </figure>
   )
 }
