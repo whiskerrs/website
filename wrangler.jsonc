@@ -3,5 +3,7 @@
   "name": "whisker-website",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry"
+  "main": "@tanstack/react-start/server-entry",
+  "routes": [{ "pattern": "whisker.rs", "custom_domain": true }],
+  "observability": { "enabled": true },
 }

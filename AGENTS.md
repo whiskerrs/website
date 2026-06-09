@@ -1,7 +1,9 @@
 <!-- intent-skills:start -->
+
 ## Skill Loading
 
 Before substantial work:
+
 - Skill check: run `bunx @tanstack/intent@latest list`, or use skills already listed in context.
 - Skill guidance: if one local skill clearly matches the task, run `bunx @tanstack/intent@latest load <package>#<skill>` and follow the returned `SKILL.md`.
 - Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
@@ -11,6 +13,8 @@ Before substantial work:
 ## Project Context
 
 - Purpose: official website for Whisker.
+- Company attribution: Whisker is developed by CHANTO INC.
+  (`https://chanto.co.jp/en`); keep this as a subtle footer attribution.
 - Scaffold command used exactly as requested:
   `npx @tanstack/cli@latest create my-tanstack-app --agent`
 - CLI selections:
