@@ -113,10 +113,12 @@ function Hero() {
       <div className="hero-grid absolute inset-0" aria-hidden="true" />
 
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/" className="flex items-center gap-3 text-sm font-semibold">
-          <span className="grid size-9 place-items-center rounded-md border border-orange-300/30 bg-orange-400/10 text-orange-200">
-            W
-          </span>
+        <a href="/" className="flex items-center gap-2.5 text-sm font-semibold">
+          <img
+            src="/whisker_logo.png"
+            alt="Whisker logo"
+            className="size-9 object-contain"
+          />
           <span>Whisker</span>
         </a>
         <div className="flex items-center gap-2">
