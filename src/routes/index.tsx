@@ -217,7 +217,7 @@ function HeroScene() {
         </pre>
       </div>
 
-      <div className="absolute bottom-0 left-[-10px] hidden h-[500px] w-[500px] lg:block">
+      <div className="absolute -bottom-4 left-6 hidden h-[430px] w-[400px] lg:block">
         <ScreenshotStack />
       </div>
     </div>
@@ -260,17 +260,17 @@ function CodeLine({ line }: { line: string }) {
 
 function ScreenshotStack() {
   return (
-    <div className="flex h-full items-end gap-5">
+    <div className="flex h-full items-end gap-4">
       <DeviceFrame
         src="/screenshots/ios.png"
         alt="Whisker podcast example running on iOS"
-        className="w-[210px]"
+        className="w-[180px]"
         label="iOS"
       />
       <DeviceFrame
         src="/screenshots/android.png"
         alt="Whisker podcast example running on Android"
-        className="w-[210px]"
+        className="w-[180px]"
         label="Android"
       />
     </div>
@@ -307,14 +307,14 @@ function DeviceFrame({
 }) {
   const labelClasses =
     label === 'iOS'
-      ? 'border-sky-200/30 bg-sky-300/15 text-sky-100'
-      : 'border-lime-200/30 bg-lime-300/15 text-lime-100'
+      ? 'border-sky-200/50 bg-sky-950/80 text-sky-50'
+      : 'border-lime-200/50 bg-lime-950/80 text-lime-50'
 
   return (
-    <figure className={className}>
-      <figcaption className="mb-2 flex justify-center">
+    <figure className={`relative ${className}`}>
+      <figcaption className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2">
         <span
-          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] ${labelClasses}`}
+          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] shadow-[0_10px_30px_rgba(0,0,0,0.65)] backdrop-blur-md ${labelClasses}`}
         >
           {label}
         </span>
