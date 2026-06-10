@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 
-import { docs } from "@/lib/docs";
+import { docSections } from "@/lib/docs";
 import { TableOfContents } from "@/components/table-of-contents";
 import { SiteHeader } from "@/components/site-header";
 
@@ -22,23 +22,27 @@ function DocsLayout() {
 
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-12 xl:grid-cols-[220px_minmax(0,1fr)_200px]">
         <aside className="lg:sticky lg:top-28 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pb-10">
-          <nav className="flex flex-col gap-1">
-            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Documentation
-            </p>
-            {docs.map((doc) => (
-              <Link
-                key={doc.slug}
-                to="/docs/$slug"
-                params={{ slug: doc.slug }}
-                className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"
-                activeProps={{
-                  className:
-                    "bg-orange-300/10 text-orange-200 hover:bg-orange-300/10 hover:text-orange-200",
-                }}
-              >
-                {doc.title}
-              </Link>
+          <nav className="flex flex-col gap-5">
+            {docSections.map((section) => (
+              <div key={section.label} className="flex flex-col gap-1">
+                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  {section.label}
+                </p>
+                {section.entries.map((doc) => (
+                  <Link
+                    key={doc.slug}
+                    to="/docs/$slug"
+                    params={{ slug: doc.slug }}
+                    className="rounded-md px-3 py-2 text-sm font-medium text-slate-400 transition hover:bg-white/[0.04] hover:text-slate-100"
+                    activeProps={{
+                      className:
+                        "bg-orange-300/10 text-orange-200 hover:bg-orange-300/10 hover:text-orange-200",
+                    }}
+                  >
+                    {doc.title}
+                  </Link>
+                ))}
+              </div>
             ))}
           </nav>
         </aside>
