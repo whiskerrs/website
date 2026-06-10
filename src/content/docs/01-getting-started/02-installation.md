@@ -29,14 +29,10 @@ rustup target add aarch64-linux-android    # Android device/emulator
 cargo install whisker-cli
 ```
 
-This installs the `whisker` command (and a `cargo whisker` alias).
-
-If you target **Android**, also install the build helper — the Gradle
-build invokes it:
-
-```bash
-cargo install whisker-build
-```
+This installs the `whisker` command (and a `cargo whisker` alias). It's
+the only install you need: the `whisker` binary drives **both** iOS and
+Android builds — Xcode's build phase and Gradle invoke it to
+cross-compile your Rust crate into the native artifact.
 
 ## Check your setup
 
