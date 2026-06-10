@@ -18,6 +18,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { SiteHeader } from "@/components/site-header";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -40,11 +42,10 @@ type Feature = {
 
 const codeLines = [
   "use whisker::prelude::*;",
-  "use whisker::runtime::view::Element;",
   "",
   "#[whisker::main]",
   "fn app() -> Element {",
-  "    let count = RwSignal::new(0);",
+  "    let count = signal(0);",
   '    let label = computed(move || format!("Count: {}", count.get()));',
   "",
   "    render! {",
@@ -94,53 +95,28 @@ const moduleItems = [
 
 function Home() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#080b0f] text-slate-100">
-      <Hero />
-      <ProofStrip />
-      <RustSection />
-      <DslSection />
-      <HotReloadSection />
-      <ModulesSection />
-      <FinalCta />
-      <Footer />
-    </main>
+    <>
+      <SiteHeader />
+      <main className="min-h-screen overflow-hidden bg-[#080b0f] text-slate-100">
+        <Hero />
+        <ProofStrip />
+        <RustSection />
+        <DslSection />
+        <HotReloadSection />
+        <ModulesSection />
+        <FinalCta />
+        <Footer />
+      </main>
+    </>
   );
 }
 
 function Hero() {
   return (
-    <section className="relative min-h-[86svh] overflow-hidden px-5 pb-16 pt-5 sm:px-8 lg:px-12">
+    <section className="relative flex min-h-[calc(100svh-4rem)] items-center overflow-hidden px-5 pb-16 pt-12 sm:px-8 sm:pt-16 lg:px-12 lg:pt-20">
       <div className="hero-grid absolute inset-0" aria-hidden="true" />
 
-      <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/" className="flex items-center gap-2.5 text-sm font-semibold">
-          <img
-            src="/whisker_logo.png"
-            alt="Whisker logo"
-            className="size-9 object-contain"
-          />
-          <span>Whisker</span>
-        </a>
-        <div className="flex items-center gap-2">
-          <a
-            href="/docs"
-            className="inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-slate-200 transition hover:text-white"
-          >
-            Docs
-          </a>
-          <a
-            href="https://github.com/whiskerrs/whisker"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/[0.07]"
-          >
-            <Github className="size-4" aria-hidden="true" />
-            GitHub
-          </a>
-        </div>
-      </nav>
-
-      <div className="relative z-10 mx-auto max-w-7xl pt-20 sm:pt-24 lg:pt-28">
+      <div className="relative z-10 mx-auto w-full max-w-7xl">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="min-w-0 max-w-2xl">
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100">

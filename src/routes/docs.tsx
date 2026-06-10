@@ -3,6 +3,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 
 import { docs } from "@/lib/docs";
 import { TableOfContents } from "@/components/table-of-contents";
+import { SiteHeader } from "@/components/site-header";
 
 // Syntax-highlighting theme for fenced code blocks (applied by rehype-highlight).
 import "highlight.js/styles/github-dark.css";
@@ -17,27 +18,10 @@ function DocsLayout() {
 
   return (
     <div className="min-h-screen bg-[#080b0f] text-slate-100">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-[#080b0f]/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-12">
-          <Link to="/" className="flex items-center gap-2.5 text-sm font-semibold">
-            <img src="/whisker_logo.png" alt="Whisker logo" className="size-8 object-contain" />
-            <span>Whisker</span>
-            <span className="text-slate-500">/</span>
-            <span className="text-slate-300">Docs</span>
-          </Link>
-          <a
-            href="https://github.com/whiskerrs/whisker"
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm font-medium text-slate-300 transition hover:text-white"
-          >
-            GitHub
-          </a>
-        </div>
-      </header>
+      <SiteHeader section="Docs" />
 
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-12 xl:grid-cols-[220px_minmax(0,1fr)_200px]">
-        <aside className="lg:sticky lg:top-16 lg:-mt-12 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:py-12">
+        <aside className="lg:sticky lg:top-28 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto lg:pb-10">
           <nav className="flex flex-col gap-1">
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
               Documentation
@@ -66,7 +50,7 @@ function DocsLayout() {
           <Outlet />
         </main>
 
-        <aside className="hidden xl:sticky xl:top-16 xl:-mt-12 xl:block xl:max-h-[calc(100vh-4rem)] xl:overflow-y-auto xl:py-12">
+        <aside className="hidden xl:sticky xl:top-28 xl:block xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto xl:pb-10">
           <TableOfContents contentRef={contentRef} pathKey={pathname} />
         </aside>
       </div>
