@@ -17,6 +17,43 @@ export const Route = createRootRoute({
       {
         title: "Whisker",
       },
+      {
+        name: "description",
+        content:
+          "Whisker is a Rust-first framework for building native Android and iOS apps — ergonomic UI, Lynx-powered CSS, sub-second hot reload, and native modules.",
+      },
+      // Open Graph
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Whisker" },
+      { property: "og:url", content: "https://whisker.rs" },
+      {
+        property: "og:title",
+        content: "Whisker — Build native mobile apps in Rust",
+      },
+      {
+        property: "og:description",
+        content:
+          "Ergonomic UI, native widgets, Lynx-powered CSS, and sub-second hot reload — for iOS and Android, in Rust.",
+      },
+      { property: "og:image", content: "https://whisker.rs/og.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "Whisker — Build native mobile apps in Rust",
+      },
+      // Twitter
+      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content: "Whisker — Build native mobile apps in Rust",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Ergonomic UI, native widgets, Lynx-powered CSS, and sub-second hot reload — for iOS and Android, in Rust.",
+      },
+      { name: "twitter:image", content: "https://whisker.rs/og.png" },
     ],
     links: [
       {
