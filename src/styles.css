@@ -1,4 +1,13 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Heading anchors (added by rehype-autolink-headings) inherit the heading
+   color instead of the orange body-link color. */
+.prose :is(h1, h2, h3, h4, h5, h6) a {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
 
 * {
   box-sizing: border-box;

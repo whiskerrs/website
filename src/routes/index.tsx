@@ -123,6 +123,12 @@ function Hero() {
         </a>
         <div className="flex items-center gap-2">
           <a
+            href="/docs"
+            className="inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-slate-200 transition hover:text-white"
+          >
+            Docs
+          </a>
+          <a
             href="https://github.com/whiskerrs/whisker"
             target="_blank"
             rel="noreferrer"
