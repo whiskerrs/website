@@ -40,7 +40,7 @@ methods. Here, tapping a button scrolls the list back to the top:
 
 ```rust
 #[component]
-fn Feed() -> Element {
+fn feed() -> Element {
     let list = ScrollViewHandle::new();
 
     let scroll_top = move |_| {
@@ -76,7 +76,7 @@ on the UI thread via a callback, so you `.await` them inside a
 
 ```rust
 #[component]
-fn Card() -> Element {
+fn card() -> Element {
     let card = ElementHandle::new();
 
     on_mount(move || {
@@ -105,7 +105,7 @@ For imperative keyframe animation, build an `AnimateOptions` and call
 
 ```rust
 #[component]
-fn FadeIn() -> Element {
+fn fade_in() -> Element {
     let card = ElementHandle::new();
 
     on_mount(move || {

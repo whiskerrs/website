@@ -40,7 +40,7 @@ fn app() -> Element {
 }
 
 #[component]
-fn Toolbar() -> Element {
+fn toolbar() -> Element {
     // ...read it anywhere below, no props in between.
     let theme = use_context::<Theme>().expect("Theme provided at root");
     let bg = if theme.dark { "#111" } else { "#fff" };
@@ -98,7 +98,7 @@ context) just for itself:
 
 ```rust
 #[component]
-fn DarkSection() -> Element {
+fn dark_section() -> Element {
     provide_context(Theme { dark: true }); // overrides the ancestor here down
 
     render! {

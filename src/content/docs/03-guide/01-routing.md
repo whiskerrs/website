@@ -24,7 +24,7 @@ fast path to a working router.
 ```toml
 [dependencies]
 whisker = { workspace = true }
-whisker-router = { path = "../whisker/packages/whisker-router" }
+whisker-router = "0.1"
 ```
 
 The crate has **no prelude** — every public symbol is re-exported from
@@ -148,7 +148,7 @@ its mutators:
 use whisker_router::router;
 
 #[component]
-fn HomeScreen() -> Element {
+fn home_screen() -> Element {
     let nav = router::<AppRoute>();
     render! {
         page(style: "padding: 16px; flex_direction: column;") {
@@ -164,11 +164,11 @@ fn HomeScreen() -> Element {
 }
 
 #[component]
-fn DetailScreen(id: Signal<u64>) -> Element {
+fn detail_screen(id: Signal<u64>) -> Element {
     let nav = router::<AppRoute>();
     render! {
         page(style: "padding: 16px; flex_direction: column;") {
-            text(value: move || format!("Detail for item {}", id.get()))
+            text(value: computed(move || format!("Detail for item {}", id.get())))
             view(on_tap: move |_| { nav.back(); }) {
                 text(value: "Back")
             }

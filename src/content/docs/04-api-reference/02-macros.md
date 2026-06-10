@@ -33,7 +33,7 @@ PascalCase alias usable inside `render!`.
 
 ```rust
 #[component]
-fn Badge(label: Signal<String>, count: i32) -> Element {
+fn badge(label: Signal<String>, count: i32) -> Element {
     render! {
         view { text(value: label) }
     }
@@ -43,6 +43,9 @@ fn Badge(label: Signal<String>, count: i32) -> Element {
 render! { Badge(label: "items", count: 3) }
 ```
 
+- **Naming**: define the function in `lower_snake_case` (`fn badge`,
+  `fn todo_list`); the macro generates the `PascalCase` alias
+  (`Badge`, `TodoList`) used at the `render!` call site.
 - Each parameter becomes a prop. Call sites pass them as keyword
   arguments (`Badge(label: …, count: …)`); positional calls are not
   supported.
@@ -66,7 +69,7 @@ passes in `render!`:
 
 ```rust
 #[component]
-fn Card(children: Children) -> Element {
+fn card(children: Children) -> Element {
     render! { view(class: "card") { children() } }
 }
 ```

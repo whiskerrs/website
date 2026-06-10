@@ -314,7 +314,7 @@ Read a `Signal<T>` prop with `.get()`:
 
 ```rust
 #[component]
-fn Badge(label: Signal<String>) -> Element {
+fn badge(label: Signal<String>) -> Element {
     let style = computed(move || format!("content: {}", label.get()));
     render! { view(style: style) { text(value: label) } }
 }

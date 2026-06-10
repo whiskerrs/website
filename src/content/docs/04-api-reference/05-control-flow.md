@@ -31,8 +31,8 @@ reactive state from the old branch cannot leak.
 
 ```rust
 #[component]
-fn Toggle() -> Element {
-    let open = signal(false);
+fn toggle() -> Element {
+    let open = RwSignal::new(false);
 
     render! {
         view {
@@ -72,7 +72,7 @@ against the previous frame:
 
 ```rust
 #[component]
-fn TodoList(todos: Signal<Vec<Todo>>) -> Element {
+fn todo_list(todos: Signal<Vec<Todo>>) -> Element {
     render! {
         view {
             ForEach(

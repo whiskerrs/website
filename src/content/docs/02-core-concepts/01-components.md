@@ -65,7 +65,7 @@ passed as keyword arguments at the call site:
 
 ```rust
 #[component]
-fn Greeting(name: Signal<String>) -> Element {
+fn greeting(name: Signal<String>) -> Element {
     render! {
         text(value: name)
     }
@@ -81,9 +81,12 @@ fn app() -> Element {
 }
 ```
 
-Component names are PascalCase in `render!` (`Greeting(...)`), which is
-how the macro tells your components apart from built-in tags like
-`view`.
+> **Naming.** Define the function in idiomatic Rust `lower_snake_case`
+> (`fn greeting`, `fn todo_list`). The `#[component]` macro generates a
+> `PascalCase` alias (`Greeting`, `TodoList`) which is the name you call
+> inside `render!`. So a `fn todo_list` component is written
+> `TodoList(...)` at the call site. The PascalCase call name is also how
+> the macro tells your components apart from built-in tags like `view`.
 
 ### Props are values or signals
 
@@ -113,7 +116,7 @@ prop a default value so callers can omit it:
 
 ```rust
 #[component]
-fn Avatar(url: Signal<String>, #[prop(default = 40)] size: i32) -> Element {
+fn avatar(url: Signal<String>, #[prop(default = 40)] size: i32) -> Element {
     // `size` is optional; defaults to 40
     render! { /* … */ }
 }
@@ -131,7 +134,7 @@ then call `children()` where it should appear:
 
 ```rust
 #[component]
-fn Card(children: Children) -> Element {
+fn card(children: Children) -> Element {
     render! {
         view(class: "card") {
             children()

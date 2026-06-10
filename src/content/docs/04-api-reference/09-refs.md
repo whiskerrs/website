@@ -29,7 +29,7 @@ use whisker::prelude::*;
 
 ```rust
 #[component]
-fn Card() -> Element {
+fn card() -> Element {
     let card = ElementHandle::new();
 
     effect({
@@ -219,7 +219,7 @@ applied at that frame.
 use whisker::prelude::*;
 
 #[component]
-fn Fade() -> Element {
+fn fade() -> Element {
     let card = ElementHandle::new();
 
     on_mount({

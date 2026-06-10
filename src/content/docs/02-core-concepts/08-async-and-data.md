@@ -63,7 +63,7 @@ struct Story {
 }
 
 #[component]
-fn TopStories() -> Element {
+fn top_stories() -> Element {
     let stories = resource(|| async {
         // Blocking IO goes on a worker thread; the await resumes on
         // the main thread once the body is back.
@@ -103,7 +103,7 @@ For loading-vs-loaded-vs-error in one place, match on the full state:
 
 ```rust
 #[component]
-fn StoryList(stories: Resource<Vec<Story>>) -> Element {
+fn story_list(stories: Resource<Vec<Story>>) -> Element {
     render! {
         view(style: "flex-direction: column;") {
             // `state()` is a reactive read; this match re-runs on
@@ -135,7 +135,7 @@ the result back:
 
 ```rust
 #[component]
-fn PodcastSearch() -> Element {
+fn podcast_search() -> Element {
     let results = RwSignal::new(Vec::<Podcast>::new());
     let error = RwSignal::new(Option::<String>::None);
 

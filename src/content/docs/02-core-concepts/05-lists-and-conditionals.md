@@ -27,8 +27,8 @@ automatically when that signal changes:
 use whisker::prelude::*;
 
 #[component]
-fn Greeting() -> Element {
-    let signed_in = signal(false);
+fn greeting() -> Element {
+    let signed_in = RwSignal::new(false);
 
     render! {
         view(style: css!(display: flex, flex_direction: column, gap: 8.px())) {
@@ -65,7 +65,7 @@ use whisker::prelude::*;
 struct Todo { id: u32, title: String }
 
 #[component]
-fn TodoList(todos: Signal<Vec<Todo>>) -> Element {
+fn todo_list(todos: Signal<Vec<Todo>>) -> Element {
     render! {
         view(style: css!(display: flex, flex_direction: column, gap: 4.px())) {
             ForEach(
@@ -114,7 +114,7 @@ use whisker::prelude::*;
 struct Todo { id: u32, title: String }
 
 #[component]
-fn Todos(todos: Signal<Vec<Todo>>) -> Element {
+fn todos(todos: Signal<Vec<Todo>>) -> Element {
     render! {
         view(style: css!(display: flex, flex_direction: column, gap: 4.px())) {
             Show(

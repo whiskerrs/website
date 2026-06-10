@@ -174,7 +174,7 @@ by type with `router::<R>()`, then mount a renderer.
 
 ```rust
 #[component]
-fn App() -> Element {
+fn app() -> Element {
     let nav = route_stack(AppRoute::Home);
     render! {
         RouteProvider(stack: nav.clone()) {

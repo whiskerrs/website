@@ -27,7 +27,7 @@ usual way to depend on them:
 
 ```toml
 [dependencies]
-whisker-image = { path = "../whisker/packages/whisker-image" }
+whisker-image = "0.1"
 ```
 
 ## Images — `whisker-image`
@@ -38,7 +38,7 @@ how the image fits its box.
 
 ```toml
 [dependencies]
-whisker-image = { path = "../whisker/packages/whisker-image" }
+whisker-image = "0.1"
 ```
 
 ```rust
@@ -66,7 +66,7 @@ icons are stripped from your binary by the linker.
 
 ```toml
 [dependencies]
-whisker-icons = { path = "../whisker/packages/whisker-icons" }
+whisker-icons = "0.1"
 ```
 
 ```rust
@@ -91,7 +91,7 @@ display-list byte stream in Rust and streams it to a native replayer.
 
 ```toml
 [dependencies]
-whisker-svg = { path = "../whisker/packages/whisker-svg" }
+whisker-svg = "0.1"
 ```
 
 ```rust
@@ -123,7 +123,7 @@ with imperative controls. You drive play/pause/seek through a
 
 ```toml
 [dependencies]
-whisker-video = { path = "../whisker/packages/whisker-video" }
+whisker-video = "0.1"
 ```
 
 ```rust
@@ -160,7 +160,7 @@ is no element to mount.
 
 ```toml
 [dependencies]
-whisker-audio = { path = "../whisker/packages/whisker-audio" }
+whisker-audio = "0.1"
 ```
 
 ```rust
@@ -171,11 +171,11 @@ let status = player.status();
 
 render! {
     view(style: "flex_direction: column; padding: 16px;") {
-        text(value: move || format!(
+        text(value: computed(move || format!(
             "{:.1}s / {:.1}s",
             status.get().position,
             status.get().duration,
-        ))
+        )))
         view(on_tap: {
             let p = player.clone();
             move |_| p.play()
@@ -232,7 +232,7 @@ layout around the unsafe edges.
 
 ```toml
 [dependencies]
-whisker-safe-area = { path = "../whisker/packages/whisker-safe-area" }
+whisker-safe-area = "0.1"
 ```
 
 ```rust
@@ -270,7 +270,7 @@ across devices.
 
 ```toml
 [dependencies]
-whisker-local-store = { path = "../whisker/packages/whisker-local-store" }
+whisker-local-store = "0.1"
 ```
 
 ```rust

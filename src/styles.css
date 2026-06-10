@@ -9,8 +9,50 @@
   text-decoration: none;
 }
 
+/* Wide reference tables scroll horizontally on narrow screens instead
+   of overflowing the content column. */
+.prose table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 * {
   box-sizing: border-box;
+}
+
+/* Subtle, unobtrusive scrollbars (page, sidebar, and the docs TOC).
+   Firefox uses scrollbar-width/-color; WebKit/Chromium use the
+   ::-webkit-scrollbar pseudo-elements. A transparent track + a faint,
+   thin thumb keeps them from competing with the content. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.18) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.18);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.34);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 html,

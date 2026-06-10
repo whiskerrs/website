@@ -23,7 +23,7 @@ usual way to depend on them from an example app:
 
 ```toml
 [dependencies]
-whisker-image = { path = "../whisker/packages/whisker-image" }
+whisker-image = "0.1"
 ```
 
 The crates pair with the rest of the API:
@@ -49,7 +49,7 @@ from the native module, bypassing Lynx's unimplemented `<image>` stack.
 
 ```toml
 [dependencies]
-whisker-image = { path = "../whisker/packages/whisker-image" }
+whisker-image = "0.1"
 ```
 
 ### `Image`
@@ -99,7 +99,7 @@ Rust, then streams it to a native replayer.
 
 ```toml
 [dependencies]
-whisker-svg = { path = "../whisker/packages/whisker-svg" }
+whisker-svg = "0.1"
 ```
 
 ### `Svg`
@@ -151,7 +151,7 @@ binary (tree shaking).
 
 ```toml
 [dependencies]
-whisker-icons = { path = "../whisker/packages/whisker-icons" }
+whisker-icons = "0.1"
 ```
 
 ### `Icon`
@@ -187,7 +187,7 @@ Video playback element with imperative controls. A native UI element
 
 ```toml
 [dependencies]
-whisker-video = { path = "../whisker/packages/whisker-video" }
+whisker-video = "0.1"
 ```
 
 ### `Video`
@@ -243,7 +243,7 @@ and background-mode entries.
 
 ```toml
 [dependencies]
-whisker-audio = { path = "../whisker/packages/whisker-audio" }
+whisker-audio = "0.1"
 ```
 
 ### `Player`
@@ -284,11 +284,11 @@ let status = player.status();
 
 render! {
     view(style: "flex-direction: column; padding: 16px;") {
-        text(value: move || format!(
+        text(value: computed(move || format!(
             "{:.1}s / {:.1}s",
             status.get().position,
             status.get().duration,
-        ))
+        )))
         view(on_tap: {
             let p = player.clone();
             move |_| p.play()
@@ -327,7 +327,7 @@ Island, status bar, home indicator, navigation bar).
 
 ```toml
 [dependencies]
-whisker-safe-area = { path = "../whisker/packages/whisker-safe-area" }
+whisker-safe-area = "0.1"
 ```
 
 ### `safe_area_insets()`
@@ -383,7 +383,7 @@ blobs.
 
 ```toml
 [dependencies]
-whisker-local-store = { path = "../whisker/packages/whisker-local-store" }
+whisker-local-store = "0.1"
 ```
 
 ### `WhiskerLocalStore`

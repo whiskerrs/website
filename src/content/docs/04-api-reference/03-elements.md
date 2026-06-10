@@ -274,7 +274,7 @@ use whisker::prelude::*;
 
 #[whisker::main]
 fn app() -> Element {
-    let count = signal(0_i32);
+    let count = RwSignal::new(0_i32);
 
     render! {
         page(style: "background: white;") {

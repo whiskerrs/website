@@ -11,3 +11,6 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+
+# Playwright MCP run artifacts
+.playwright-mcp/

@@ -143,7 +143,7 @@ Two hooks bracket a component's life in the tree:
 use whisker::prelude::*;
 
 #[component]
-fn Timer() -> Element {
+fn timer() -> Element {
     let elapsed = RwSignal::new(0);
 
     on_mount(move || {

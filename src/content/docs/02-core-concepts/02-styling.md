@@ -136,8 +136,8 @@ string from some state:
 use whisker::prelude::*;
 
 #[component]
-fn Toggle() -> Element {
-    let on = signal(false);
+fn toggle() -> Element {
+    let on = RwSignal::new(false);
 
     let box_style = computed(move || {
         css!(
@@ -185,7 +185,7 @@ render! {
 use whisker::prelude::*;
 
 #[component]
-fn ProfileCard(name: Signal<String>, role: Signal<String>) -> Element {
+fn profile_card(name: Signal<String>, role: Signal<String>) -> Element {
     render! {
         view(style: css!(
             display: flex,

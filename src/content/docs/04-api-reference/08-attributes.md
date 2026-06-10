@@ -126,7 +126,7 @@ render! {
 Reactive variant — flip the enum through a signal:
 
 ```rust
-let orientation = signal(ScrollOrientation::Vertical);
+let orientation = RwSignal::new(ScrollOrientation::Vertical);
 
 render! {
     scroll_view(scroll_orientation: orientation) {

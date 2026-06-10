@@ -152,7 +152,7 @@ Putting it together — a counter, a derived parity label, and a button:
 use whisker::prelude::*;
 
 #[component]
-fn Counter() -> Element {
+fn counter() -> Element {
     let count = RwSignal::new(0);
     let parity = computed(move || {
         if count.get() % 2 == 0 { "even" } else { "odd" }
@@ -191,7 +191,7 @@ parent and pass the handle down as a prop:
 use whisker::prelude::*;
 
 #[component]
-fn Parent() -> Element {
+fn parent() -> Element {
     let count = RwSignal::new(0);
     render! {
         view {
