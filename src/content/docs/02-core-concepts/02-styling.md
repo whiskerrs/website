@@ -31,6 +31,11 @@ render! {
 }
 ```
 
+This is uniform across **built-in and module** components: `style:` on a
+module component (`Input`, `WebView`, `Image`, …) takes a `css!(…)` / `Css`
+value — or a reactive `Css` / `String` signal — directly, exactly like a
+built-in element. There's no `.to_css_string()` to call by hand.
+
 ## The `css!` macro
 
 `css!(name: value, …)` builds a type-checked declaration block at compile
@@ -42,9 +47,9 @@ units rather than bare strings:
 use whisker::prelude::*;
 
 let style = css!(
-    display: flex,
-    flex_direction: column,
-    align_items: center,
+    display: Display::Flex,
+    flex_direction: FlexDirection::Column,
+    align_items: AlignItems::Center,
     gap: 12.px(),
     padding: 16.px(),
     background_color: Color::hex(0x1A1A2E),
@@ -81,7 +86,7 @@ use whisker::css::{Display, FlexDirection};
 
 css!(display: Display::Flex, flex_direction: FlexDirection::Column)
 // equivalent to
-css!(display: flex, flex_direction: column)
+css!(display: Display::Flex, flex_direction: FlexDirection::Column)
 ```
 
 If you need a Lynx-only property the typed builder doesn't model, append it
@@ -103,8 +108,8 @@ screen. Always declare `flex_direction: column` for a vertical stack:
 render! {
     // vertical stack — note the explicit `column`
     view(style: css!(
-        display: flex,
-        flex_direction: column,
+        display: Display::Flex,
+        flex_direction: FlexDirection::Column,
         gap: 8.px(),
     )) {
         text(value: "First")
@@ -118,10 +123,10 @@ The usual flex properties are all here — `justify_content`, `align_items`,
 
 ```rust
 css!(
-    display: flex,
-    flex_direction: row,
-    justify_content: space_between,
-    align_items: center,
+    display: Display::Flex,
+    flex_direction: FlexDirection::Row,
+    justify_content: JustifyContent::SpaceBetween,
+    align_items: AlignItems::Center,
     flex_grow: 1.0,
 )
 ```
@@ -188,8 +193,8 @@ use whisker::prelude::*;
 fn profile_card(name: Signal<String>, role: Signal<String>) -> Element {
     render! {
         view(style: css!(
-            display: flex,
-            flex_direction: column,
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
             gap: 4.px(),
             padding: 16.px(),
             border_radius: 12.px(),

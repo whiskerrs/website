@@ -15,7 +15,8 @@ of your app at runtime.
 
 This guide walks through writing one end to end. For the exhaustive type
 catalog, link out to the [Plugin API reference](/docs/plugin-api) rather
-than re-reading it here.
+than re-reading it here. If the plugin is app-private and lives in your own
+workspace, see [Local Modules & Plugins](/docs/local-modules-and-plugins).
 
 ## Plugin or module?
 
@@ -83,7 +84,7 @@ bench = false
 doc = false
 
 [dependencies]
-whisker-plugin = "0.1"
+whisker-plugin = "0.2"
 serde = { version = "1", features = ["derive"] }
 anyhow = "1"
 ```
@@ -363,7 +364,7 @@ plugin in from `whisker.rs`:
 ```toml
 # app/Cargo.toml
 [dependencies]
-whisker-foo = "0.1"
+whisker-foo = "0.2"
 ```
 
 ```rust

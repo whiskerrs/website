@@ -31,7 +31,7 @@ fn greeting() -> Element {
     let signed_in = RwSignal::new(false);
 
     render! {
-        view(style: css!(display: flex, flex_direction: column, gap: 8.px())) {
+        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 8.px())) {
             view(on_tap: move |_| signed_in.set(!signed_in.get())) {
                 text(value: "toggle")
             }
@@ -67,7 +67,7 @@ struct Todo { id: u32, title: String }
 #[component]
 fn todo_list(todos: Signal<Vec<Todo>>) -> Element {
     render! {
-        view(style: css!(display: flex, flex_direction: column, gap: 4.px())) {
+        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 4.px())) {
             ForEach(
                 each: move || todos.get(),
                 key: |todo: &Todo| todo.id,
@@ -116,7 +116,7 @@ struct Todo { id: u32, title: String }
 #[component]
 fn todos(todos: Signal<Vec<Todo>>) -> Element {
     render! {
-        view(style: css!(display: flex, flex_direction: column, gap: 4.px())) {
+        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 4.px())) {
             Show(
                 when: move || todos.get().is_empty(),
             ) {

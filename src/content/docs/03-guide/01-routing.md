@@ -24,7 +24,7 @@ fast path to a working router.
 ```toml
 [dependencies]
 whisker = { workspace = true }
-whisker-router = "0.1"
+whisker-router = "0.2"
 ```
 
 The crate has **no prelude** — every public symbol is re-exported from

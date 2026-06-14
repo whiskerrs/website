@@ -15,7 +15,9 @@ users.
 
 If you only need the mental model — module vs. plugin, why distribution
 works the way it does — read [Modules & Plugins](/docs/modules-and-plugins)
-first. This page is the hands-on how-to.
+first. This page is the hands-on how-to. If the module is app-private and
+lives in your own workspace, see
+[Local Modules & Plugins](/docs/local-modules-and-plugins).
 
 ## The two shapes a module can take
 
@@ -283,7 +285,7 @@ A Whisker app adds the dependency like any other crate:
 ```toml
 # app/Cargo.toml
 [dependencies]
-whisker-camera = "0.1"
+whisker-camera = "0.2"
 ```
 
 ```rust
