@@ -226,11 +226,40 @@ let stories = resource(|| async {
 
 | Function | Signature | Notes |
 |---|---|---|
-| `resource` | `(fetcher) -> Resource<T>` | Spawns the fetcher on the task pool. Returns immediately in `Loading`. |
-| `resource_sync` | `(fetcher) -> Resource<T>` | Runs the fetcher inline (no worker thread). Resolves to `Ready`/`Error` immediately, never `Loading`. |
+| `resource` | `(fetcher) -> Resource<T>` | Spawns the fetcher on the task pool. Returns immediately in `Loading`. **Reactive:** the fetcher runs in an effect, so signals it reads are tracked and it **re-fetches when any of them change**. |
+| `resource_sync` | `(fetcher) -> Resource<T>` | Runs the fetcher inline (no worker thread). Resolves to `Ready`/`Error` immediately, never `Loading`. **One-shot / untracked** — does not subscribe to signals it reads, so it never re-fetches. |
 
 The `fetcher` returns `Result<T, String>` — by convention you stringify
 upstream errors with `.map_err(|e| e.to_string())`.
+
+### Reactive re-fetching
+
+`resource` takes a single fetcher closure (there is no separate `source`
+argument). The closure runs inside an effect, so any signal read while it
+runs — including reads **inside the async block** — becomes a dependency:
+
+```rust
+let query = RwSignal::new(String::new());
+let results = resource(move || async move {
+    let q = query.get();   // tracked → changing `query` re-fetches
+    run_blocking(move || api::search(&q)).await.map_err(|e| e.to_string())
+});
+```
+
+The semantics:
+
+- **Re-fetch on change** — when a tracked signal changes the fetcher runs
+  again with the new value.
+- **Returns to `Loading`** — each re-fetch resets the resource to
+  `Loading` until the new result lands.
+- **Latest-wins generation guard** — if a tracked signal changes again
+  before an in-flight fetch resolves, the stale result is discarded; only
+  the most recent run commits.
+
+Put a signal in the fetcher when it decides *what to fetch*. If a signal
+only *transforms already-fetched data*, wrap the resource in a `computed`
+instead of re-fetching. See
+[Async & Data Loading](/docs/async-and-data) for the worked pattern.
 
 ### `Resource<T>`
 

@@ -23,7 +23,7 @@ usual way to depend on them from an example app:
 
 ```toml
 [dependencies]
-whisker-image = "0.1"
+whisker-image = "0.2"
 ```
 
 The crates pair with the rest of the API:
@@ -49,7 +49,7 @@ from the native module, bypassing Lynx's unimplemented `<image>` stack.
 
 ```toml
 [dependencies]
-whisker-image = "0.1"
+whisker-image = "0.2"
 ```
 
 ### `Image`
@@ -99,7 +99,7 @@ Rust, then streams it to a native replayer.
 
 ```toml
 [dependencies]
-whisker-svg = "0.1"
+whisker-svg = "0.2"
 ```
 
 ### `Svg`
@@ -151,7 +151,7 @@ binary (tree shaking).
 
 ```toml
 [dependencies]
-whisker-icons = "0.1"
+whisker-icons = "0.2"
 ```
 
 ### `Icon`
@@ -187,7 +187,7 @@ Video playback element with imperative controls. A native UI element
 
 ```toml
 [dependencies]
-whisker-video = "0.1"
+whisker-video = "0.2"
 ```
 
 ### `Video`
@@ -243,7 +243,7 @@ and background-mode entries.
 
 ```toml
 [dependencies]
-whisker-audio = "0.1"
+whisker-audio = "0.2"
 ```
 
 ### `Player`
@@ -327,7 +327,7 @@ Island, status bar, home indicator, navigation bar).
 
 ```toml
 [dependencies]
-whisker-safe-area = "0.1"
+whisker-safe-area = "0.2"
 ```
 
 ### `safe_area_insets()`
@@ -383,7 +383,7 @@ blobs.
 
 ```toml
 [dependencies]
-whisker-local-store = "0.1"
+whisker-local-store = "0.2"
 ```
 
 ### `WhiskerLocalStore`

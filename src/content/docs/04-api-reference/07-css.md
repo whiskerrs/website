@@ -9,7 +9,7 @@ order: 7
 Styling in Whisker is plain CSS, applied through the `style:` attribute on
 any element. You can write it two ways:
 
-- The typed **`css!`** macro — `css!(display: flex, gap: 12.px())` — which
+- The typed **`css!`** macro — `css!(display: Display::Flex, gap: 12.px())` — which
   builds a [`Css`](#the-css-builder) declaration block at compile time with
   IDE completion and type-checked values.
 - A **raw CSS string** — `style: "display: flex; gap: 12px;"` — for quick
@@ -52,9 +52,9 @@ call per property, in order.
 use whisker::prelude::*;
 
 let style = css!(
-    display: flex,
-    flex_direction: column,
-    align_items: center,
+    display: Display::Flex,
+    flex_direction: FlexDirection::Column,
+    align_items: AlignItems::Center,
     gap: 12.px(),
     padding: 16.px(),
     background_color: Color::hex(0x1A1A2E),

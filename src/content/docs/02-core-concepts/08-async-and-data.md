@@ -126,6 +126,80 @@ fn story_list(stories: Resource<Vec<Story>>) -> Element {
 with `is_loading()` / `is_ready()` / `is_error()` helpers. See
 [Control Flow](/docs/control-flow) for `Show`, `Match`, and `For`.
 
+## Reactive / keyed resources
+
+A `resource` is **reactive**, not one-shot. The fetcher runs inside an
+[effect](/docs/reactivity-api), so every signal you read while it runs
+becomes a dependency — and when one of those signals changes, the fetcher
+**re-runs and the resource re-fetches**. That makes `resource` the right
+tool for a *keyed* fetch: a query, a selected id, a page number.
+
+Read the dependency **inside the async block** (any read before the first
+`.await` is tracked too, but reading inside the block is the pattern to
+teach). Here a search box drives an iTunes-style lookup that re-fetches as
+the query changes:
+
+```rust
+let query = RwSignal::new(String::new());
+
+let results = resource(move || async move {
+    let q = query.get();                 // read inside the async block → tracked
+    if q.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+    run_blocking(move || itunes::search(&q))
+        .await
+        .map_err(|e| e.to_string())
+});
+
+// Later, anywhere — each set re-runs the fetcher:
+query.set("design".into());   // results → Loading, then Ready(design hits)
+query.set("news".into());     // results → Loading, then Ready(news hits)
+```
+
+While a re-fetch is in flight the resource returns to `Loading`, so a
+`Show(when: move || results.loading())` flips back automatically. A
+**generation guard** discards stale in-flight results: if `query` changes
+again before the previous request lands, only the latest query commits —
+no out-of-order flicker. This mirrors the shape we ship in
+`examples/podcast/crates/podcast-feature-search`.
+
+### Fetch-dependency vs. derive
+
+The deciding question is *what the signal does*:
+
+- If a signal decides **what to fetch** — a query, an id, a page — put it
+  inside the `resource` fetcher so changing it re-fetches.
+- If a signal only **transforms already-fetched data** — client-side
+  filtering, sorting, or projecting a list you already have — don't
+  re-fetch. Wrap the resource in a [`computed`](/docs/reactivity-api)
+  instead:
+
+  ```rust
+  let filter = RwSignal::new(String::new());
+
+  // `results` was fetched once (or keyed on something else). `visible`
+  // re-derives on the main thread when `filter` changes — no network.
+  let visible = computed(move || {
+      let needle = filter.get().to_lowercase();
+      results
+          .get()
+          .unwrap_or_default()
+          .into_iter()
+          .filter(|p| p.name.to_lowercase().contains(&needle))
+          .collect::<Vec<_>>()
+  });
+  ```
+
+Re-fetching to do work the client can do is wasted IO; deriving over the
+resource keeps it instant and offline-safe.
+
+### `resource_sync` stays one-shot
+
+`resource_sync(fetcher)` runs its fetcher **untracked** — it never
+subscribes to the signals it reads, so it won't re-fetch. Use it for
+already-in-memory or derived values where there's nothing to re-run.
+
 ## Loading a list into a signal
 
 When you want more control than `resource` gives — kicking off the fetch on
@@ -175,12 +249,37 @@ Keeping the network code in its own crate of plain blocking functions —
 testable without a UI — and only wiring `run_blocking` at the call site is
 the pattern we recommend.
 
-## Purely-async clients
+## Async clients and the reactor caveat
 
-If you use a non-blocking HTTP library (one that's already `async`), you
-don't need `run_blocking` at all — write the fetcher as a plain
-`async move { ... }` and `.await` the client directly. `run_blocking` is
-specifically the bridge for **synchronous** APIs.
+Whisker drives futures on a small **single-threaded cooperative executor**
+(it polls your `async` work on the UI thread). It does **not** run an IO
+reactor. That distinction matters:
+
+- ✅ Futures that complete via the local executor's own wakeups —
+  channels, `run_blocking` results, `spawn_local` tasks awaiting each
+  other — `.await` directly with no extra setup.
+- ⚠️ Futures from a **`tokio`-based** library (`reqwest`, `tokio::net`,
+  `tokio::time`, …) need a tokio **runtime** to drive their IO/timers.
+  Awaiting one directly on Whisker's executor **silently hangs** — the IO
+  finishes on tokio's thread, but its cross-thread wake never re-polls the
+  local pool. No panic, no log.
+
+So for a tokio-based client, bridge through a tokio runtime on a worker
+thread — `run_blocking` is the clean way:
+
+```rust
+use whisker::runtime::tasks::run_blocking;
+// a process-wide tokio runtime (e.g. via once_cell::Lazy)
+let body = run_blocking(move || RT.block_on(async move {
+    reqwest::get(&url).await?.text().await
+})).await?;
+```
+
+The result hops back to the UI thread automatically. A synchronous client
+(`ureq`) is even simpler — just call it inside `run_blocking`. Either way,
+`run_blocking` is the bridge from "code that needs another thread/runtime"
+back into Whisker's reactive world. (See [Tasks](/docs/tasks) for the full
+picture.)
 
 ## Where to go next
 

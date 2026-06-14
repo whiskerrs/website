@@ -27,7 +27,7 @@ usual way to depend on them:
 
 ```toml
 [dependencies]
-whisker-image = "0.1"
+whisker-image = "0.2"
 ```
 
 ## Images — `whisker-image`
@@ -38,7 +38,7 @@ how the image fits its box.
 
 ```toml
 [dependencies]
-whisker-image = "0.1"
+whisker-image = "0.2"
 ```
 
 ```rust
@@ -66,7 +66,7 @@ icons are stripped from your binary by the linker.
 
 ```toml
 [dependencies]
-whisker-icons = "0.1"
+whisker-icons = "0.2"
 ```
 
 ```rust
@@ -91,7 +91,7 @@ display-list byte stream in Rust and streams it to a native replayer.
 
 ```toml
 [dependencies]
-whisker-svg = "0.1"
+whisker-svg = "0.2"
 ```
 
 ```rust
@@ -123,7 +123,7 @@ with imperative controls. You drive play/pause/seek through a
 
 ```toml
 [dependencies]
-whisker-video = "0.1"
+whisker-video = "0.2"
 ```
 
 ```rust
@@ -160,7 +160,7 @@ is no element to mount.
 
 ```toml
 [dependencies]
-whisker-audio = "0.1"
+whisker-audio = "0.2"
 ```
 
 ```rust
@@ -232,7 +232,7 @@ layout around the unsafe edges.
 
 ```toml
 [dependencies]
-whisker-safe-area = "0.1"
+whisker-safe-area = "0.2"
 ```
 
 ```rust
@@ -270,7 +270,7 @@ across devices.
 
 ```toml
 [dependencies]
-whisker-local-store = "0.1"
+whisker-local-store = "0.2"
 ```
 
 ```rust

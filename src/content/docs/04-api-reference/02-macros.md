@@ -125,8 +125,8 @@ Keyword syntax for the [`Css`](/docs/css) builder. Lowers to a
 
 ```rust
 let style = css!(
-    display: flex,
-    flex_direction: column,
+    display: Display::Flex,
+    flex_direction: FlexDirection::Column,
     gap: 12.px(),
     background: NamedColor::White,
 );
