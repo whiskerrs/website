@@ -69,7 +69,8 @@ render! {
 ```
 
 See [Macros](/docs/macros#cssname-value-) for the macro's place among the
-other Whisker macros.
+other Whisker macros. You can auto-format `css!` blocks — plain `cargo fmt`
+leaves them untouched — with [`whisker fmt`](/docs/formatting).
 
 ## The `Css` builder
 

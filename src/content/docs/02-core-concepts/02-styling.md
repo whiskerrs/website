@@ -219,5 +219,7 @@ Run it on a simulator with `whisker run ios`.
 
 - The complete enum, unit, color, and shorthand list lives in the
   [CSS reference](/docs/css).
+- Keep `css!` blocks tidy with [`whisker fmt`](/docs/formatting), which
+  formats macro bodies that `cargo fmt` skips.
 - Make styles react to state in [State Management](/docs/state-management).
 - Render lists and conditions in [Lists & Conditionals](/docs/lists-and-conditionals).
