@@ -229,6 +229,172 @@ The `Name("…")` here must match the tag in `#[whisker::module_component("Name"
 (view modules) or the `module!("Name")` call (function modules); the
 codegen namespaces both with the crate name identically.
 
+## Step 4.5: Wiring custom events
+
+A view module talks back to Rust by **dispatching a custom event**: the
+native view names an event, the Rust element declares an `on_<name>`
+prop, and the app passes a closure. This section walks the full
+round-trip with first-party code, then two gotchas that bite every
+author at least once.
+
+### Reserved event names — the silent swallow
+
+> **⚠️ Never name a custom event after a built-in touch or gesture
+> event.** Lynx's native gesture pipeline consumes those names *before*
+> the custom-event path runs, so the event is swallowed silently — your
+> Rust `on_<name>` handler simply never fires. There is **no error and
+> no log**. Renaming to a non-colliding name fixes it instantly.
+
+The reserved set is documented in the Whisker runtime
+(`crates/whisker-runtime/src/event.rs`):
+
+> ```text
+> [`TouchEvent`] — `tap` / `longpress` / `touchstart` /
+> `touchmove` / `touchend` / `touchcancel` / `click`. […]
+> [`AnimationEvent`] — `animationstart` / `animationend` / … /
+> `transitionend`.
+> ```
+
+So the names to **avoid** for a custom event are:
+
+| Family | Reserved names |
+|---|---|
+| Touch / gesture | `tap`, `longpress`, `touchstart`, `touchmove`, `touchend`, `touchcancel`, `click` |
+| Animation | `animationstart`, `animationend`, `transitionend` |
+
+There's a spelling trap here too. Whisker derives the **event name** by
+stripping `on_` from the prop, so an `on_long_press` prop dispatches the
+name `long_press` — which is *not* spelled the same as Lynx's built-in
+`longpress`. Don't rely on that gap: treat the whole touch/gesture/
+animation family as off-limits regardless of underscore spelling.
+
+The safe convention is a **module-specific or compound** name that can't
+collide with a built-in: `viewer_tap`, `page_changed`, `load`, `menu`,
+`message`. Every first-party module follows this — `whisker-webview`
+dispatches `load_start` / `navigation` / `message`, `whisker-input`
+dispatches `input` / `change` / `submit`.
+
+### A complete round-trip
+
+Take `whisker-input`'s `input` event. Three pieces line up:
+
+**1. Rust — declare the `on_<name>` prop on the thin element.** The
+`#[whisker::module_component]` fn lists each event prop typed as the
+payload struct that decodes the event body:
+
+```rust
+// packages/whisker-input/src/lib.rs
+#[whisker::module_component("Input")]
+pub fn native_input(
+    value: Signal<String>,
+    // … other attrs …
+    style: Style,
+    on_input: InputEvent,
+    on_change: InputEvent,
+    on_focus: InputEvent,
+    on_blur: InputEvent,
+    on_submit: InputEvent,
+) {
+}
+```
+
+The payload struct mirrors the event body, with every field
+`#[serde(default)]` so a partial body degrades gracefully:
+
+```rust
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[non_exhaustive]
+pub struct InputEvent {
+    /// The event body's `detail` dict.
+    #[serde(default)]
+    pub detail: InputDetail,
+}
+
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+#[non_exhaustive]
+pub struct InputDetail {
+    /// The field's current full text.
+    #[serde(default)]
+    pub value: String,
+}
+```
+
+**2. Swift — list the event, then dispatch it.** The `Events("…")`
+block in the module definition is *declaration-only* metadata (so the
+codegen/docs scanner sees the full surface); the actual dispatch happens
+in the view:
+
+```swift
+// packages/whisker-input/ios/Sources/WhiskerInput/InputModule.swift
+Events("input", "change", "focus", "blur", "submit")
+```
+
+```swift
+// packages/whisker-input/ios/Sources/WhiskerInput/InputView.swift
+private func emitInput(_ text: String) {
+    cachedText = text
+    DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        WhiskerCustomEvent.dispatch(from: self, name: "input", params: self.detailPayload(text))
+    }
+}
+```
+
+**3. App — pass a closure to `on_<name>`.** The consuming app hands the
+ergonomic component a closure; it receives the decoded payload:
+
+```rust
+Input(
+    value: value,
+    on_input: move |s: String| set_value.set(s.to_uppercase()),
+)
+```
+
+### Gotcha 1: dispatch on the next runloop tick
+
+Notice the `DispatchQueue.main.async` wrapping the dispatch above. It is
+**not** optional. UIKit delegate callbacks (`textFieldDidEndEditing`,
+`textViewDidChange`, …) can fire *synchronously during Lynx's native
+teardown* — e.g. on a hot-reload remount, while `remove_child` still
+holds the renderer's `CURRENT_RENDERER` `RefCell` borrow. A synchronous
+dispatch reenters Rust's `dispatch_event`, takes a *second* borrow, and
+panics with "RefCell already borrowed" (the event is dropped). Deferring
+one tick guarantees the dispatch lands at idle. The canonical comment
+from `InputView.swift` spells it out:
+
+```swift
+// NOTE: every `WhiskerCustomEvent.dispatch(...)` below is deferred to
+// the next main-runloop tick via `DispatchQueue.main.async`. UIKit
+// delegate callbacks (`textFieldDidEndEditing`, `textViewDidChange`,
+// …) fire SYNCHRONOUSLY during Lynx's native teardown on a hot-reload
+// remount, while `remove_child` still holds the `CURRENT_RENDERER`
+// RefCell borrow. Dispatching synchronously reenters Rust's
+// `dispatch_event` → a second `with_renderer` borrow → "RefCell
+// already borrowed" panic (the event is dropped). Deferring one tick
+// guarantees the dispatch lands at idle, never inside a render borrow.
+```
+
+Snapshot any state (`self`, the text) *before* the async block, capture
+`self` weakly, and a torn-down view will simply skip the dispatch.
+
+### Gotcha 2: don't wrap your payload in `detail`
+
+The params dict you hand `dispatch(from:name:params:)` is delivered **as
+the event's params**, and Lynx's `generateEventBody` (iOS) / the Android
+event reporter already nests that dict under a `detail` key in the event
+body — `{ type, target, currentTarget, detail: <params> }`. Your Rust
+`InputEvent { detail: { value } }` reads `body.detail`. If you *also*
+wrap your payload in a `detail` key yourself, it double-nests
+(`detail: { detail: { value } }`) and the typed payload arrives empty —
+e.g. every `on_input` delivers `""`. Pass the **flat** dict:
+
+```swift
+// packages/whisker-input/ios/Sources/WhiskerInput/InputView.swift
+private func detailPayload(_ text: String) -> [AnyHashable: Any] {
+    return ["value": text]   // flat — NOT ["detail": ["value": text]]
+}
+```
+
 ## Step 5: Publish — crates.io and nothing else
 
 This is the key distribution fact, and it differs from how the core

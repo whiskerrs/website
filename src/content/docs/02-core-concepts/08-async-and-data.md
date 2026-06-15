@@ -134,10 +134,11 @@ becomes a dependency — and when one of those signals changes, the fetcher
 **re-runs and the resource re-fetches**. That makes `resource` the right
 tool for a *keyed* fetch: a query, a selected id, a page number.
 
-Read the dependency **inside the async block** (any read before the first
-`.await` is tracked too, but reading inside the block is the pattern to
-teach). Here a search box drives an iTunes-style lookup that re-fetches as
-the query changes:
+Read the dependency **inside the async block** — that's where tracking is
+active. (A read in the synchronous closure body that merely *returns* the
+future runs once at setup and is **not** tracked; see the pitfall below.)
+Here a search box drives an iTunes-style lookup that re-fetches as the
+query changes:
 
 ```rust
 let query = RwSignal::new(String::new());
@@ -163,6 +164,32 @@ While a re-fetch is in flight the resource returns to `Loading`, so a
 again before the previous request lands, only the latest query commits —
 no out-of-order flicker. This mirrors the shape we ship in
 `examples/podcast/crates/podcast-feature-search`.
+
+> **Common pitfall: where you read the signal decides whether it
+> re-fetches.** Tracking happens while the **async block** runs. Read the
+> signal *inside* the async block and the resource is reactive — it
+> refetches on every change. Read it in a **synchronous prelude** that
+> only *returns* the future, and the read happens once at setup, outside
+> the tracked async body — so it is **not** a dependency and the resource
+> **never refetches**.
+>
+> ```rust
+> // ❌ WRONG — `sig.get()` runs in the synchronous closure body, BEFORE
+> // the async block. Not tracked → never refetches when `sig` changes.
+> resource(move || {
+>     let q = sig.get();
+>     async move { fetch(q).await }
+> });
+>
+> // ✅ RIGHT — `sig.get()` runs INSIDE the async block, so it's tracked.
+> resource(move || async move {
+>     let q = sig.get();
+>     fetch(q).await
+> });
+> ```
+>
+> The real `podcast-feature-search` repro calls `query.get()` inside the
+> `async move { … }` block for exactly this reason.
 
 ### Fetch-dependency vs. derive
 
@@ -280,6 +307,76 @@ The result hops back to the UI thread automatically. A synchronous client
 `run_blocking` is the bridge from "code that needs another thread/runtime"
 back into Whisker's reactive world. (See [Tasks](/docs/tasks) for the full
 picture.)
+
+## Foreign threads & `run_blocking`
+
+The caveat above has a sharper edge worth calling out on its own, because
+it's the single most common way to hang a Whisker app with no error to
+point at.
+
+> **Whisker's task pool does not support cross-thread wake.** If you
+> `.await` a future whose waker fires from an **external** thread — most
+> often a `JoinHandle` from `tokio::runtime().spawn(fut)` — that wake
+> never reaches Whisker's task pool, and the `.await` **hangs forever**.
+> No panic, no log, no timeout.
+
+For the curious: Whisker drives its cooperative task pool off the native
+**main loop**. A waker that fires on a foreign thread doesn't post to that
+loop, so the parked task is never re-polled. This is *not* the same as a
+deadlock you can spot in a stack trace — the thread is simply idle,
+waiting for a wake that will never come.
+
+So the wrong shape is awaiting a foreign `JoinHandle` directly:
+
+```rust
+// ❌ HANGS — the tokio runtime drives `fut` to completion on its OWN
+// thread, then wakes the JoinHandle from there. That wake never reaches
+// Whisker's main-loop task pool, so this `.await` parks forever.
+let handle = runtime().spawn(fut);
+let body = handle.await;          // never resumes
+```
+
+The supported bridge is **`run_blocking(|| …)`**. It runs the blocking /
+foreign work on a worker thread and re-posts the result onto the main
+loop, so the awaiting task resumes on the thread it was parked on. Its
+signature (`crates/whisker-runtime/src/tasks.rs`):
+
+```rust
+pub fn run_blocking<F, T>(closure: F) -> impl Future<Output = T>
+where
+    F: FnOnce() -> T + Send + 'static,
+    T: Send + 'static,
+```
+
+For a synchronous client, call it straight inside the closure — exactly
+as `examples/podcast/crates/podcast-feature-search` does:
+
+```rust
+run_blocking(move || {
+    search(SearchQuery { term: q.trim(), limit: 20 })
+})
+.await
+.map_err(|e: FetchError| e.to_string())
+```
+
+For a tokio-based future, **block on the runtime inside the closure**
+rather than awaiting a foreign `JoinHandle`. The `block_on` runs on
+`run_blocking`'s worker thread, and only the final `T` crosses back to the
+main loop:
+
+```rust
+// ✅ Correct: block the worker thread on the tokio runtime; the result
+// (a plain `T`) is re-posted to the main loop and the await resumes.
+let body = run_blocking(move || runtime().block_on(fut)).await;
+```
+
+The rule of thumb: never let a foreign-thread waker be the thing Whisker
+waits on. Cross the boundary with `run_blocking` and hand back a value,
+not a future.
+
+This is also why a [reactive `resource`](#reactive--keyed-resources)
+fetcher almost always wraps its IO in `run_blocking` — the fetcher runs on
+the task pool, so its `.await` points are subject to exactly this rule.
 
 ## Where to go next
 
