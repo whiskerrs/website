@@ -116,7 +116,9 @@ Grammar essentials:
 - Bare string literals and bare `{expr}` blocks as children are
   rejected — wrap text in `text(value: …)`.
 
-Full tag and method list: [Elements](/docs/elements).
+Full tag and method list: [Elements](/docs/elements). `render!` bodies live
+inside a macro token tree that `cargo fmt` won't touch — format them (and the
+expressions within) with [`whisker fmt`](/docs/formatting).
 
 ## `css!(name: value, …)`
 

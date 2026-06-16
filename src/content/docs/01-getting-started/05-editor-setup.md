@@ -32,8 +32,22 @@ rust-analyzer" / reload refreshes its macro expansion.
 
 ## Formatting
 
-Use `cargo fmt` as usual. `render!` blocks format as normal Rust token
-trees.
+Use [`whisker fmt`](/docs/formatting) — a rustfmt drop-in that formats your
+Rust *and* the `render!` / `css!` macro bodies (and the expressions inside
+them) that plain `cargo fmt` leaves untouched. It respects your
+`rustfmt.toml` and nothing else.
+
+For format-on-save, point rust-analyzer at its `--stdin` mode in a
+`rust-analyzer.toml` at the project root:
+
+```toml
+[rustfmt]
+overrideCommand = ["whisker", "fmt", "--stdin"]
+```
+
+`whisker new` scaffolds this file automatically, so new projects get
+`render!`/`css!` format-on-save out of the box. See
+[Formatting](/docs/formatting) for the full setup.
 
 ## Next
 

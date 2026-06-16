@@ -30,7 +30,7 @@ cargo install whisker-build
 |---|---|
 | `-v`, `--verbose` | Show every step's full underlying output (raw `cargo` / `xcodebuild` / `simctl` streams + internal debug logs). Global; applies to any subcommand. Equivalent to `WHISKER_VERBOSE=1`, which subprocesses inherit. |
 
-The four subcommands are `doctor`, `run`, `new`, and `new-module`.
+The five subcommands are `doctor`, `run`, `new`, `new-module`, and `fmt`.
 
 ## `whisker doctor`
 
@@ -107,3 +107,26 @@ whisker new-module whisker-secure-store --shape function-only
 See [First-party Modules](/docs/modules-api) for examples of the modules
 this command scaffolds, and the module authoring guide for filling in the
 platform code.
+
+## `whisker fmt [FILES…]`
+
+A **rustfmt drop-in**. It formats normal Rust by delegating to the real
+`rustfmt`, and additionally formats the `render!` and `css!` macro bodies —
+including the Rust expressions embedded inside them — that plain rustfmt
+leaves untouched.
+
+| Argument / Option | Default | Notes |
+|---|---|---|
+| `[FILES…]` (positional) | — | Format each file in place. |
+| `--check` | off | Print a unified diff per file and exit non-zero if anything would change; don't write. |
+| `--stdin` | off | Read source from stdin, write the formatted result to stdout. The editor-integration entry point. With `--check`, diff to stderr and exit non-zero. |
+
+```sh
+whisker fmt src/lib.rs
+whisker fmt --check src/**/*.rs
+```
+
+There is no whisker-specific config: `whisker fmt` respects only your
+`rustfmt.toml` (`max_width`, `tab_spaces`, `edition`, …) and applies it to
+the macro bodies as well. See [Formatting](/docs/formatting) for the full
+behavior, the editor format-on-save setup, and known limitations.
