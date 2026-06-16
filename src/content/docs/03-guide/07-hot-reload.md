@@ -37,6 +37,23 @@ WebSocket. The app dials the dev server; on Android the device-to-host
 hop is bridged with `adb reverse` automatically, so you don't set
 anything up.
 
+> **Platform support.** Hot reload (and `whisker run` in general) is
+> available on the **iOS Simulator**, **Android emulators**, and **physical
+> Android devices** — but **not on physical iOS devices**. `whisker run ios`
+> targets the Simulator only: the dev-server address is delivered via
+> `simctl` (simulator processes only) and the Tier 1 patch `dlopen`s a
+> dylib that a non-jailbroken iPhone/iPad blocks via code signing. For a
+> real iPhone/iPad, build and install through Xcode as usual (no
+> hot-reload). Physical-iOS support is tracked in
+> [whiskerrs/whisker#223](https://github.com/whiskerrs/whisker/issues/223).
+>
+> | | hot reload |
+> |---|---|
+> | iOS Simulator | ✅ |
+> | iOS physical device | ❌ |
+> | Android emulator | ✅ |
+> | Android physical device | ✅ |
+
 ## Tier 1 — sub-second hot patch
 
 For a change Whisker can patch — typically a Rust code edit (a function

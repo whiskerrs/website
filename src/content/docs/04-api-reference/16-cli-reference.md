@@ -50,7 +50,7 @@ crate.
 
 | Argument / Option | Default | Notes |
 |---|---|---|
-| `<target>` (positional) | required | `ios` or `android`. |
+| `<target>` (positional) | required | `ios` or `android`. **`ios` targets the iOS Simulator only — physical iOS devices are not supported** (see the note below). `android` works on both emulators and physical devices. |
 | `--manifest-path <PATH>` | walk up from cwd | Path to the app crate's `Cargo.toml`. |
 | `--bind <ADDR>` | `127.0.0.1:9876` | WebSocket bind address the device dials (via `WHISKER_DEV_ADDR`) to receive patches. |
 | `--no-hot-patch` | off | Opt out of Tier 1 subsecond hot-patching; fall back to Tier 2 cold rebuilds. |
@@ -66,6 +66,17 @@ whisker run android --bind 0.0.0.0:9876
 The positional `target` is required — there is no bare `whisker run`
 form. Pair `--show-native-logs` with `WHISKER_VERBOSE=1` (or `--verbose`)
 for the fullest output.
+
+> **iOS is Simulator-only.** `whisker run ios` builds, installs, launches,
+> and hot-reloads on the **iOS Simulator** only — running on a **physical
+> iOS device is not currently supported**. The run target is fixed to the
+> simulator, the dev-server address is delivered to the app via `simctl`
+> (which only launches simulator processes), and the subsecond hot-patch
+> `dlopen`s a dylib at runtime, which a non-jailbroken device blocks via
+> code signing. `whisker run android` works on emulators **and** physical
+> devices (it bridges the dev-server over `adb reverse`). To run on a real
+> iPhone/iPad, do a normal Xcode build/install — there is no hot-reload on
+> device. Tracking issue: [whiskerrs/whisker#223](https://github.com/whiskerrs/whisker/issues/223).
 
 ## `whisker new <name>`
 
