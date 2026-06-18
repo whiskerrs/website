@@ -28,7 +28,7 @@ use whisker::prelude::*;
 
 #[component]
 fn greeting() -> Element {
-    let signed_in = RwSignal::new(false);
+    let signed_in = signal(false);
 
     render! {
         view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 8.px())) {

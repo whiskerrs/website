@@ -75,7 +75,7 @@ use whisker::prelude::*;
 
 #[whisker::main]
 fn app() -> Element {
-    let count = RwSignal::new(0);
+    let count = signal(0);
 
     render! {
         view(on_tap: move |_| count.update(|n| *n += 1)) {
