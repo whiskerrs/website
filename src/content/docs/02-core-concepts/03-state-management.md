@@ -23,43 +23,40 @@ updates at the precise places that depend on the value.
 
 ## Creating state
 
-There are two ways to make a signal, and they're equivalent — pick by
-ergonomics.
-
-A unified read/write handle:
+Make a signal with `signal(v)`. It hands back a single read/write handle
+— an `RwSignal<T>` — that both reads and writes the same slot:
 
 ```rust
 use whisker::prelude::*;
 
-let count = RwSignal::new(0);
-count.get();            // 0  — read
-count.set(7);           // replace
+let count = signal(0);
+count.get();               // 0  — read
+count.set(7);              // replace
 count.update(|n| *n += 1); // mutate in place → 8
 ```
 
-Or a Solid-style split into separate read and write halves:
+`signal(initial)` returns `RwSignal<T>`. `RwSignal::new(initial)` is the
+equivalent explicit constructor — `signal(0)` is just the idiomatic
+shorthand:
 
 ```rust
-use whisker::prelude::*;
-
-let (count, set_count) = signal(0);
-count.get();            // 0
-set_count.set(7);
-set_count.update(|n| *n += 1);
+let count = signal(0);        // idiomatic
+let count = RwSignal::new(0); // identical
 ```
 
-`signal(v)` returns `(ReadSignal<T>, WriteSignal<T>)`. The split is
-useful when you want to hand a child component the ability to *read*
-state without also handing it the ability to *write*. You can always go
-back and forth with `count.split()` / `rw.read_only()`.
+The handle is `Copy`, so it moves into `move |_|` closures freely —
+copying a handle does **not** clone the underlying value; both copies
+point at the same slot.
 
-All of these handles are `Copy`, so they move into `move |_|` closures
-freely — copying a handle does **not** clone the underlying value; both
-copies point at the same slot.
+You **read** with `.get()` (returns a clone, subscribes the current
+tracking context) or `.with(|v| …)` (borrows the value, no `Clone`
+bound). You **write** with `.set(v)` (replace) or `.update(|v| …)`
+(mutate in place — what you want for collections like
+`update(|v| v.push(item))` and for types that aren't `Clone`).
 
-`set` replaces the value; `update` hands you `&mut T` to mutate in place,
-which is what you want for collections (`update(|v| v.push(item))`) and
-for types that aren't `Clone`. Full method tables live in the
+There is **no call sugar**: a signal is read and written through these
+methods, never by calling it. Write `count.get()` and `count.set(1)`,
+not `count()` or `count(1)`. Full method tables live in the
 [Reactivity reference](/docs/reactivity-api).
 
 ## The one rule, made concrete
@@ -69,7 +66,7 @@ Here is the whole model in one example:
 ```rust
 use whisker::prelude::*;
 
-let count = RwSignal::new(0);
+let count = signal(0);
 
 render! {
     view {
@@ -97,7 +94,7 @@ it reads changes, and the result is cached:
 ```rust
 use whisker::prelude::*;
 
-let count = RwSignal::new(0);
+let count = signal(0);
 let label = computed(move || format!("You clicked {} times", count.get()));
 
 render! {
@@ -128,7 +125,7 @@ call site:
 ```rust
 use whisker::prelude::*;
 
-let name = RwSignal::new("world".to_string());
+let name = signal("world".to_string());
 
 render! {
     text(value: name)        // reactive — re-renders when `name` changes
@@ -153,7 +150,7 @@ use whisker::prelude::*;
 
 #[component]
 fn counter() -> Element {
-    let count = RwSignal::new(0);
+    let count = signal(0);
     let parity = computed(move || {
         if count.get() % 2 == 0 { "even" } else { "odd" }
     });
@@ -174,33 +171,60 @@ notifies its reader when the even/odd result flips. The button's handler
 is the only writer. Three independent reactive spots, one signal — no
 manual wiring.
 
-## `RwSignal` vs the `signal()` split
+## Splitting read/write
 
-Use whichever reads best:
+An `RwSignal` carries both capabilities, but you don't always want to
+hand both to everyone. When you pass state into a child component, you
+usually want to grant exactly one capability — a child that *displays*
+state shouldn't be able to *mutate* it, and vice versa. The `RwSignal`
+projects into narrower handles:
 
-- **`RwSignal::new(v)`** when the same place both reads and writes — most
-  component-local state. One `Copy` handle to carry around.
-- **`signal()` → `(read, write)`** when you want to *separate*
-  capabilities — e.g. give a child a `ReadSignal<T>` so it can display
-  state but not mutate it, while the parent keeps the `WriteSignal<T>`.
+- **`count.read_only()` → `ReadSignal<T>`** — a read-only view of the
+  same slot. Pass this to a child that should only display the value.
+- **`count.write_only()` → `WriteSignal<T>`** — a write-only handle. Pass
+  this to a child whose only job is to mutate.
+- **`count.split()` → `(ReadSignal<T>, WriteSignal<T>)`** — both halves at
+  once, the Solid-style pair. Handy when one site reads and a different
+  site writes.
 
-To share writable state with a child, lift the signal to the common
-parent and pass the handle down as a prop:
+All three project onto the **same underlying slot** — they don't copy the
+value — and like `RwSignal` they're `Copy`, so they move into closures
+freely.
+
+The recommended pattern for sharing state with a child is to keep the
+`RwSignal` in the parent and pass down the narrowest handle the child
+needs:
 
 ```rust
 use whisker::prelude::*;
 
 #[component]
 fn parent() -> Element {
-    let count = RwSignal::new(0);
+    let count = signal(0);
     render! {
         view {
-            Display(count: count)
+            // `Display` only reads → hand it a read-only handle.
+            Display(count: count.read_only())
+            // `Controls` both reads and writes → hand it the RwSignal.
             Controls(count: count)
         }
     }
 }
 ```
+
+If you prefer the explicit pair up front, destructure with `.split()`:
+
+```rust
+use whisker::prelude::*;
+
+let (count, set_count) = signal(0).split();
+count.get();               // ReadSignal — read only
+set_count.set(7);          // WriteSignal — write only
+set_count.update(|n| *n += 1);
+```
+
+This is the only place you'll see the `(read, write)` tuple form — it's a
+deliberate split, not the default way to create a signal.
 
 ## When state must outlive its owner: `Arc*` signals
 

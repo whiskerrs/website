@@ -24,7 +24,7 @@ effect/computed) just returns the current value and subscribes to
 nothing. This is the whole model:
 
 ```rust
-let (count, set_count) = signal(0);
+let count = signal(0);
 
 effect(move || println!("count is {}", count.get())); // subscribes
 let now = count.get_untracked();                       // never subscribes
@@ -36,14 +36,23 @@ effect without making it a dependency.
 ## `signal`
 
 ```rust
-let (count, set_count) = signal(0_i32);
+let count = signal(0_i32);
 ```
 
-`signal(initial) -> (ReadSignal<T>, WriteSignal<T>)` allocates a new
-signal in the current [owner](#owners-advanced) and splits read and
-write capability into two handles. Both handles are `Copy`, so they move
-freely into `move ||` closures. A child can be handed `count:
-ReadSignal<i32>` with no ability to write.
+`signal(initial) -> RwSignal<T>` allocates a new signal in the current
+[owner](#owners-advanced) and returns a single combined read/write handle
+— an [`RwSignal<T>`](#rwsignalt). It's `Copy`, so it moves freely into
+`move ||` closures. Read it with `.get()` / `.with()`, write it with
+`.set()` / `.update()`; there is no call sugar.
+
+`signal(initial)` is the idiomatic shorthand for
+[`RwSignal::new(initial)`](#rwsignalt) — the two are identical.
+
+To narrow capability before handing a signal to a child, project it:
+`count.read_only()` yields a `ReadSignal<T>` (display, no mutation),
+`count.write_only()` yields a `WriteSignal<T>` (mutate only), and
+`count.split()` yields both halves as a `(ReadSignal<T>, WriteSignal<T>)`
+pair. All three view the same underlying slot.
 
 ### `ReadSignal<T>`
 
@@ -66,6 +75,7 @@ Use `with` / `with_untracked` when `T` is expensive to clone or isn't
 | `update_untracked` | `(self, f: impl FnOnce(&mut T))` | Mutate without notifying. Escape hatch — use sparingly. |
 
 ```rust
+let set_count = count.write_only(); // or: let (_, set_count) = count.split();
 set_count.set(1);
 set_count.update(|n| *n += 1);
 ```
@@ -78,10 +88,12 @@ set_count.update(|n| *n += 1);
 ## `RwSignal<T>`
 
 A combined read-write handle — equivalent to holding both a
-`ReadSignal<T>` and a `WriteSignal<T>` for the same node. `Copy`.
+`ReadSignal<T>` and a `WriteSignal<T>` for the same node. `Copy`. This is
+what `signal(initial)` returns, and the type you carry around for most
+component-local state.
 
 ```rust
-let count = RwSignal::new(0_i32);
+let count = signal(0_i32);     // idiomatic; same as RwSignal::new(0_i32)
 count.set(1);
 count.update(|n| *n += 1);
 let n = count.get();
@@ -89,9 +101,10 @@ let n = count.get();
 
 | Method | Signature | Notes |
 |---|---|---|
-| `new` | `(initial: T) -> Self` | Allocate in the current owner. |
-| `read_only` | `(self) -> ReadSignal<T>` | Project to a read handle on the same value. |
-| `split` | `(self) -> (ReadSignal<T>, WriteSignal<T>)` | Split into the two halves. |
+| `new` | `(initial: T) -> Self` | Allocate in the current owner. `signal(initial)` is the free-fn shorthand. |
+| `read_only` | `(self) -> ReadSignal<T>` | Project to a read-only handle on the same value. Pass this to a child that only displays state. |
+| `write_only` | `(self) -> WriteSignal<T>` | Project to a write-only handle on the same value. Pass this to a child that only mutates. |
+| `split` | `(self) -> (ReadSignal<T>, WriteSignal<T>)` | Split into the read and write halves at once. |
 | `get` | `(self) -> T` | Read + subscribe. `T: Clone`. |
 | `get_untracked` | `(self) -> T` | Read, no subscribe. `T: Clone`. |
 | `with` | `(self, f) -> R` | Borrowed read + subscribe. |
@@ -123,8 +136,8 @@ don't nest (stack-navigator routes, independently-mounted tabs, portaled
 modals), or `HashMap<K, ArcRwSignal<V>>` collections.
 
 ```rust
-let (count, set_count) = arc_signal(0_i32);
-set_count.set(1);
+let count = arc_signal(0_i32);
+count.set(1);
 assert_eq!(count.get(), 1);
 ```
 
@@ -134,12 +147,13 @@ assert_eq!(count.get(), 1);
 | `ArcReadSignal<T>` | Read-only projection | `Clone`, not `Copy` |
 | `ArcWriteSignal<T>` | Write-only projection | `Clone`, not `Copy` |
 
-`arc_signal(initial) -> (ArcReadSignal<T>, ArcWriteSignal<T>)` is the Arc
-analog of [`signal`](#signal). `ArcRwSignal::new`, `read_only`,
-`write_only`, `split`, `get`/`get_untracked`, `with`/`with_untracked`,
-`set`, `update`, `update_untracked` mirror the arena types' method shape
-exactly — the only difference is that you clone these handles explicitly
-(they aren't `Copy`).
+`arc_signal(initial) -> ArcRwSignal<T>` is the Arc analog of
+[`signal`](#signal) — a single combined handle. `ArcRwSignal::new`,
+`read_only`, `write_only`, `split`, `get`/`get_untracked`,
+`with`/`with_untracked`, `set`, `update`, `update_untracked` mirror the
+arena types' method shape exactly — the only difference is that you clone
+these handles explicitly (they aren't `Copy`). Use `count.split()` for
+the `(ArcReadSignal<T>, ArcWriteSignal<T>)` pair.
 
 Whisker also provides `From<ArcRwSignal<T>> for RwSignal<T>` (and the
 read/write analogs), so a module author can stash an `ArcRwSignal` at the
@@ -148,7 +162,7 @@ storage boundary and hand out a `Copy` arena handle at the API surface.
 ## `computed`
 
 ```rust
-let (count, _set) = signal(0_i32);
+let count = signal(0_i32);
 let doubled = computed(move || count.get() * 2);
 assert_eq!(doubled.get(), 0);
 ```
@@ -167,7 +181,7 @@ dependency graph.
 ## `effect`
 
 ```rust
-let (count, _set) = signal(0_i32);
+let count = signal(0_i32);
 effect(move || {
     println!("count changed to {}", count.get());
 });
