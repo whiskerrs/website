@@ -32,7 +32,7 @@ reactive state from the old branch cannot leak.
 ```rust
 #[component]
 fn toggle() -> Element {
-    let open = RwSignal::new(false);
+    let open = signal(false);
 
     render! {
         view {

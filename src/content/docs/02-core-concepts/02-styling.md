@@ -142,7 +142,7 @@ use whisker::prelude::*;
 
 #[component]
 fn toggle() -> Element {
-    let on = RwSignal::new(false);
+    let on = signal(false);
 
     let box_style = computed(move || {
         css!(

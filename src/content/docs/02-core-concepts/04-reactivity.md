@@ -25,7 +25,7 @@ animation, syncing to a native API.
 ```rust
 use whisker::prelude::*;
 
-let count = RwSignal::new(0);
+let count = signal(0);
 
 effect(move || {
     log::info!("count is now {}", count.get());
@@ -38,7 +38,7 @@ every signal it reads. From then on it re-runs whenever any of those
 signals changes:
 
 ```rust
-let count = RwSignal::new(0);
+let count = signal(0);
 
 effect(move || log::info!("count = {}", count.get()));
 // ^ logs "count = 0" right away
@@ -53,7 +53,7 @@ non-reactive API:
 ```rust
 use whisker::prelude::*;
 
-let volume = RwSignal::new(0.8_f32);
+let volume = signal(0.8_f32);
 
 effect(move || {
     audio_engine::set_volume(volume.get());  // push to the native player
@@ -144,7 +144,7 @@ use whisker::prelude::*;
 
 #[component]
 fn timer() -> Element {
-    let elapsed = RwSignal::new(0);
+    let elapsed = signal(0);
 
     on_mount(move || {
         log::info!("Timer is now on screen");
@@ -185,7 +185,7 @@ common triggers are the reactive control-flow primitives:
 ```rust
 use whisker::prelude::*;
 
-let show_panel = RwSignal::new(true);
+let show_panel = signal(true);
 
 render! {
     Show(when: move || show_panel.get(), fallback: || render! { fragment() }) {

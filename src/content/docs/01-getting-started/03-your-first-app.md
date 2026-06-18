@@ -34,7 +34,7 @@ use whisker::prelude::*;
 
 #[whisker::main]
 fn app() -> Element {
-    let count = RwSignal::new(0);
+    let count = signal(0);
 
     render! {
         page(style: "flex-direction: column; padding: 24px; gap: 16px;") {

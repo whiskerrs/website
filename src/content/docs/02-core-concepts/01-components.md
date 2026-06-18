@@ -95,7 +95,7 @@ a reactive signal. Pass a value and the prop never changes; pass a
 signal and the component updates when it changes:
 
 ```rust
-let count = RwSignal::new(0);
+let count = signal(0);
 
 render! {
     // static — set once

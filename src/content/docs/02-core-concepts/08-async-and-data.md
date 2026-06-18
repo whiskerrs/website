@@ -141,7 +141,7 @@ Here a search box drives an iTunes-style lookup that re-fetches as the
 query changes:
 
 ```rust
-let query = RwSignal::new(String::new());
+let query = signal(String::new());
 
 let results = resource(move || async move {
     let q = query.get();                 // read inside the async block → tracked
@@ -203,7 +203,7 @@ The deciding question is *what the signal does*:
   instead:
 
   ```rust
-  let filter = RwSignal::new(String::new());
+  let filter = signal(String::new());
 
   // `results` was fetched once (or keyed on something else). `visible`
   // re-derives on the main thread when `filter` changes — no network.
@@ -237,8 +237,8 @@ the result back:
 ```rust
 #[component]
 fn podcast_search() -> Element {
-    let results = RwSignal::new(Vec::<Podcast>::new());
-    let error = RwSignal::new(Option::<String>::None);
+    let results = signal(Vec::<Podcast>::new());
+    let error = signal(Option::<String>::None);
 
     let on_search = move |_| {
         spawn_local(async move {

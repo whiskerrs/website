@@ -253,7 +253,7 @@ argument). The closure runs inside an effect, so any signal read while it
 runs — including reads **inside the async block** — becomes a dependency:
 
 ```rust
-let query = RwSignal::new(String::new());
+let query = signal(String::new());
 let results = resource(move || async move {
     let q = query.get();   // tracked → changing `query` re-fetches
     run_blocking(move || api::search(&q)).await.map_err(|e| e.to_string())
