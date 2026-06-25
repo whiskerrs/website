@@ -8,11 +8,10 @@ order: 1
 
 This guide walks through adding screen-to-screen navigation to a
 Whisker app with the `whisker-router` crate. We'll build a small
-two-screen flow — a list of items that pushes a detail screen when you
-tap a row, with a native iOS slide transition and a working back
-gesture.
+two-screen flow — a list that pushes a detail screen with a native
+slide transition and a working back gesture — then layer on tabs.
 
-For the complete API surface (every layout, transition, and gesture),
+For the complete API surface (every container, transition, and hook),
 see the [Routing reference](/docs/routing-api). This page is the
 fast path to a working router.
 
@@ -24,152 +23,151 @@ fast path to a working router.
 ```toml
 [dependencies]
 whisker = { workspace = true }
-whisker-router = "0.2"
+whisker-router = "0.6"
 ```
 
-The crate has **no prelude** — every public symbol is re-exported from
-the crate root, so import what you use directly:
+Import what you need directly — the crate has no `prelude`:
 
 ```rust
 use whisker::prelude::*;
 use whisker_router::{
-    route, route_stack, RouteProvider, RouteProviderProps, RouteRenderFn,
-    StackLayout, StackLayoutProps, IosSlide, StackTransitionBox,
-    IosSwipeBack, IosSwipeBackProps,
+    routes, Router, RouterHandle, Outlet,
+    SwipeBack, AndroidPredictiveBack,
+    use_navigator, use_param,
 };
 ```
 
-## 2. Define a route enum
+## 2. Declare the route tree
 
-A route is a typed enum. Annotate it with `#[route]` and give each
-variant an `#[at("...")]` pattern. The macro derives a `Route` impl
-that round-trips between each enum value and its canonical URL path.
-
-```rust
-#[route]
-#[derive(Clone, Debug, PartialEq)]
-pub enum AppRoute {
-    #[at("/")]            Home,
-    #[at("/detail/:id")]  Detail { id: u64 },
-}
-```
-
-Path rules in brief:
-
-- A leading `/` is required (the index route is just `/`).
-- `:name` binds to a variant field of the same name; the field type
-  must implement `FromStr` and `Display` (`u64`, `String`, your own
-  enums).
-- Use **named-field** variants (`Detail { id: u64 }`). Tuple-struct
-  variants (`Detail(u64)`) are a compile error in v1.
-
-The full path grammar is in the
-[Routing reference](/docs/routing-api#defining-routes).
-
-## 3. Create a RouteStack
-
-The back stack is a `RouteStack<R>` — a cloneable, reactive handle.
-Create one with `route_stack(initial)` (or `RouteStack::new`). The
-stack always keeps at least one entry, so `back()` is a no-op at the
-root rather than emptying the stack.
+Routes are declared with the `routes!` macro. The macro takes a nested
+block of **containers** (`Stack`, `Switch`) and **routes** (`Route`)
+and produces a `RouteSet` — the compiled tree + component registry the
+router needs.
 
 ```rust
-let nav = route_stack(AppRoute::Home);
+let handle = RouterHandle::new(routes! {
+    Stack {
+        Route(path: "", component: Home)
+        Route(path: "detail/:id", component: Detail)
+    }
+});
 ```
 
-Cloning the handle shares the same underlying storage, so you can pass
-it as a prop, capture it in closures, or look it up from context later.
+- `Stack` — an ordered container with push/pop history.
+- `Route(path:, component:)` — a screen with a URL segment and
+  a component.
+- `:id` in a path is a dynamic parameter. Read it at render time
+  with `use_param("id")`.
 
-## 4. Map routes to screens
+The full grammar is in the
+[Routing reference](/docs/routing-api#the-routes-macro).
 
-A `RouteRenderFn` turns the current route value into an `Element`.
-Write a plain closure that matches each variant to a screen, then call
-`.into()` to wrap it:
+## 3. Mount the Router
 
-```rust
-let render: RouteRenderFn<AppRoute> = (|r: AppRoute| match r {
-    AppRoute::Home          => render! { HomeScreen() },
-    AppRoute::Detail { id } => render! { DetailScreen(id: id) },
-})
-.into();
-```
-
-## 5. Wire it up with RouteProvider + StackLayout
-
-`RouteProvider` publishes the stack into context so descendants can
-look it up by type. Inside it, mount a renderer. We'll use
-`StackLayout` — the back-stack-preserving navigator with native
-push/pop animation that keeps every entry mounted, so going back
-restores the previous screen's scroll position and state.
+`Router` publishes the handle into context and creates a positioned
+root container. Inside it, mount an `Outlet` (renders the active route)
+and optional gesture components:
 
 ```rust
 #[whisker::main]
 fn app() -> Element {
-    let nav = route_stack(AppRoute::Home);
-
-    let render: RouteRenderFn<AppRoute> = (|r: AppRoute| match r {
-        AppRoute::Home          => render! { HomeScreen() },
-        AppRoute::Detail { id } => render! { DetailScreen(id: id) },
-    })
-    .into();
+    let handle = RouterHandle::new(routes! {
+        Stack {
+            Route(path: "", component: Home)
+            Route(path: "detail/:id", component: Detail)
+        }
+    });
 
     render! {
-        page(style: "width: 100vw; height: 100vh; \
-                     display: flex; flex_direction: column;") {
-            RouteProvider(stack: nav) {
-                StackLayout(
-                    transition: StackTransitionBox::new(IosSlide::default()),
-                    render: render,
-                ) {
-                    IosSwipeBack()
-                }
+        view(style: css!(
+            flex_grow: 1.0,
+            width: vw(100),
+            height: vh(100),
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+        )) {
+            Router(handle: handle) {
+                Outlet {}
+                SwipeBack {}
+                AndroidPredictiveBack {}
             }
         }
     }
 }
 ```
 
-The `transition` prop is optional — it defaults to `IosSlide`, so you
-can drop it and get the same result. Other built-ins are `Fade`,
-`VerticalSlide`, and `Instant` (no animation); see
-[Transitions](/docs/routing-api#transitions).
+`Outlet` renders whichever screen the current state points to.
+`SwipeBack` and `AndroidPredictiveBack` layer on native back gestures
+— each is a no-op on the other platform, so pairing both is safe.
 
-If you don't need animation or state preservation, swap `StackLayout`
-for the lighter `Outlet`, which mounts the current route and disposes
-the previous one on every navigation.
+## 4. Navigate
 
-## 6. Navigate
-
-From any descendant component, look up the stack from context with
-`router::<R>()` — no need to thread the handle through props — and call
-its mutators:
+From any component inside the `Router`, call `use_navigator()` to get
+the handle and navigate by URL:
 
 ```rust
-use whisker_router::router;
-
 #[component]
-fn home_screen() -> Element {
-    let nav = router::<AppRoute>();
+fn home() -> Element {
+    let nav = use_navigator();
     render! {
-        page(style: "padding: 16px; flex_direction: column;") {
+        view(style: css!(
+            flex_grow: 1.0,
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+        )) {
             text(value: "Items")
-            view(on_tap: move |_| nav.push(AppRoute::Detail { id: 1 })) {
+            view(on_tap: move |_| {
+                let _ = nav.navigate("/detail/1");
+            }) {
                 text(value: "Open item 1")
             }
-            view(on_tap: move |_| nav.push(AppRoute::Detail { id: 2 })) {
+            view(on_tap: move |_| {
+                let _ = nav.navigate("/detail/2");
+            }) {
                 text(value: "Open item 2")
             }
         }
     }
 }
+```
 
+The six navigation operations:
+
+| Call | Effect |
+|---|---|
+| `nav.navigate("/detail/42")` | Push a new screen onto the active Stack |
+| `nav.back()` | Pop the top of the deepest active Stack |
+| `nav.select("/(home)")` | Switch a tab (change Switch branch) |
+| `nav.replace("/other")` | Swap the top entry (same Stack only) |
+| `nav.pop_to("/")` | Pop until the target is on top |
+| `nav.reset("/")` | Clear the Stack and restart (logout) |
+
+All targets are plain URL strings. Dynamic `:param` segments are
+extracted automatically by matching against the route tree.
+
+## 5. Read route params
+
+A component mounted under a `Route(path: "detail/:id", ...)` reads its
+`:id` with `use_param`:
+
+```rust
 #[component]
-fn detail_screen(id: Signal<u64>) -> Element {
-    let nav = router::<AppRoute>();
+fn detail() -> Element {
+    let nav = use_navigator();
+    let id = use_param("id");
+
     render! {
-        page(style: "padding: 16px; flex_direction: column;") {
-            text(value: computed(move || format!("Detail for item {}", id.get())))
-            view(on_tap: move |_| { nav.back(); }) {
+        view(style: css!(
+            flex_grow: 1.0,
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+        )) {
+            text(value: format!("Detail #{}", id.get().unwrap_or_default()))
+            view(on_tap: move |_| { let _ = nav.back(); }) {
                 text(value: "Back")
             }
         }
@@ -177,45 +175,143 @@ fn detail_screen(id: Signal<u64>) -> Element {
 }
 ```
 
-`router::<R>()` **panics** if no `RouteProvider<R>` ancestor is
-mounted, so always wrap your navigating tree in a provider.
+`use_param` returns a `ReadSignal<Option<String>>` that updates when
+the route's params change.
 
-The main mutators:
+## 6. Add tabs
 
-| Call | Effect |
-|---|---|
-| `nav.push(route)` | Push a new screen on top |
-| `nav.back()` | Pop the top (no-op at the root; returns `bool`) |
-| `nav.replace(route)` | Swap the top entry — depth unchanged (e.g. login → home) |
-| `nav.replace_all(route)` | Clear the stack and restart at the root (logout) |
+Tabs use two additional concepts: **Switch** (a parallel container that
+keeps all branches alive) and **layout routes** (a `Route` with both a
+component and children).
 
-Reactive readers (`current()`, `can_back()`, `stack()`, `depth()`)
-return signals you can drive UI from — for example, `nav.can_back()`
-to show or hide a back button. The full list is in the
-[Routing reference](/docs/routing-api#routestack).
+```text
+Route(component: TabsLayout)            ← layout: tab bar chrome + Outlet
+  └─ Switch
+       ├─ Route(path: "(home)")         ← group: no URL segment
+       │    └─ Stack
+       │         ├─ Route("", Home)
+       │         └─ Route("detail/:id", Detail)
+       └─ Route(path: "(search)")
+            └─ Stack
+                 ├─ Route("list", ListScreen)
+                 └─ Route("detail/:id", Detail)
+```
 
-## 7. Add the native back gesture
-
-`IosSwipeBack` (above) gives you the iOS edge swipe-back. Each gesture
-component renders no DOM of its own, reads the `StackLayout`'s context
-handle, and is a no-op on the platform it doesn't target — so pairing
-both is safe:
+The tree declares a `Switch` inside a layout route. Each tab branch
+has its own `Stack`, so each tab has independent push/pop history.
 
 ```rust
-StackLayout(render: render) {
-    IosSwipeBack()
-    AndroidPredictiveBack()
+let handle = RouterHandle::new(routes! {
+    Route(component: TabsLayout) {
+        Switch {
+            Route(path: "(home)") {
+                Stack {
+                    Route(path: "", component: Home)
+                    Route(path: "detail/:id", component: Detail)
+                }
+            }
+            Route(path: "(search)") {
+                Stack {
+                    Route(path: "list", component: ListScreen)
+                    Route(path: "detail/:id", component: Detail)
+                }
+            }
+        }
+    }
+});
+```
+
+### Layout routes
+
+`Route(component: TabsLayout)` is a **layout route**: it has a
+component *and* children. The component renders shared chrome (a tab
+bar) with an `Outlet` for the active child. This is the same concept
+as Expo Router's `_layout.tsx`.
+
+```rust
+#[component]
+fn tabs_layout() -> Element {
+    let nav = use_navigator();
+    render! {
+        view(style: css!(
+            flex_grow: 1.0,
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+        )) {
+            // Content area
+            view(style: css!(flex_grow: 1.0)) {
+                Outlet {}
+            }
+            // Tab bar
+            view(style: css!(
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceAround,
+                height: px(56),
+            )) {
+                view(on_tap: move |_| { let _ = nav.select("/(home)"); }) {
+                    text(value: "Home")
+                }
+                view(on_tap: {
+                    let nav = nav.clone();
+                    move |_| { let _ = nav.select("/(search)"); }
+                }) {
+                    text(value: "Search")
+                }
+            }
+        }
+    }
 }
 ```
 
-For the Android hardware/predictive back button, add
-`AndroidPredictiveBack`. Both come from the crate root
-(`whisker_router::{IosSwipeBack, AndroidPredictiveBack}` plus their
-`*Props`).
+### Group routes
 
-To intercept a back press from an ad-hoc consumer (say, to dismiss a
-modal first), use the `on_back` LIFO handler chain — see
-[Back handling](/docs/routing-api#back-handling--gestures).
+`Route(path: "(home)")` is a **group route** — the parenthesised path
+appears in the canonical URL (`/(home)/detail/1`) but is **optional
+during matching**. `navigate("/detail/1")` still matches because
+`(home)` is skipped when absent from the input.
+
+Group routes organize the tree (each is a Switch branch) without
+forcing every URL to spell them out. Use `select("/(home)")` to
+explicitly switch to a tab.
+
+## Route nesting ≠ URL nesting
+
+This is the most important concept to understand about the route tree.
+Nesting a `Route` inside another `Route` creates a **layout
+relationship**, not a pushable screen. The parent must render an
+`Outlet` for the child to appear, and `back()` does not pop the child.
+
+```rust
+// WRONG — Detail is a child of Home (layout relationship).
+// navigate() modifies the child state in-place; back() does not pop.
+Stack {
+    Route(path: "", component: Home) {
+        Route(path: "detail/:id", component: Detail)
+    }
+}
+
+// CORRECT — Home and Detail are siblings in the Stack.
+// navigate() pushes Detail; back() pops to Home.
+Stack {
+    Route(path: "", component: Home)
+    Route(path: "detail/:id", component: Detail)
+}
+```
+
+To share a URL prefix among pushable screens, spell the full path on
+each sibling:
+
+```rust
+Stack {
+    Route(path: "settings", component: Settings)
+    Route(path: "settings/account", component: Account)
+    Route(path: "settings/privacy", component: Privacy)
+}
+```
+
+Reserve `Route` nesting for layout routes (tab bars, headers, drawers)
+where the parent renders shared UI around an `Outlet`.
 
 ## Run it
 
@@ -223,26 +319,14 @@ modal first), use the `on_back` LIFO handler chain — see
 whisker run ios
 ```
 
-Tap a row to push the detail screen with the slide animation; swipe
-from the left edge (or tap your Back row) to pop it. Because
-`StackLayout` keeps entries mounted, the home list is exactly where you
-left it when you come back.
-
-## A note on deep links
-
-`whisker-router` exposes a `linking` module (`linking::initial_url()`
-and `linking::on_url(...)`) for cold-launch and post-launch URLs. The
-signatures are stable, **but both functions are currently non-working
-stubs** — `initial_url()` always returns `None` and the `on_url`
-handler is never invoked, pending the runtime-side global-event
-primitive. Code against them now if you like, but deep links won't
-resolve yet. See
-[Deep linking](/docs/routing-api#deep-linking) for status.
+Tap a row to push the detail screen with a native slide animation;
+swipe from the left edge (or tap Back) to pop it. Push/pop history is
+preserved per-tab.
 
 ## Next steps
 
-- [Routing reference](/docs/routing-api) — every layout
-  (`TabsLayout`, `ModalLayout`, `Pane`), transition, and gesture.
+- [Routing reference](/docs/routing-api) — every container type,
+  transition, hook, and gesture.
 - [Components & render!](/docs/components) — defining the screens you
   navigate between.
 - [State Management](/docs/state-management) — the signals that drive

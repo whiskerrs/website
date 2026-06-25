@@ -1,19 +1,19 @@
 ---
 title: Formatting
-description: whisker fmt — a rustfmt drop-in that also formats render! and css! macro bodies.
+description: whisker fmt — a rustfmt drop-in that also formats render!, css!, and routes! macro bodies.
 order: 17
 ---
 
 # API Reference: Formatting
 
 `whisker fmt` is a **rustfmt drop-in**. It formats your code by delegating to
-the real `rustfmt` binary, and *additionally* formats the `render!` and
-`css!` macro bodies that plain rustfmt leaves untouched — rustfmt never
-reaches inside a macro's token tree, so those blocks normally stay exactly as
-you typed them. As of the latest version it also formats the Rust
+the real `rustfmt` binary, and *additionally* formats the `render!`, `css!`,
+and `routes!` macro bodies that plain rustfmt leaves untouched — rustfmt
+never reaches inside a macro's token tree, so those blocks normally stay
+exactly as you typed them. As of the latest version it also formats the Rust
 expressions embedded inside those macro bodies (keyword-argument values,
-event-handler closures, `format!(…)` arguments, …) by running them through
-rustfmt too.
+event-handler closures, transition expressions, `format!(…)` arguments, …)
+by running them through rustfmt too.
 
 For non-macro code the output matches `cargo fmt`, because it *is* rustfmt
 underneath.
@@ -92,6 +92,34 @@ let style = css!(
 );
 ```
 
+And `routes!`, whose nested containers and keyword arguments are indented
+consistently:
+
+```rust
+routes! {
+    Route(component: TabsLayout) {
+        Switch {
+            Route(path: "(home)") {
+                Stack {
+                    Route(path: "", component: Home)
+                    Route(path: "detail/:id", component: Detail)
+                }
+            }
+            Route(path: "(search)") {
+                Stack {
+                    Route(path: "search", component: Search)
+                }
+            }
+        }
+    }
+    Route(
+        path: "compose",
+        component: Compose,
+        transition: RouteTransition::modal(),
+    )
+}
+```
+
 ## Format-on-save in your editor
 
 `whisker fmt --stdin` is the editor-integration entry point. Wire it up
@@ -105,12 +133,12 @@ same `rust-analyzer.toml`, this is editor-agnostic. Drop a
 overrideCommand = ["whisker", "fmt", "--stdin"]
 ```
 
-With that in place, format-on-save formats your `render!` and `css!` blocks
-too, not just the Rust around them.
+With that in place, format-on-save formats your `render!`, `css!`, and
+`routes!` blocks too, not just the Rust around them.
 
 > **`whisker new` scaffolds this for you.** New projects ship with the
-> `rust-analyzer.toml` above, so `render!`/`css!` format-on-save works out
-> of the box.
+> `rust-analyzer.toml` above, so `render!`/`css!`/`routes!` format-on-save
+> works out of the box.
 
 Two things to note:
 
