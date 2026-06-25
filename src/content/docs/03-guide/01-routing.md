@@ -31,7 +31,7 @@ Import what you need directly — the crate has no `prelude`:
 ```rust
 use whisker::prelude::*;
 use whisker_router::{
-    routes, Router, RouterHandle, Outlet,
+    routes, Router, Outlet,
     SwipeBack, AndroidPredictiveBack,
     use_navigator, use_param,
 };
@@ -45,12 +45,12 @@ and produces a `RouteSet` — the compiled tree + component registry the
 router needs.
 
 ```rust
-let handle = RouterHandle::new(routes! {
+routes! {
     Stack {
         Route(path: "", component: Home)
         Route(path: "detail/:id", component: Detail)
     }
-});
+}
 ```
 
 - `Stack` — an ordered container with push/pop history.
@@ -64,20 +64,13 @@ The full grammar is in the
 
 ## 3. Mount the Router
 
-`Router` publishes the handle into context and creates a positioned
-root container. Inside it, mount an `Outlet` (renders the active route)
-and optional gesture components:
+`Router` takes the route tree, publishes the handle into context, and
+creates a positioned root container. Inside it, mount an `Outlet`
+(renders the active route) and optional gesture components:
 
 ```rust
 #[whisker::main]
 fn app() -> Element {
-    let handle = RouterHandle::new(routes! {
-        Stack {
-            Route(path: "", component: Home)
-            Route(path: "detail/:id", component: Detail)
-        }
-    });
-
     render! {
         view(style: css!(
             flex_grow: 1.0,
@@ -86,7 +79,12 @@ fn app() -> Element {
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
         )) {
-            Router(handle: handle) {
+            Router(routes: routes! {
+                Stack {
+                    Route(path: "", component: Home)
+                    Route(path: "detail/:id", component: Detail)
+                }
+            }) {
                 Outlet {}
                 SwipeBack {}
                 AndroidPredictiveBack {}
@@ -99,6 +97,20 @@ fn app() -> Element {
 `Outlet` renders whichever screen the current state points to.
 `SwipeBack` and `AndroidPredictiveBack` layer on native back gestures
 — each is a no-op on the other platform, so pairing both is safe.
+
+### Advanced: explicit handle
+
+`Router` builds the `RouterHandle` for you from `routes`. If you need
+the handle *before* the Router mounts — for example, to build a
+navigation facade that a feature crate can call into — create it
+manually with `RouterHandle::new(...)` and publish it with
+`provide_router(handle)`:
+
+```rust
+let handle = RouterHandle::new(routes! { /* ... */ });
+// use handle for pre-mount logic...
+provide_router(handle);
+```
 
 ## 4. Navigate
 
@@ -201,7 +213,7 @@ The tree declares a `Switch` inside a layout route. Each tab branch
 has its own `Stack`, so each tab has independent push/pop history.
 
 ```rust
-let handle = RouterHandle::new(routes! {
+Router(routes: routes! {
     Route(component: TabsLayout) {
         Switch {
             Route(path: "(home)") {
@@ -218,7 +230,11 @@ let handle = RouterHandle::new(routes! {
             }
         }
     }
-});
+}) {
+    Outlet {}
+    SwipeBack {}
+    AndroidPredictiveBack {}
+}
 ```
 
 ### Layout routes

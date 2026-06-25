@@ -37,10 +37,10 @@ This page is the complete API reference.
 └──────────────────────────┬───────────────────────────────────┘
                            │
                            ▼
-                    RouterHandle::new(routes)
+                  Router(routes: RouteSet)
                            │
                     ┌──────┴──────┐
-                    │ RouterHandle │  ← signal-backed; Clone to share
+                    │ RouterHandle │  ← created internally; Clone to share
                     └──────┬──────┘
                            │
               ┌────────────┼─────────────┐
@@ -227,9 +227,19 @@ state (it is `Rc`-backed).
 
 ### Construction
 
+`Router` creates the handle internally from the `routes` you pass it, so
+most apps never construct a `RouterHandle` directly:
+
 ```rust
+// Most apps: Router creates the handle internally
+Router(routes: routes! { ... }) { ... }
+
+// Advanced: create the handle manually for pre-mount logic
 let handle = RouterHandle::new(routes! { ... });
 ```
+
+When you build the handle yourself, publish it with
+`provide_router(handle)` instead of passing `routes` to `Router`.
 
 ### Navigation operations
 
@@ -276,11 +286,17 @@ both tabs), relative resolution picks the instance sharing the
 
 ## Router component
 
-Publishes the handle into context and creates a positioned root view.
-Mount renderers and gestures as children:
+Takes a `RouteSet`, creates the `RouterHandle` internally, publishes it
+into context, and creates a positioned root view. Mount renderers and
+gestures as children:
 
 ```rust
-Router(handle: handle) {
+Router(routes: routes! {
+    Stack {
+        Route(path: "", component: Home)
+        Route(path: "detail/:id", component: Detail)
+    }
+}) {
     Outlet {}
     SwipeBack {}
     AndroidPredictiveBack {}
@@ -289,7 +305,7 @@ Router(handle: handle) {
 
 | Prop | Type | Notes |
 |---|---|---|
-| `handle` | `RouterHandle` | The navigation handle |
+| `routes` | `RouteSet` | The route tree (output of `routes!`) |
 | `children` | `Children` | Renderers + gesture components |
 
 ## Renderers
@@ -463,7 +479,7 @@ platform it doesn't target.
 | `AndroidPredictiveBack` | Android 13+ | System predictive back with Material card preview |
 
 ```rust
-Router(handle: handle) {
+Router(routes: routes! { ... }) {
     Outlet {}
     SwipeBack {}
     AndroidPredictiveBack {}
