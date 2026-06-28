@@ -153,11 +153,17 @@ The six navigation operations:
 | `nav.back()` | Pop the top of the deepest active Stack |
 | `nav.select("/(home)")` | Switch a tab (change Switch branch) |
 | `nav.replace("/other")` | Swap the top entry (same Stack only) |
-| `nav.pop_to("/")` | Pop until the target is on top |
-| `nav.reset("/")` | Clear the Stack and restart (logout) |
+| `nav.pop_to("/")` | Pop until the target is on top (same Stack only) |
+| `nav.reset("/")` | **Global** — clear *every* back stack and go to the target (logout) |
 
 All targets are plain URL strings. Dynamic `:param` segments are
 extracted automatically by matching against the route tree.
+
+`reset` is the odd one out: `replace` and `pop_to` only touch the current
+Stack, but `reset` rebuilds the whole navigation state onto a single clean
+path to the target — switching tabs toward it and clearing the back stack of
+*every* Stack. A URL resolves to a **leaf screen**, and `/` is the home index
+screen (reachable from any tab); group segments like `(home)` are optional.
 
 ## 5. Read route params
 

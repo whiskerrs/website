@@ -252,7 +252,7 @@ All targets are plain `&str` URLs. Returns `Result<(), NavError>`.
 | `back()` | Pop the deepest non-trivial Stack. `NothingToPop` at root |
 | `replace(url)` | Swap the top of the current Stack (same-Stack only) |
 | `pop_to(url)` | Pop until the target is on top (same-Stack only) |
-| `reset(url)` | Clear the current Stack and restart with the target |
+| `reset(url)` | **Global**: rebuild the whole state onto a single clean path to the target — select every Switch toward it and collapse *every* Stack to one entry, so **no back history survives anywhere** (on the target path or in any other branch) |
 
 ```rust
 let nav = use_navigator();
@@ -261,8 +261,15 @@ nav.select("/(search)");      // switch tab
 nav.replace("/detail/99");     // swap top
 nav.back();                    // pop
 nav.pop_to("/");               // pop to root
-nav.reset("/");                // clear + restart
+nav.reset("/");                // clear EVERY back stack, go to Home
 ```
+
+> **`reset` is global, the others are same-Stack.** `replace` / `pop_to`
+> operate only on the current Stack. `reset` is the "clean slate" verb
+> (logout, post-login): it resolves the target anywhere in the tree (like
+> `navigate`), switches tabs toward it, and clears the back stack of *every*
+> Stack — not just the current one. Equivalent to React Navigation's
+> `reset({ routes })` or Flutter's `pushAndRemoveUntil(_, (_) => false)`.
 
 ### NavError
 
@@ -273,10 +280,22 @@ nav.reset("/");                // clear + restart
 
 ### Resolution rule
 
-When a URL matches **multiple** positions (e.g. shared `post/:id` in
-both tabs), relative resolution picks the instance sharing the
-**deepest common ancestor with the current position**. Ties break by
-**declaration order** (first defined wins).
+A URL always resolves to a **leaf screen** — never a container (a `Stack`,
+`Switch`, or `(group)`). Group segments in the URL are **optional**, so both
+`/detail/42` and `/(home)/detail/42` match the pattern `/(home)/detail/:id`.
+
+| URL | Resolves to |
+|---|---|
+| `/` | The home **index** screen — the `""` route, reached even from another tab |
+| `/(home)` | The home tab's index screen (same as `/` here) |
+| `/(search)` | The search tab's **first** screen (its group has no `""` index) |
+| `/list`, `/(search)/list` | The `list` screen (group optional) |
+| `/detail/42`, `/(home)/detail/42` | The `detail` screen with `id = 42` |
+
+When a URL matches **multiple** positions (e.g. a shared `post/:id` in both
+tabs), relative resolution picks the instance sharing the **deepest common
+ancestor with the current position**. Ties break by **declaration order**
+(first defined wins).
 
 | Situation | Resolves to | Why |
 |---|---|---|
