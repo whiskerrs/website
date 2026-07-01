@@ -30,6 +30,7 @@ whenever the signal changes. See [Reactivity](/docs/reactivity-api).
 | `raw_text` | Leaf glyph node | Created automatically from `text(value: …)`; rarely written by hand. |
 | `scroll_view` | Scrolling container | Keeps every child mounted while panning. |
 | `list` | Native-virtualised list | Mounts only visible items; scales to thousands of rows. |
+| `list_item` | One recyclable list cell | Returned by a `list`'s `children` closure; a plain box plus recycler/sticky hints. |
 | `fragment` | Transparent grouping | No box on screen; hoists children to the nearest real ancestor. |
 
 ### `page`
@@ -73,11 +74,17 @@ It keeps every child mounted, so for long, *virtualised* lists prefer
 ### `list`
 
 Lynx's native-virtualised list. It mounts only the visible items onto
-platform views and recycles the rest. The builder is **type-stated**:
-it takes its item source as three kwargs — `each`, `key`, `children` —
-and **does not accept a body** (`list { … }` is rejected by the macro).
-All three must be supplied or the chain fails to compile. See
-[list builder methods](#text-specific-methods).
+platform views and recycles the rest, so it scales to thousands of rows
+without per-row mount cost. The builder is **type-stated**: it takes its
+item source as three kwargs — `each`, `key`, `children` — and **does not
+accept a body** (`list { … }` is rejected by the macro). All three must
+be supplied or the chain fails to compile.
+
+The `children` closure returns a [`list_item`](#list_item) — a plain
+element that carries the per-cell recycler/sticky/full-span hints. The
+list owns each cell's stable `item-key` (derived from your `key`
+closure); you never set it by hand. See
+[list builder methods](#list-1).
 
 ### `fragment`
 
@@ -255,17 +262,59 @@ The three render-props are type-stated — supply all of them.
 | Method | Value type | Role |
 |---|---|---|
 | `each(f)` | `Fn() -> Vec<T>` | the reactive item source |
-| `key(f)` | `Fn(&T) -> K` (`K: Eq + Hash + Clone`) | stable per-item identity |
-| `children(f)` | `Fn(T) -> Element` | renders one item |
+| `key(f)` | `Fn(&T) -> K` (`K: Eq + Hash + Clone`) | stable per-item identity (drives Lynx's `item-key` diff for reorder/insert/remove) |
+| `children(f)` | `Fn(T) -> `[`list_item`](#list_item) | renders one item |
 
-Plus the layout attributes:
+Layout & recycling attributes:
 
 | Method | Value type | Lynx attribute |
 |---|---|---|
 | `list_type(v)` | `Into<Signal<`[`ListType`](/docs/attributes)`>>` | `list-type` (default `Single`) |
-| `column_count(v)` | `Into<Signal<i32>>` | `column-count` (default 1) |
-| `span_count(v)` | `Into<Signal<i32>>` | `span-count` (newer builds; set with `column_count`) |
-| `vertical_orientation(v)` | `Into<Signal<bool>>` | `vertical-orientation` (default `true`) |
+| `span_count(v)` | `Into<Signal<i32>>` | `span-count` — columns (grid) |
+| `column_count(v)` | `Into<Signal<i32>>` | `column-count` — **deprecated** alias for `span_count` |
+| `scroll_orientation(v)` | `Into<Signal<`[`ScrollOrientation`](/docs/attributes)`>>` | `scroll-orientation` (default `Vertical`) |
+| `list_main_axis_gap(v)` | `Into<Signal<i32>>` | `list-main-axis-gap` (px) |
+| `list_cross_axis_gap(v)` | `Into<Signal<i32>>` | `list-cross-axis-gap` (px) |
+| `upper_threshold_item_count(v)` | `Into<Signal<i32>>` | `upper-threshold-item-count` — fire `on_scrolltoupper` N items early |
+| `lower_threshold_item_count(v)` | `Into<Signal<i32>>` | `lower-threshold-item-count` — fire `on_scrolltolower` N items early |
+| `item_snap((factor, offset))` | `(f64, f64)` | `item-snap` — paginated snapping (pager / gallery); `factor` `0.0`–`1.0` is the anchor within a cell (`0.5` = center), `offset` extra px |
+| `harmony_scroll_edge_effect(v)` | `Into<Signal<bool>>` | `harmony-scroll-edge-effect` (HarmonyOS) |
+
+Sticky headers/footers — enable on the list, then mark cells with
+[`sticky_top` / `sticky_bottom`](#list_item):
+
+| Method | Value type | Lynx attribute |
+|---|---|---|
+| `sticky(v)` | `Into<Signal<bool>>` | `sticky` — enable sticky positioning for marked child cells |
+| `sticky_offset(v)` | `Into<Signal<i32>>` | `sticky-offset` (px) |
+| `experimental_recycle_sticky_item(v)` | `Into<Signal<bool>>` | `experimental-recycle-sticky-item` |
+
+Events:
+
+| Method | Value type | Lynx event |
+|---|---|---|
+| `on_scroll(f)` | `Fn(`[`ScrollEvent`](/docs/events)`)` | `scroll` |
+| `on_scrolltoupper(f)` | `Fn(ScrollEvent)` | `scrolltoupper` |
+| `on_scrolltolower(f)` | `Fn(ScrollEvent)` | `scrolltolower` |
+| `on_scrollstatechange(f)` | `Fn(`[`ScrollStateChangeEvent`](/docs/events)`)` | `scrollstatechange` |
+| `on_layoutcomplete(f)` | `Fn(`[`LayoutCompleteEvent`](/docs/events)`)` | `layoutcomplete` |
+| `on_snap(f)` | `Fn(`[`SnapEvent`](/docs/events)`)` | `snap` (fires when `item_snap` settles) |
+
+### `list_item`
+
+The element returned by a [`list`](#list)'s `children` closure. It is a
+plain container — style it and nest children like a `view` — plus the
+per-cell hints Lynx's recycler reads. You never set `item-key`; the list
+derives it from your `key` closure.
+
+| Method | Value type | Lynx attribute |
+|---|---|---|
+| `reuse_identifier(v)` | `Into<Signal<String>>` | `reuse-identifier` — recycling group; give distinct shapes (header vs row) distinct identifiers |
+| `estimated_size(v)` | `Into<Signal<i32>>` | `estimated-main-axis-size-px` — placeholder size before measure; stabilises non-uniform cells |
+| `full_span(v)` | `Into<Signal<bool>>` | `full-span` — span all columns (headers/footers in a grid) |
+| `sticky_top(v)` | `Into<Signal<bool>>` | `sticky-top` — stick to the top edge (needs `sticky` on the parent) |
+| `sticky_bottom(v)` | `Into<Signal<bool>>` | `sticky-bottom` — stick to the bottom edge |
+| `recyclable(v)` | `Into<Signal<bool>>` | `recyclable` (default `true`) — set `false` to opt a cell out of recycling |
 
 ## Example
 
