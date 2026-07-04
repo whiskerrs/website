@@ -37,7 +37,7 @@ fn app() -> Element {
     let count = signal(0);
 
     render! {
-        page(style: "flex-direction: column; padding: 24px; gap: 16px;") {
+        view(style: "flex-direction: column; padding: 24px; gap: 16px;") {
             text(value: computed(move || format!("Taps: {}", count.get())))
             view(on_tap: move |_| count.set(count.get() + 1)) {
                 text(value: "Tap me")

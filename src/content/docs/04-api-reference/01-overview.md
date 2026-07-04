@@ -26,7 +26,7 @@ rest. Each linked page documents the symbols in full.
 |---|---|---|
 | **Macros** | `main`, `component`, `render`, `css` | [Macros](/docs/macros) |
 | **Element** | `Element`, `ElementTag` | [Elements](/docs/elements) |
-| **Built-in tags** | `page`, `view`, `text`, `raw_text`, `scroll_view`, `list`, `fragment` | [Elements](/docs/elements) |
+| **Built-in tags** | `view`, `text`, `raw_text`, `scroll_view`, `list`, `fragment` | [Elements](/docs/elements) |
 | **Reactivity** | `signal`, `RwSignal`, `ReadSignal`, `WriteSignal`, `arc_signal`, `ArcRwSignal`, `ArcReadSignal`, `ArcWriteSignal`, `computed`, `effect`, `resource`, `resource_sync`, `Resource`, `ResourceState`, `StoredValue`, `Signal` | [Reactivity](/docs/reactivity-api) |
 | **Lifecycle & context** | `on_mount`, `on_cleanup`, `provide_context`, `use_context`, `with_context` | [Reactivity](/docs/reactivity-api) |
 | **Control flow** | `Show`, `ForEach` (+ `EachFn`, `KeyFn`, `ItemFn`, `WhenFn`, `Fallback`, `Children`) | [Control Flow](/docs/control-flow) |

@@ -33,7 +33,7 @@ fn app() -> Element {
     provide_context(Theme { dark: true });
 
     render! {
-        page {
+        view {
             Toolbar()
         }
     }

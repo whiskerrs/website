@@ -92,8 +92,9 @@ component-specific.
 ## `ScrollEvent`
 
 Delivered to the `<scroll_view>` scroll events (`scroll`,
-`scrolltoupper`, `scrolltolower`, `scrollend`, `contentsizechanged`).
-These are target-only (no catch/capture variants).
+`scrolltoupper`, `scrolltolower`, `scrollend`, `contentsizechanged`)
+and the `<list>` scroll events (`scroll`, `scrolltoupper`,
+`scrolltolower`). These are target-only (no catch/capture variants).
 
 | Field | Type | Description |
 |---|---|---|
@@ -111,6 +112,44 @@ These are target-only (no catch/capture variants).
 | `delta_x` | `f64` | Horizontal delta since the previous scroll event (px). |
 | `delta_y` | `f64` | Vertical delta since the previous scroll event (px). |
 | `is_dragging` | `bool` | Whether the user's finger is currently dragging. |
+
+## `<list>` events
+
+The list emits its component events from the engine core; whisker
+delivers them queued on the next frame, so handlers run outside the
+engine's own layout/scroll pipeline.
+
+### `ScrollStateChangeEvent`
+
+Fired on `scrollstatechange` — the scroll state transitioned.
+
+| Field | Type | Description |
+|---|---|---|
+| *(base fields)* | | `kind`, `timestamp`, `target`, `current_target`. |
+| `detail.state` | `i64` | Raw platform state. Observed on iOS: `1` = settled/idle, `4` = animated (programmatic smooth scroll in flight). |
+
+### `LayoutCompleteEvent`
+
+Fired on `layoutcomplete` — the list finished a layout pass (including
+the one triggered by a data update). Useful for sequencing work that
+must wait until appended items exist natively.
+
+| Field | Type | Description |
+|---|---|---|
+| *(base fields)* | | `kind`, `timestamp`, `target`, `current_target`. |
+| `detail.layout_id` | `i64` | The `layout-id` of the data update this pass completed. |
+
+### `SnapEvent`
+
+Fired on `snap` — an `item-snap` (paged) scroll began settling toward
+a target item. Snapping is driven by real drags; a programmatic
+`scroll_to_position` does not emit it.
+
+| Field | Type | Description |
+|---|---|---|
+| *(base fields)* | | `kind`, `timestamp`, `target`, `current_target`. |
+| `detail.position` | `i64` | Index of the item being snapped to. |
+| `detail.current_scroll_left` / `detail.current_scroll_top` | `f64` | Offset of the snap target (px). |
 
 ## Text events
 

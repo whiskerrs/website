@@ -17,7 +17,7 @@ FFI symbols the iOS/Android host calls into.
 ```rust
 #[whisker::main]
 fn app() -> Element {
-    render! { page { text(value: "Hello") } }
+    render! { view { text(value: "Hello") } }
 }
 ```
 
@@ -96,7 +96,7 @@ element-creation calls plus the effects that wire reactive props.
 
 ```rust
 render! {
-    page(style: "padding: 16px;") {
+    view(style: "padding: 16px;") {
         text(value: greeting)
         view(on_tap: move |_| count.update(|n| *n += 1)) {
             text(value: "+1")
@@ -109,7 +109,7 @@ Grammar essentials:
 
 - **Keyword args go in parentheses**: `view(style: …, on_tap: …) { … }`.
   Children go in the braces.
-- A tag with only children can omit the parens: `page { text(…) }`.
+- A tag with only children can omit the parens: `view { text(…) }`.
 - **Dynamic vs static** is decided by what you pass: a signal handle →
   reactive; a value or `signal.get()` → static snapshot. See
   [Handling Events](/docs/events) and [Reactivity](/docs/reactivity-api).
