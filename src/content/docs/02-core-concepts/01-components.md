@@ -21,7 +21,7 @@ arguments in parentheses and children in braces:
 use whisker::prelude::*;
 
 render! {
-    page(style: "padding: 16px;") {
+    view(style: "padding: 16px;") {
         text(value: "Hello, Whisker")
         view(on_tap: move |_| println!("tapped")) {
             text(value: "Tap me")
@@ -51,7 +51,7 @@ use whisker::prelude::*;
 #[whisker::main]
 fn app() -> Element {
     render! {
-        page {
+        view {
             text(value: "It works")
         }
     }
@@ -74,7 +74,7 @@ fn greeting(name: Signal<String>) -> Element {
 #[whisker::main]
 fn app() -> Element {
     render! {
-        page {
+        view {
             Greeting(name: "world")
         }
     }

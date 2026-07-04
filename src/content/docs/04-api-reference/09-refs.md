@@ -123,6 +123,23 @@ A mounted `<scroll-view>`. Bind via `scroll_view(ref: handle.r())`.
 | `auto_scroll` | `&self, rate: f64` | Start auto-scrolling at `rate` px/s. |
 | `stop_auto_scroll` | `&self` | Halt an in-progress auto-scroll. |
 
+### `ListHandle`
+
+A mounted `<list>`. Bind via `list(ref: handle.r())`.
+
+| Method | Signature | Notes |
+|---|---|---|
+| `new` | `ListHandle::new() -> Self` | |
+| `r` | `&self -> ElementRef` | |
+| `scroll_to_position` | `&self, index: i32, smooth: bool` | Align item `index` to the scroll start. |
+| `scroll_to_position_with` | `&self, index: i32, align: ListScrollAlign, offset: f64, smooth: bool` | Alignment + extra pixel offset. |
+| `scroll_by` | `&self, offset: f64` | Relative (logical px) along the scroll axis. |
+| `get_visible_cells` | `async &self -> Result<VisibleCells, RefError>` | The currently-attached cells. |
+
+> Scroll targets index the **native** item list. Right after appending
+> data, the new indices only exist once the next `layoutcomplete`
+> fires — scroll then, not from the handler that appended.
+
 ### `TextHandle`
 
 A mounted `<text>`. Bind via `text(ref: handle.r())`.

@@ -19,7 +19,7 @@ fn app() -> Element {
     let count = signal(0);
 
     render! {
-        page(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 12.px())) {
+        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 12.px())) {
             text(value: format!("Count: {}", count.get()))
             view(on_tap: move |_| count.update(|n| *n += 1)) {
                 text(value: "+1")

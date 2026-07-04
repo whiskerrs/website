@@ -100,46 +100,24 @@ ends up attached to the wrong item.
 `ForEach` materializes **every** item into the tree, which is fine for
 short lists. For large or scrolling collections, use the virtualized
 [`list`](/docs/elements) built-in tag, which renders items on demand as
-they scroll into view and recycles the rest.
-
-`list` takes the **same** `each` / `key` / `children` triple as `ForEach`,
-so migrating is mostly wrapping each row in a
-[`list_item`](/docs/elements#list_item):
+they scroll into view. Its shape mirrors `ForEach`, except identity
+and the per-item layout metadata travel together through a `meta`
+prop:
 
 ```rust
-use whisker::prelude::*;
-
-#[derive(Clone)]
-struct Post { id: u32, body: String }
-
-#[component]
-fn feed(posts: Signal<Vec<Post>>) -> Element {
-    render! {
-        list(
-            style: css!(flex_grow: 1.0),
-            each: move || posts.get(),
-            key: |p: &Post| p.id,
-            children: |p: Post| render! {
-                list_item(reuse_identifier: "post", estimated_size: 96) {
-                    text(value: p.body)
-                }
-            },
-        )
-    }
-}
+list(
+    each: move || posts.get(),
+    meta: |p: &Post| ItemMeta::key(p.id.clone())
+        .reuse_identifier("post")
+        .estimated_size(120),
+    children: |p: Post| render! { post_row(post: p) },
+)
 ```
 
-Each `children` call returns a `list_item` — a plain box plus the recycler
-hints Lynx reads. Give rows that share a shape the same `reuse_identifier`
-so they recycle into each other, and an `estimated_size` (px) to stabilise
-scrolling before a cell is measured. The list owns each cell's stable
-`item-key` — it derives it from your `key` closure, so reorders, inserts,
-and removals diff exactly the way `ForEach` does.
-
-A `full_span` cell spans all columns (handy as a header at item 0), and
-`sticky` on the list plus `sticky_top` on a cell pins it while scrolling —
-see the [Elements reference](/docs/elements#list) for every prop, event,
-and `list_item` hint.
+Appending to the source keeps the scroll position anchored, so
+infinite scroll is `on_scrolltolower` + appending — see the
+[Elements reference](/docs/elements) for the full surface (sticky
+headers, multi-column `waterfall`, snap paging).
 
 ## Combining them: a list with an empty state
 

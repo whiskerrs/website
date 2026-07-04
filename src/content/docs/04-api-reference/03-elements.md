@@ -24,22 +24,12 @@ whenever the signal changes. See [Reactivity](/docs/reactivity-api).
 
 | Tag | Maps to | Notes |
 |---|---|---|
-| `page` | App root container | Exactly one, outermost. Holds screen-level styles. |
 | `view` | Flex container (≈ React Native `<View>`, `<div>`) | The basic layout/grouping box and the usual touch target. |
 | `text` | Text container | The only element that renders text on screen. |
 | `raw_text` | Leaf glyph node | Created automatically from `text(value: …)`; rarely written by hand. |
 | `scroll_view` | Scrolling container | Keeps every child mounted while panning. |
 | `list` | Native-virtualised list | Mounts only visible items; scales to thousands of rows. |
-| `list_item` | One recyclable list cell | Returned by a `list`'s `children` closure; a plain box plus recycler/sticky hints. |
 | `fragment` | Transparent grouping | No box on screen; hoists children to the nearest real ancestor. |
-
-### `page`
-
-The top-level container Lynx mounts as the root of the app. Use it as
-the outermost element returned from a [`#[whisker::main]`](/docs/macros)
-function. Lynx treats the page as the viewport, so screen-spanning
-styles (`width: 100%`, `background`, …) belong here. There must be
-exactly one `page` at the top of the tree.
 
 ### `view`
 
@@ -74,17 +64,17 @@ It keeps every child mounted, so for long, *virtualised* lists prefer
 ### `list`
 
 Lynx's native-virtualised list. It mounts only the visible items onto
-platform views and recycles the rest, so it scales to thousands of rows
-without per-row mount cost. The builder is **type-stated**: it takes its
-item source as three kwargs — `each`, `key`, `children` — and **does not
-accept a body** (`list { … }` is rejected by the macro). All three must
-be supplied or the chain fails to compile.
+platform views and recycles the rest. The builder is **type-stated**:
+it takes its item source as three kwargs — `each`, `meta`, `children` —
+and **does not accept a body** (`list { … }` is rejected by the macro).
+All three must be supplied or the chain fails to compile.
 
-The `children` closure returns a [`list_item`](#list_item) — a plain
-element that carries the per-cell recycler/sticky/full-span hints. The
-list owns each cell's stable `item-key` (derived from your `key`
-closure); you never set it by hand. See
-[list builder methods](#list-1).
+`meta` returns an [`ItemMeta`](#itemmeta) per item: the stable key plus
+the per-item layout metadata (estimated size, full-span, sticky,
+recycling). It must derive from the **data** — items build on demand,
+so no element exists yet when the list diffs its data source.
+`children` returns plain content (any element); the list owns the
+native item wrapper. See [list builder methods](#list-1).
 
 ### `fragment`
 
@@ -262,59 +252,72 @@ The three render-props are type-stated — supply all of them.
 | Method | Value type | Role |
 |---|---|---|
 | `each(f)` | `Fn() -> Vec<T>` | the reactive item source |
-| `key(f)` | `Fn(&T) -> K` (`K: Eq + Hash + Clone`) | stable per-item identity (drives Lynx's `item-key` diff for reorder/insert/remove) |
-| `children(f)` | `Fn(T) -> `[`list_item`](#list_item) | renders one item |
+| `meta(f)` | `Fn(&T) -> ItemMeta<K>` (`K: Eq + Hash + Clone`) | stable identity + per-item layout metadata |
+| `children(f)` | `Fn(T) -> Element` | renders one item's content (no wrapper element) |
 
-Layout & recycling attributes:
+#### `ItemMeta`
+
+Built with `ItemMeta::key(...)` plus chained setters. The key is the
+stable per-item identity (same contract as `ForEach`'s `key`); the
+rest is the layout metadata the native list consumes **before** the
+item is ever built, and it may change across data updates — the list
+diffs it per key and refreshes the native side in place.
+
+| Method | Value type | Effect |
+|---|---|---|
+| `ItemMeta::key(k)` | `K` | stable identity; drives insert / remove / reorder diffing |
+| `.reuse_identifier(id)` | `impl Into<String>` | recycle pool — cells sharing an id reuse each other (header vs row should differ) |
+| `.estimated_size(px)` | `i32` | main-axis placeholder size before the cell is measured |
+| `.full_span(v)` | `bool` | span every column in a `flow` / `waterfall` list |
+| `.sticky_top(v)` | `bool` | pin to the top edge while scrolled past (needs `sticky` on the list) |
+| `.sticky_bottom(v)` | `bool` | pin to the bottom edge |
+| `.recyclable(v)` | `bool` | `false` opts the cell out of recycling (e.g. pager pages); default `true` |
+
+```rust
+meta: |r: &Row| match r {
+    Row::Header => ItemMeta::key(r.key())
+        .reuse_identifier("header")
+        .estimated_size(160)
+        .full_span(true)
+        .sticky_top(true),
+    Row::Item(_) => ItemMeta::key(r.key())
+        .reuse_identifier("row")
+        .estimated_size(84),
+},
+```
+
+#### Layout attributes
 
 | Method | Value type | Lynx attribute |
 |---|---|---|
-| `list_type(v)` | `Into<Signal<`[`ListType`](/docs/attributes)`>>` | `list-type` (default `Single`) |
-| `span_count(v)` | `Into<Signal<i32>>` | `span-count` — columns (grid) |
-| `column_count(v)` | `Into<Signal<i32>>` | `column-count` — **deprecated** alias for `span_count` |
-| `scroll_orientation(v)` | `Into<Signal<`[`ScrollOrientation`](/docs/attributes)`>>` | `scroll-orientation` (default `Vertical`) |
-| `list_main_axis_gap(v)` | `Into<Signal<i32>>` | `list-main-axis-gap` (px) |
-| `list_cross_axis_gap(v)` | `Into<Signal<i32>>` | `list-cross-axis-gap` (px) |
-| `upper_threshold_item_count(v)` | `Into<Signal<i32>>` | `upper-threshold-item-count` — fire `on_scrolltoupper` N items early |
-| `lower_threshold_item_count(v)` | `Into<Signal<i32>>` | `lower-threshold-item-count` — fire `on_scrolltolower` N items early |
-| `item_snap((factor, offset))` | `(f64, f64)` | `item-snap` — paginated snapping (pager / gallery); `factor` `0.0`–`1.0` is the anchor within a cell (`0.5` = center), `offset` extra px |
-| `harmony_scroll_edge_effect(v)` | `Into<Signal<bool>>` | `harmony-scroll-edge-effect` (HarmonyOS) |
-
-Sticky headers/footers — enable on the list, then mark cells with
-[`sticky_top` / `sticky_bottom`](#list_item):
-
-| Method | Value type | Lynx attribute |
-|---|---|---|
-| `sticky(v)` | `Into<Signal<bool>>` | `sticky` — enable sticky positioning for marked child cells |
+| `list_type(v)` | `Into<Signal<`[`ListType`](/docs/attributes)`>>` | `list-type` (default `Single`; `Flow` / `Waterfall` for multi-column) |
+| `span_count(v)` | `Into<Signal<i32>>` | `span-count` (columns for `flow` / `waterfall`) |
+| `scroll_orientation(v)` | `Into<Signal<`[`ScrollOrientation`](/docs/attributes)`>>` | `scroll-orientation` (horizontal lists / pagers) |
+| `sticky(v)` | `Into<Signal<bool>>` | `sticky` (enables `ItemMeta::sticky_top/bottom` pinning) |
 | `sticky_offset(v)` | `Into<Signal<i32>>` | `sticky-offset` (px) |
-| `experimental_recycle_sticky_item(v)` | `Into<Signal<bool>>` | `experimental-recycle-sticky-item` |
+| `initial_scroll_index(v)` | `Into<Signal<i32>>` | `initial-scroll-index` (first layout lands on this item) |
+| `item_snap((factor, offset))` | `(f64, f64)` | `item-snap` — ViewPager-style paging |
+| `upper_threshold_item_count(v)` | `Into<Signal<i32>>` | `upper-threshold-item-count` (`scrolltoupper` trigger) |
+| `lower_threshold_item_count(v)` | `Into<Signal<i32>>` | `lower-threshold-item-count` (`scrolltolower` — the infinite-scroll trigger) |
+| `enable_scroll(v)` / `bounces(v)` / `scroll_bar_enable(v)` | `Into<Signal<bool>>` | `enable-scroll` / `bounces` / `scroll-bar-enable` |
+| `preload_buffer_count(v)` | `Into<Signal<i32>>` | `preload-buffer-count` |
+| `list_main_axis_gap(v)` / `list_cross_axis_gap(v)` | `Into<Signal<i32>>` | `list-main-axis-gap` / `list-cross-axis-gap` (px) |
+| `scroll_event_throttle(v)` | `Into<Signal<i32>>` | `scroll-event-throttle` (ms) |
 
-Events:
+#### Events
 
-| Method | Value type | Lynx event |
+| Method | Payload | Fires |
 |---|---|---|
-| `on_scroll(f)` | `Fn(`[`ScrollEvent`](/docs/events)`)` | `scroll` |
-| `on_scrolltoupper(f)` | `Fn(ScrollEvent)` | `scrolltoupper` |
-| `on_scrolltolower(f)` | `Fn(ScrollEvent)` | `scrolltolower` |
-| `on_scrollstatechange(f)` | `Fn(`[`ScrollStateChangeEvent`](/docs/events)`)` | `scrollstatechange` |
-| `on_layoutcomplete(f)` | `Fn(`[`LayoutCompleteEvent`](/docs/events)`)` | `layoutcomplete` |
-| `on_snap(f)` | `Fn(`[`SnapEvent`](/docs/events)`)` | `snap` (fires when `item_snap` settles) |
+| `on_scroll(f)` | [`ScrollEvent`](/docs/events) | continuously while scrolling |
+| `on_scrolltoupper(f)` | `ScrollEvent` | within `upper-threshold-item-count` of the start |
+| `on_scrolltolower(f)` | `ScrollEvent` | within `lower-threshold-item-count` of the end — bind your infinite-scroll loader here |
+| `on_scrollstatechange(f)` | [`ScrollStateChangeEvent`](/docs/events) | drag / fling / animated / settled transitions |
+| `on_layoutcomplete(f)` | [`LayoutCompleteEvent`](/docs/events) | after the list finishes a layout pass |
+| `on_snap(f)` | [`SnapEvent`](/docs/events) | an `item-snap` scroll begins settling |
 
-### `list_item`
-
-The element returned by a [`list`](#list)'s `children` closure. It is a
-plain container — style it and nest children like a `view` — plus the
-per-cell hints Lynx's recycler reads. You never set `item-key`; the list
-derives it from your `key` closure.
-
-| Method | Value type | Lynx attribute |
-|---|---|---|
-| `reuse_identifier(v)` | `Into<Signal<String>>` | `reuse-identifier` — recycling group; give distinct shapes (header vs row) distinct identifiers |
-| `estimated_size(v)` | `Into<Signal<i32>>` | `estimated-main-axis-size-px` — placeholder size before measure; stabilises non-uniform cells |
-| `full_span(v)` | `Into<Signal<bool>>` | `full-span` — span all columns (headers/footers in a grid) |
-| `sticky_top(v)` | `Into<Signal<bool>>` | `sticky-top` — stick to the top edge (needs `sticky` on the parent) |
-| `sticky_bottom(v)` | `Into<Signal<bool>>` | `sticky-bottom` — stick to the bottom edge |
-| `recyclable(v)` | `Into<Signal<bool>>` | `recyclable` (default `true`) — set `false` to opt a cell out of recycling |
+Appending items keeps the scroll position anchored (the list sends a
+minimal diff, not a full replace), so infinite scroll composes from
+`on_scrolltolower` + appending to the `each` source.
 
 ## Example
 
@@ -326,7 +329,7 @@ fn app() -> Element {
     let count = signal(0_i32);
 
     render! {
-        page(style: "background: white;") {
+        view(style: "flex: 1; flex-direction: column; background: white;") {
             view(
                 style: "flex-direction: column; padding: 16px; gap: 8px;",
             ) {
