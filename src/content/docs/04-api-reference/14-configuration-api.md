@@ -139,3 +139,40 @@ replaces the prior entry (last call wins).
 First-party native modules such as
 [`whisker-audio`](/docs/modules-api) are registered this way. To author
 your own plugin, see the [Plugin API](/docs/plugin-api).
+
+## `AppIcon`
+
+A built-in plugin, exported from `whisker_config` alongside `Config`,
+that generates the app's launcher / home-screen icon for both platforms.
+Registered like any other plugin:
+
+```rust
+use whisker_config::AppIcon;
+
+app.plugin::<AppIcon>(|c| {
+    c.source("assets/icon.png");
+});
+```
+
+All paths are relative to the app crate root. See
+[App Configuration](/docs/app-configuration#step-5-app-icon) for the
+practical guide.
+
+### `AppIconConfig`
+
+| Method | Signature | Notes |
+|---|---|---|
+| `source` | `source(impl Into<PathBuf>) -> &mut Self` | **Required.** Square PNG, ≥ 1024×1024. Feeds the iOS asset catalog and the Android legacy + adaptive icons. |
+| `ios_icon` | `ios_icon(impl Into<PathBuf>) -> &mut Self` | Icon Composer `.icon` bundle. Replaces the PNG-derived iOS catalog with the iOS 26 Liquid Glass appearances. Requires Xcode 26+ to build. |
+| `android_foreground` | `android_foreground(impl Into<PathBuf>) -> &mut Self` | Adaptive-icon foreground layer (API 26+). Square PNG; keep art in the central ~66% safe zone. Defaults to `source`. |
+| `android_background` | `android_background(impl Into<PathBuf>) -> &mut Self` | Adaptive-icon background as an image. Mutually exclusive with `android_background_color`. |
+| `android_background_color` | `android_background_color(impl Into<String>) -> &mut Self` | Adaptive-icon background as a flat color (`#RRGGBB` / `#AARRGGBB`). Defaults to white. |
+| `android_monochrome` | `android_monochrome(impl Into<PathBuf>) -> &mut Self` | Monochrome layer for Android 13+ themed icons. Square PNG; only its alpha matters. |
+
+Validation runs before generation: `source` must be square and at least
+1024×1024, adaptive layers must be square and at least 432×432,
+`android_background_color` must be a valid hex color, the two background
+forms cannot both be set, `ios_icon` must be a `.icon` bundle containing
+an `icon.json`, and no path may escape the crate root with `..`. A
+non-conforming value fails the build with an actionable message rather
+than producing a broken icon.
