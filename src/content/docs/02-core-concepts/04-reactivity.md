@@ -18,7 +18,7 @@ run — is what makes the UI respond to change afterwards.
 
 ## Effects: reacting to change
 
-A `computed` derives a *value*. An `effect` runs a *side effect* — the
+A `computed` derives a _value_. An `effect` runs a _side effect_ — the
 bridge from reactive state to the outside world: logging, persistence,
 animation, syncing to a native API.
 
@@ -67,7 +67,7 @@ sync, with no explicit call sites to maintain. For full signatures see
 ## Tracked vs untracked reads
 
 By default, reading a signal inside an effect or computed **subscribes**
-to it. Sometimes you want to read a value *without* making it a
+to it. Sometimes you want to read a value _without_ making it a
 dependency — say, to read configuration once inside an effect that
 should only re-run for some other reason. That's what the `_untracked`
 variants are for:

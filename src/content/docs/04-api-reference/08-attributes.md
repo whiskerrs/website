@@ -31,21 +31,21 @@ All are re-exported from the prelude.
 Direction in which a [`scroll_view`](/docs/elements#scroll_view)
 scrolls. Maps to Lynx's `scroll-orientation`.
 
-| Variant | Wire string |
-|---|---|
-| `Vertical` | `"vertical"` (default) |
-| `Horizontal` | `"horizontal"` |
+| Variant      | Wire string            |
+| ------------ | ---------------------- |
+| `Vertical`   | `"vertical"` (default) |
+| `Horizontal` | `"horizontal"`         |
 
 ## `ListType`
 
 Layout mode for a [`list`](/docs/elements#list). Maps to Lynx's
 `list-type`.
 
-| Variant | Wire string |
-|---|---|
-| `Single` | `"single"` — single-column linear list (default) |
-| `Flow` | `"flow"` — grid-style flow layout |
-| `Waterfall` | `"waterfall"` — staggered / Pinterest-style |
+| Variant     | Wire string                                      |
+| ----------- | ------------------------------------------------ |
+| `Single`    | `"single"` — single-column linear list (default) |
+| `Flow`      | `"flow"` — grid-style flow layout                |
+| `Waterfall` | `"waterfall"` — staggered / Pinterest-style      |
 
 ## `PanInterceptDirection`
 
@@ -53,11 +53,11 @@ Direction along which an element intercepts swipe gestures. Maps to
 Lynx's `pan-intercept-direction`. Pair with `PanInterceptScope` to
 choose which elements in the hit-test chain it applies to.
 
-| Variant | Wire string |
-|---|---|
-| `Horizontal` | `"horizontal"` |
-| `Vertical` | `"vertical"` |
-| `None` | `"none"` — disable the intercept (default) |
+| Variant      | Wire string                                |
+| ------------ | ------------------------------------------ |
+| `Horizontal` | `"horizontal"`                             |
+| `Vertical`   | `"vertical"`                               |
+| `None`       | `"none"` — disable the intercept (default) |
 
 ## `PanInterceptScope`
 
@@ -65,39 +65,39 @@ Scope of `PanInterceptDirection` — which elements in the hit-test chain
 participate. Maps to Lynx's `pan-intercept-scope`. (`SelfElement` reads
 `"self"`; the rename dodges Rust's `Self` keyword.)
 
-| Variant | Wire string |
-|---|---|
-| `SelfElement` | `"self"` |
-| `Ancestors` | `"ancestors"` |
-| `Descendants` | `"descendants"` |
-| `SelfAndAncestors` | `"self-and-ancestors"` |
+| Variant              | Wire string              |
+| -------------------- | ------------------------ |
+| `SelfElement`        | `"self"`                 |
+| `Ancestors`          | `"ancestors"`            |
+| `Descendants`        | `"descendants"`          |
+| `SelfAndAncestors`   | `"self-and-ancestors"`   |
 | `SelfAndDescendants` | `"self-and-descendants"` |
-| `All` | `"all"` |
-| `None` | `"none"` |
+| `All`                | `"all"`                  |
+| `None`               | `"none"`                 |
 
 ## `TextVerticalAlign`
 
 Vertical alignment for a single-line [`text`](/docs/elements#text)
 element. Maps to Lynx's `text-single-line-vertical-align`.
 
-| Variant | Wire string |
-|---|---|
+| Variant  | Wire string                                      |
+| -------- | ------------------------------------------------ |
 | `Normal` | `"normal"` — platform default (baseline-aligned) |
-| `Top` | `"top"` |
-| `Center` | `"center"` |
-| `Bottom` | `"bottom"` |
+| `Top`    | `"top"`                                          |
+| `Center` | `"center"`                                       |
+| `Bottom` | `"bottom"`                                       |
 
 ## `AccessibilityTrait`
 
 Accessibility role advertised to platform a11y services (VoiceOver on
 iOS, TalkBack on Android). Maps to Lynx's `accessibility-trait`.
 
-| Variant | Wire string |
-|---|---|
-| `Button` | `"button"` — a tap target |
-| `Image` | `"image"` — picture / icon, no inherent action |
-| `Text` | `"text"` — block of static text |
-| `None` | `"none"` — platform default |
+| Variant  | Wire string                                    |
+| -------- | ---------------------------------------------- |
+| `Button` | `"button"` — a tap target                      |
+| `Image`  | `"image"` — picture / icon, no inherent action |
+| `Text`   | `"text"` — block of static text                |
+| `None`   | `"none"` — platform default                    |
 
 ## Usage
 

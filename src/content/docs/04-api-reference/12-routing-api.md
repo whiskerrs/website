@@ -10,7 +10,7 @@ order: 12
 apps. The router is built on **two graphs**: a static **RouteTree** (the
 `routes!` macro) and a dynamic **RouteState** (runtime navigation
 state). Everything the router does — what URL a screen has, which screen
-is shown, where a `navigate` pushes — is *derived* from these two graphs.
+is shown, where a `navigate` pushes — is _derived_ from these two graphs.
 
 ```rust
 use whisker::prelude::*;
@@ -58,14 +58,14 @@ This page is the complete API reference.
                    (render the active route)
 ```
 
-| Layer | Symbols | Purpose |
-|---|---|---|
-| Route tree | [`routes!`](#the-routes-macro) | Declare the screen structure |
-| Handle | [`RouterHandle`](#routerhandle) | Signal-backed navigation state |
-| Context | [`Router`](#router-component), [`use_navigator`](#hooks), [`use_param`](#hooks), [`use_pathname`](#hooks) | Publish/read the router |
-| Renderer | [`Outlet`](#outlet), [`Stack`](#stack-renderer), [`Switch`](#switch-renderer), [`Layout`](#layout-renderer) | Turn state into UI |
-| Animation | [`RouteTransition`](#transitions) | How screens enter/leave |
-| Gestures | [`SwipeBack`](#gestures), [`AndroidPredictiveBack`](#gestures) | Native back gestures |
+| Layer      | Symbols                                                                                                     | Purpose                        |
+| ---------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Route tree | [`routes!`](#the-routes-macro)                                                                              | Declare the screen structure   |
+| Handle     | [`RouterHandle`](#routerhandle)                                                                             | Signal-backed navigation state |
+| Context    | [`Router`](#router-component), [`use_navigator`](#hooks), [`use_param`](#hooks), [`use_pathname`](#hooks)   | Publish/read the router        |
+| Renderer   | [`Outlet`](#outlet), [`Stack`](#stack-renderer), [`Switch`](#switch-renderer), [`Layout`](#layout-renderer) | Turn state into UI             |
+| Animation  | [`RouteTransition`](#transitions)                                                                           | How screens enter/leave        |
+| Gestures   | [`SwipeBack`](#gestures), [`AndroidPredictiveBack`](#gestures)                                              | Native back gestures           |
 
 ## The `routes!` macro
 
@@ -81,11 +81,11 @@ Route(path: "detail/:id", component: Detail)
 Route(path: "detail/:id", component: Detail, transition: RouteTransition::modal())
 ```
 
-| Parameter | Required | Description |
-|---|---|---|
-| `path` | Yes (unless layout-only) | URL segment. `:name` for dynamic params. `(name)` for group segments |
-| `component` | No | The `#[component]` to render |
-| `transition` | No | A [`RouteTransition`](#transitions) override (default: platform slide) |
+| Parameter    | Required                 | Description                                                            |
+| ------------ | ------------------------ | ---------------------------------------------------------------------- |
+| `path`       | Yes (unless layout-only) | URL segment. `:name` for dynamic params. `(name)` for group segments   |
+| `component`  | No                       | The `#[component]` to render                                           |
+| `transition` | No                       | A [`RouteTransition`](#transitions) override (default: platform slide) |
 
 A `Route` with **both** a `component` and children is a **layout
 route** — its component must render an `Outlet` for children to appear.
@@ -245,14 +245,14 @@ When you build the handle yourself, publish it with
 
 All targets are plain `&str` URLs. Returns `Result<(), NavError>`.
 
-| Method | Effect |
-|---|---|
-| `navigate(url)` | Push the matched route onto the active Stack. Always pushes — no dedup |
-| `select(url)` | Select the Switch branch containing the target (tab switching) |
-| `back()` | Pop the deepest non-trivial Stack. `NothingToPop` at root |
-| `replace(url)` | Swap the top of the current Stack (same-Stack only) |
-| `pop_to(url)` | Pop until the target is on top (same-Stack only) |
-| `reset(url)` | **Global**: rebuild the whole state onto a single clean path to the target — select every Switch toward it and collapse *every* Stack to one entry, so **no back history survives anywhere** (on the target path or in any other branch) |
+| Method          | Effect                                                                                                                                                                                                                                   |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `navigate(url)` | Push the matched route onto the active Stack. Always pushes — no dedup                                                                                                                                                                   |
+| `select(url)`   | Select the Switch branch containing the target (tab switching)                                                                                                                                                                           |
+| `back()`        | Pop the deepest non-trivial Stack. `NothingToPop` at root                                                                                                                                                                                |
+| `replace(url)`  | Swap the top of the current Stack (same-Stack only)                                                                                                                                                                                      |
+| `pop_to(url)`   | Pop until the target is on top (same-Stack only)                                                                                                                                                                                         |
+| `reset(url)`    | **Global**: rebuild the whole state onto a single clean path to the target — select every Switch toward it and collapse _every_ Stack to one entry, so **no back history survives anywhere** (on the target path or in any other branch) |
 
 ```rust
 let nav = use_navigator();
@@ -267,15 +267,15 @@ nav.reset("/");                // clear EVERY back stack, go to Home
 > **`reset` is global, the others are same-Stack.** `replace` / `pop_to`
 > operate only on the current Stack. `reset` is the "clean slate" verb
 > (logout, post-login): it resolves the target anywhere in the tree (like
-> `navigate`), switches tabs toward it, and clears the back stack of *every*
+> `navigate`), switches tabs toward it, and clears the back stack of _every_
 > Stack — not just the current one. Equivalent to React Navigation's
 > `reset({ routes })` or Flutter's `pushAndRemoveUntil(_, (_) => false)`.
 
 ### NavError
 
-| Variant | Meaning |
-|---|---|
-| `NoSuchTarget` | URL matches no route in the tree |
+| Variant        | Meaning                                |
+| -------------- | -------------------------------------- |
+| `NoSuchTarget` | URL matches no route in the tree       |
 | `NothingToPop` | `back()` at a root with nothing to pop |
 
 ### Resolution rule
@@ -284,24 +284,24 @@ A URL always resolves to a **leaf screen** — never a container (a `Stack`,
 `Switch`, or `(group)`). Group segments in the URL are **optional**, so both
 `/detail/42` and `/(home)/detail/42` match the pattern `/(home)/detail/:id`.
 
-| URL | Resolves to |
-|---|---|
-| `/` | The home **index** screen — the `""` route, reached even from another tab |
-| `/(home)` | The home tab's index screen (same as `/` here) |
-| `/(search)` | The search tab's **first** screen (its group has no `""` index) |
-| `/list`, `/(search)/list` | The `list` screen (group optional) |
-| `/detail/42`, `/(home)/detail/42` | The `detail` screen with `id = 42` |
+| URL                               | Resolves to                                                               |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `/`                               | The home **index** screen — the `""` route, reached even from another tab |
+| `/(home)`                         | The home tab's index screen (same as `/` here)                            |
+| `/(search)`                       | The search tab's **first** screen (its group has no `""` index)           |
+| `/list`, `/(search)/list`         | The `list` screen (group optional)                                        |
+| `/detail/42`, `/(home)/detail/42` | The `detail` screen with `id = 42`                                        |
 
 When a URL matches **multiple** positions (e.g. a shared `post/:id` in both
 tabs), relative resolution picks the instance sharing the **deepest common
 ancestor with the current position**. Ties break by **declaration order**
 (first defined wins).
 
-| Situation | Resolves to | Why |
-|---|---|---|
+| Situation                          | Resolves to        | Why                     |
+| ---------------------------------- | ------------------ | ----------------------- |
 | From tab A, `navigate("/post/42")` | Tab A's `post/:id` | Deepest common ancestor |
-| From tab B, `navigate("/post/42")` | Tab B's `post/:id` | Within tab B's subtree |
-| From outside tabs | First declared | Common ancestor is root |
+| From tab B, `navigate("/post/42")` | Tab B's `post/:id` | Within tab B's subtree  |
+| From outside tabs                  | First declared     | Common ancestor is root |
 
 ## Router component
 
@@ -322,10 +322,10 @@ Router(routes: routes! {
 }
 ```
 
-| Prop | Type | Notes |
-|---|---|---|
-| `routes` | `RouteSet` | The route tree (output of `routes!`) |
-| `children` | `Children` | Renderers + gesture components |
+| Prop       | Type       | Notes                                |
+| ---------- | ---------- | ------------------------------------ |
+| `routes`   | `RouteSet` | The route tree (output of `routes!`) |
+| `children` | `Children` | Renderers + gesture components       |
 
 ## Renderers
 
@@ -409,13 +409,13 @@ sites.
 
 ### Built-in transitions
 
-| Constructor | Description |
-|---|---|
-| `RouteTransition::slide()` | iOS-style horizontal slide with parallax and dim (iOS default) |
-| `RouteTransition::android_default()` | Subtle horizontal slide + fade (Android default) |
-| `RouteTransition::fade()` | Cross-fade opacity |
-| `RouteTransition::modal()` | Slide up from the bottom |
-| `RouteTransition::none()` | No animation — instant swap |
+| Constructor                          | Description                                                    |
+| ------------------------------------ | -------------------------------------------------------------- |
+| `RouteTransition::slide()`           | iOS-style horizontal slide with parallax and dim (iOS default) |
+| `RouteTransition::android_default()` | Subtle horizontal slide + fade (Android default)               |
+| `RouteTransition::fade()`            | Cross-fade opacity                                             |
+| `RouteTransition::modal()`           | Slide up from the bottom                                       |
+| `RouteTransition::none()`            | No animation — instant swap                                    |
 
 The default is **platform-aware**: `slide()` on iOS, `android_default()`
 on Android.
@@ -465,15 +465,15 @@ Route(path: "preview", component: Preview,
 
 ### Transition types
 
-| Type | Description |
-|---|---|
-| `RouteTransition` | `Rc`-backed wrapper (cheap to Clone) |
-| `Transition` (trait) | `config()` + `pose(PoseContext) -> Pose` |
-| `PoseContext` | `{ role: Role, progress: f32, direction: Direction }` |
-| `Pose` | `{ transform: String, opacity: f32, radius_px: f32 }` |
-| `Role` | `Top` (entering/leaving) or `Under` (beneath) |
-| `Direction` | `Push` (forward) or `Pop` (back) |
-| `AnimConfig` | Duration (ms) + easing function |
+| Type                 | Description                                           |
+| -------------------- | ----------------------------------------------------- |
+| `RouteTransition`    | `Rc`-backed wrapper (cheap to Clone)                  |
+| `Transition` (trait) | `config()` + `pose(PoseContext) -> Pose`              |
+| `PoseContext`        | `{ role: Role, progress: f32, direction: Direction }` |
+| `Pose`               | `{ transform: String, opacity: f32, radius_px: f32 }` |
+| `Role`               | `Top` (entering/leaving) or `Under` (beneath)         |
+| `Direction`          | `Push` (forward) or `Pop` (back)                      |
+| `AnimConfig`         | Duration (ms) + easing function                       |
 
 ### Progress convention
 
@@ -492,9 +492,9 @@ Back gesture components are mounted as children of `Router`. Each reads
 the router context, renders no DOM of its own, and is a no-op on the
 platform it doesn't target.
 
-| Component | Platform | Description |
-|---|---|---|
-| `SwipeBack` | iOS | Edge swipe-back gesture |
+| Component               | Platform    | Description                                       |
+| ----------------------- | ----------- | ------------------------------------------------- |
+| `SwipeBack`             | iOS         | Edge swipe-back gesture                           |
 | `AndroidPredictiveBack` | Android 13+ | System predictive back with Material card preview |
 
 ```rust

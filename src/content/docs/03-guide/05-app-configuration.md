@@ -46,12 +46,12 @@ pub fn configure(app: &mut Config) {
 The top-level setters apply across both platforms. `bundle_id` is the
 default both platforms fall back to when their own is unset:
 
-| Setter | Effect |
-|---|---|
-| `name(impl Into<String>)` | App display name. |
-| `bundle_id(impl Into<String>)` | Default bundle id; iOS / Android fall back to it. |
-| `version(impl Into<String>)` | Marketing version (`CFBundleShortVersionString` / Gradle `versionName`). |
-| `build_number(u32)` | Build number (`CFBundleVersion` / Gradle `versionCode`). |
+| Setter                         | Effect                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| `name(impl Into<String>)`      | App display name.                                                        |
+| `bundle_id(impl Into<String>)` | Default bundle id; iOS / Android fall back to it.                        |
+| `version(impl Into<String>)`   | Marketing version (`CFBundleShortVersionString` / Gradle `versionName`). |
+| `build_number(u32)`            | Build number (`CFBundleVersion` / Gradle `versionCode`).                 |
 
 ## Step 2: iOS settings
 
@@ -65,11 +65,11 @@ app.ios(|i| {
 });
 ```
 
-| Setter | Effect |
-|---|---|
-| `bundle_id(impl Into<String>)` | `CFBundleIdentifier`. Falls back to `Config::bundle_id`. |
-| `scheme(impl Into<String>)` | Xcode scheme and the `<scheme>.app` filename. |
-| `deployment_target(impl Into<String>)` | `IPHONEOS_DEPLOYMENT_TARGET` (default `"13.0"`). |
+| Setter                                 | Effect                                                   |
+| -------------------------------------- | -------------------------------------------------------- |
+| `bundle_id(impl Into<String>)`         | `CFBundleIdentifier`. Falls back to `Config::bundle_id`. |
+| `scheme(impl Into<String>)`            | Xcode scheme and the `<scheme>.app` filename.            |
+| `deployment_target(impl Into<String>)` | `IPHONEOS_DEPLOYMENT_TARGET` (default `"13.0"`).         |
 
 ## Step 3: Android settings
 
@@ -85,13 +85,13 @@ app.android(|a| {
 });
 ```
 
-| Setter | Effect |
-|---|---|
-| `package(impl Into<String>)` | Kotlin/Java package declared in the manifest (for `R.java` lookups). |
-| `application_id(impl Into<String>)` | Gradle `applicationId` — the launcher's package. Falls back to `Config::bundle_id`. |
-| `launcher_activity(impl Into<String>)` | Launcher activity class with a leading dot (default `.MainActivity`). |
-| `min_sdk(u32)` | Gradle `minSdk` (default `24`). |
-| `target_sdk(u32)` | Gradle `targetSdk` (default `34`). |
+| Setter                                 | Effect                                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------------------- |
+| `package(impl Into<String>)`           | Kotlin/Java package declared in the manifest (for `R.java` lookups).                |
+| `application_id(impl Into<String>)`    | Gradle `applicationId` — the launcher's package. Falls back to `Config::bundle_id`. |
+| `launcher_activity(impl Into<String>)` | Launcher activity class with a leading dot (default `.MainActivity`).               |
+| `min_sdk(u32)`                         | Gradle `minSdk` (default `24`).                                                     |
+| `target_sdk(u32)`                      | Gradle `targetSdk` (default `34`).                                                  |
 
 Note that `application_id` (the package the launcher invokes) is distinct
 from `package` (the Kotlin/Java package the manifest declares); apps

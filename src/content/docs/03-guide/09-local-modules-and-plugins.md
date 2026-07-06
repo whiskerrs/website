@@ -9,7 +9,7 @@ order: 9
 Sometimes you need a native widget, a native API, or a permission **for one
 app** — code that should live inside your project, not on crates.io. This is
 the same idea as **Expo's local modules**: you author your own Whisker
-module or plugin *in-tree*, as part of your app, and the build wires its
+module or plugin _in-tree_, as part of your app, and the build wires its
 native (Swift/Kotlin) side automatically.
 
 You don't write any registration or linking glue. As with a published

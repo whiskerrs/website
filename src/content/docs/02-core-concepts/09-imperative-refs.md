@@ -8,7 +8,7 @@ order: 9
 
 Almost everything in Whisker is **declarative**: you describe the view and
 the reactive runtime keeps it in sync. But a few things can only be done by
-calling a method on the *real, mounted* element — scrolling a list to the
+calling a method on the _real, mounted_ element — scrolling a list to the
 top, measuring an element's on-screen rectangle, or starting an animation.
 For those, Whisker gives you an **imperative handle** to an element.
 
@@ -29,7 +29,7 @@ It's always the same three steps:
    [`on_mount`](/docs/reactivity-api), or from an event handler that fires
    after the element exists.
 
-The handle starts out *unbound*: there's no element to talk to until the
+The handle starts out _unbound_: there's no element to talk to until the
 view mounts. That's why you don't call methods straight from the component
 body — you wait for `on_mount` (or a tap).
 
@@ -154,7 +154,7 @@ The full list of handles, every method, and the return types is in the
 Built-in modules expose their own typed handles tailored to the element
 they wrap — for example a video module gives you play/pause/seek controls
 rather than generic element methods. When you mount a module element, bind
-*its* handle the same way (`ref: handle.r()`) and call its module-specific
+_its_ handle the same way (`ref: handle.r()`) and call its module-specific
 methods. See [First-party Modules](/docs/modules-api).
 
 ## Where to go next

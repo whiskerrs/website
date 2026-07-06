@@ -78,14 +78,14 @@ no-options default.
 
 ### `Plugin`
 
-| Member | Signature | Default | Notes |
-|---|---|---|---|
-| `type Config` | `: PluginConfig` | — | This plugin's config type. |
-| `name` | `fn name(&self) -> &'static str` | `Self::Config::NAME` | Stable identifier used in journal, errors, and ordering. |
-| `after` | `fn after(&self) -> &'static [&'static str]` | `&[]` | Plugins this one must run after. |
-| `before` | `fn before(&self) -> &'static [&'static str]` | `&[]` | Plugins this one must run before. |
-| `validate` | `fn validate(&self, &Self::Config) -> anyhow::Result<()>` | `Ok(())` | Reject bad config before any mutation fires. |
-| `apply` | `fn apply(&self, &mut GenerateContext, &Self::Config) -> anyhow::Result<()>` | required | Mutate the IR. |
+| Member        | Signature                                                                    | Default              | Notes                                                    |
+| ------------- | ---------------------------------------------------------------------------- | -------------------- | -------------------------------------------------------- |
+| `type Config` | `: PluginConfig`                                                             | —                    | This plugin's config type.                               |
+| `name`        | `fn name(&self) -> &'static str`                                             | `Self::Config::NAME` | Stable identifier used in journal, errors, and ordering. |
+| `after`       | `fn after(&self) -> &'static [&'static str]`                                 | `&[]`                | Plugins this one must run after.                         |
+| `before`      | `fn before(&self) -> &'static [&'static str]`                                | `&[]`                | Plugins this one must run before.                        |
+| `validate`    | `fn validate(&self, &Self::Config) -> anyhow::Result<()>`                    | `Ok(())`             | Reject bad config before any mutation fires.             |
+| `apply`       | `fn apply(&self, &mut GenerateContext, &Self::Config) -> anyhow::Result<()>` | required             | Mutate the IR.                                           |
 
 ## `GenerateContext`
 
@@ -93,24 +93,24 @@ The mutable handle passed to `apply`. Each target IR is `Option` because a
 given run may target only one platform — branch with
 `if let Some(ios) = ctx.ios.as_mut() { … }`.
 
-| Field | Type | Notes |
-|---|---|---|
-| `app_meta` | [`AppMeta`](#appmeta) | Read-only snapshot of user-spelled config. |
-| `ios` | `Option<IosProjectIr>` | `Some` when iOS is being generated. |
-| `android` | `Option<AndroidProjectIr>` | `Some` when Android is being generated. |
-| `journal` | [`MutationJournal`](#mutation-journal) | Append-only attribution log. |
+| Field      | Type                                   | Notes                                      |
+| ---------- | -------------------------------------- | ------------------------------------------ |
+| `app_meta` | [`AppMeta`](#appmeta)                  | Read-only snapshot of user-spelled config. |
+| `ios`      | `Option<IosProjectIr>`                 | `Some` when iOS is being generated.        |
+| `android`  | `Option<AndroidProjectIr>`             | `Some` when Android is being generated.    |
+| `journal`  | [`MutationJournal`](#mutation-journal) | Append-only attribution log.               |
 
 ### `AppMeta`
 
 Frozen at pipeline entry; plugins read it but don't update it. Use the
 per-target IR for values the renderer eventually consumes.
 
-| Field | Type |
-|---|---|
-| `name` | `String` |
-| `version` | `String` |
-| `build_number` | `u32` |
-| `ios_bundle_id` | `Option<String>` |
+| Field                    | Type             |
+| ------------------------ | ---------------- |
+| `name`                   | `String`         |
+| `version`                | `String`         |
+| `build_number`           | `u32`            |
+| `ios_bundle_id`          | `Option<String>` |
 | `android_application_id` | `Option<String>` |
 
 ## iOS IR
@@ -120,87 +120,87 @@ per-target IR for values the renderer eventually consumes.
 Core fields are seeded from `Config` before any plugin runs; a plugin may
 read them or override them (recording `Operation::Override`).
 
-| Field | Type | Notes |
-|---|---|---|
-| `app_name` | `Option<String>` | `PRODUCT_NAME` / `CFBundleDisplayName` source. |
-| `version` | `Option<String>` | `CFBundleShortVersionString` source. |
-| `build_number` | `Option<u32>` | `CFBundleVersion` source. |
-| `bundle_id` | `Option<String>` | `PRODUCT_BUNDLE_IDENTIFIER` source. |
-| `scheme` | `Option<String>` | Xcode scheme name. |
-| `deployment_target` | `Option<String>` | `IPHONEOS_DEPLOYMENT_TARGET` source. |
-| `info_plist` | `BTreeMap<String, PlistValue>` | `Info.plist` object tree. |
-| `pbxproj_ops` | `Vec<PbxprojOp>` | Deferred xcodeproj structural ops. |
-| `extra_files` | `BTreeMap<PathBuf, FileEntry>` | Files dropped into `gen/ios/`. |
+| Field               | Type                           | Notes                                          |
+| ------------------- | ------------------------------ | ---------------------------------------------- |
+| `app_name`          | `Option<String>`               | `PRODUCT_NAME` / `CFBundleDisplayName` source. |
+| `version`           | `Option<String>`               | `CFBundleShortVersionString` source.           |
+| `build_number`      | `Option<u32>`                  | `CFBundleVersion` source.                      |
+| `bundle_id`         | `Option<String>`               | `PRODUCT_BUNDLE_IDENTIFIER` source.            |
+| `scheme`            | `Option<String>`               | Xcode scheme name.                             |
+| `deployment_target` | `Option<String>`               | `IPHONEOS_DEPLOYMENT_TARGET` source.           |
+| `info_plist`        | `BTreeMap<String, PlistValue>` | `Info.plist` object tree.                      |
+| `pbxproj_ops`       | `Vec<PbxprojOp>`               | Deferred xcodeproj structural ops.             |
+| `extra_files`       | `BTreeMap<PathBuf, FileEntry>` | Files dropped into `gen/ios/`.                 |
 
 ### `PlistValue`
 
 Tagged-union value for plist trees (`{ "type": …, "value": … }`).
 
-| Variant | Payload |
-|---|---|
-| `String` | `String` |
-| `Integer` | `i64` |
-| `Real` | `f64` |
-| `Boolean` | `bool` |
-| `Array` | `Vec<PlistValue>` |
-| `Dict` | `BTreeMap<String, PlistValue>` |
+| Variant   | Payload                        |
+| --------- | ------------------------------ |
+| `String`  | `String`                       |
+| `Integer` | `i64`                          |
+| `Real`    | `f64`                          |
+| `Boolean` | `bool`                         |
+| `Array`   | `Vec<PlistValue>`              |
+| `Dict`    | `BTreeMap<String, PlistValue>` |
 
 ### `PbxprojOp`
 
 Structural mutation request replayed against the pbxproj renderer.
 
-| Variant | Fields | Notes |
-|---|---|---|
-| `AddResource` | `{ path: PathBuf }` | Add to the Resources build phase. |
-| `AddSource` | `{ path: PathBuf }` | Add a compiled source file. |
-| `SetBuildSetting` | `{ key: String, value: String }` | Add a build setting (Debug + Release). |
-| `LinkSystemFramework` | `{ name: String }` | Add a system framework to Link Binary With Libraries. |
+| Variant               | Fields                           | Notes                                                 |
+| --------------------- | -------------------------------- | ----------------------------------------------------- |
+| `AddResource`         | `{ path: PathBuf }`              | Add to the Resources build phase.                     |
+| `AddSource`           | `{ path: PathBuf }`              | Add a compiled source file.                           |
+| `SetBuildSetting`     | `{ key: String, value: String }` | Add a build setting (Debug + Release).                |
+| `LinkSystemFramework` | `{ name: String }`               | Add a system framework to Link Binary With Libraries. |
 
 ## Android IR
 
 ### `AndroidProjectIr`
 
-| Field | Type | Notes |
-|---|---|---|
-| `app_name` | `Option<String>` | Activity label source. |
-| `version` | `Option<String>` | Gradle `versionName` source. |
-| `build_number` | `Option<u32>` | Gradle `versionCode` source. |
-| `application_id` | `Option<String>` | Gradle `applicationId` source. |
-| `min_sdk` | `Option<u32>` | Gradle `minSdk` source. |
-| `target_sdk` | `Option<u32>` | Gradle `targetSdk` source. |
-| `manifest` | [`AndroidManifest`](#androidmanifest) | Structured `AndroidManifest.xml` model. |
-| `gradle` | [`GradleDsl`](#gradledsl) | App-module Gradle additions. |
-| `extra_files` | `BTreeMap<PathBuf, FileEntry>` | Files dropped into `gen/android/`. |
+| Field            | Type                                  | Notes                                   |
+| ---------------- | ------------------------------------- | --------------------------------------- |
+| `app_name`       | `Option<String>`                      | Activity label source.                  |
+| `version`        | `Option<String>`                      | Gradle `versionName` source.            |
+| `build_number`   | `Option<u32>`                         | Gradle `versionCode` source.            |
+| `application_id` | `Option<String>`                      | Gradle `applicationId` source.          |
+| `min_sdk`        | `Option<u32>`                         | Gradle `minSdk` source.                 |
+| `target_sdk`     | `Option<u32>`                         | Gradle `targetSdk` source.              |
+| `manifest`       | [`AndroidManifest`](#androidmanifest) | Structured `AndroidManifest.xml` model. |
+| `gradle`         | [`GradleDsl`](#gradledsl)             | App-module Gradle additions.            |
+| `extra_files`    | `BTreeMap<PathBuf, FileEntry>`        | Files dropped into `gen/android/`.      |
 
 ### `AndroidManifest`
 
-| Field | Type | Notes |
-|---|---|---|
-| `permissions` | `Vec<String>` | `<uses-permission>` entries; dedup'd at render. |
-| `application_meta_data` | `Vec<MetaDataEntry>` | `<meta-data>` entries inside `<application>`. |
+| Field                   | Type                 | Notes                                           |
+| ----------------------- | -------------------- | ----------------------------------------------- |
+| `permissions`           | `Vec<String>`        | `<uses-permission>` entries; dedup'd at render. |
+| `application_meta_data` | `Vec<MetaDataEntry>` | `<meta-data>` entries inside `<application>`.   |
 
 ### `MetaDataEntry`
 
-| Field | Type |
-|---|---|
-| `name` | `String` |
+| Field   | Type     |
+| ------- | -------- |
+| `name`  | `String` |
 | `value` | `String` |
 
 ### `GradleDsl`
 
-| Field | Type | Notes |
-|---|---|---|
+| Field           | Type          | Notes                                                |
+| --------------- | ------------- | ---------------------------------------------------- |
 | `apply_plugins` | `Vec<String>` | Plugin ids for the app module's `plugins { }` block. |
-| `dependencies` | `Vec<String>` | Raw DSL lines for the `dependencies { }` block. |
+| `dependencies`  | `Vec<String>` | Raw DSL lines for the `dependencies { }` block.      |
 
 ## Shared types
 
 ### `FileEntry`
 
-| Field | Type | Notes |
-|---|---|---|
-| `contents` | `String` | UTF-8 file contents. |
-| `mode` | `Option<u32>` | POSIX mode bits; `None` → engine default (`0o644`). |
+| Field      | Type          | Notes                                               |
+| ---------- | ------------- | --------------------------------------------------- |
+| `contents` | `String`      | UTF-8 file contents.                                |
+| `mode`     | `Option<u32>` | POSIX mode bits; `None` → engine default (`0o644`). |
 
 ### `Target`
 
@@ -210,21 +210,21 @@ Structural mutation request replayed against the pbxproj renderer.
 
 Recorded alongside each mutation so the engine can attribute conflicts.
 
-| Variant | Fields | Notes |
-|---|---|---|
-| `Set` | — | First write to an unset field. Two `Set`s to the same path conflict. |
-| `Override` | — | Explicitly overwrites a prior value. |
-| `ArrayPush` | `{ count: usize }` | Appended items to an array-shaped field. |
+| Variant     | Fields             | Notes                                                                |
+| ----------- | ------------------ | -------------------------------------------------------------------- |
+| `Set`       | —                  | First write to an unset field. Two `Set`s to the same path conflict. |
+| `Override`  | —                  | Explicitly overwrites a prior value.                                 |
+| `ArrayPush` | `{ count: usize }` | Appended items to an array-shaped field.                             |
 
 ### `MutationRecord`
 
-| Field | Type | Notes |
-|---|---|---|
-| `plugin` | `String` | `Plugin::name()` of the mutating plugin. |
-| `target` | `Target` | Platform touched. |
-| `path` | `String` | Dotted path, e.g. `"info_plist.CFBundleIdentifier"`. |
-| `operation` | `Operation` | Kind of mutation. |
-| `sequence_index` | `u64` | Monotonic per-pipeline counter. |
+| Field            | Type        | Notes                                                |
+| ---------------- | ----------- | ---------------------------------------------------- |
+| `plugin`         | `String`    | `Plugin::name()` of the mutating plugin.             |
+| `target`         | `Target`    | Platform touched.                                    |
+| `path`           | `String`    | Dotted path, e.g. `"info_plist.CFBundleIdentifier"`. |
+| `operation`      | `Operation` | Kind of mutation.                                    |
+| `sequence_index` | `u64`       | Monotonic per-pipeline counter.                      |
 
 ### Mutation journal
 
@@ -259,16 +259,16 @@ response envelope; stderr is reserved for human-readable diagnostics.
 
 ### `PluginRequest`
 
-| Field | Type | Notes |
-|---|---|---|
-| `name` | `String` | Plugin name the engine is asking for. |
-| `config` | `serde_json::Value` | The plugin's config as JSON (`null` → `Default`). |
-| `context` | `GenerateContext` | The IRs going into this plugin. |
+| Field     | Type                | Notes                                             |
+| --------- | ------------------- | ------------------------------------------------- |
+| `name`    | `String`            | Plugin name the engine is asking for.             |
+| `config`  | `serde_json::Value` | The plugin's config as JSON (`null` → `Default`). |
+| `context` | `GenerateContext`   | The IRs going into this plugin.                   |
 
 ### `PluginResponse`
 
-| Field | Type | Notes |
-|---|---|---|
+| Field     | Type              | Notes                      |
+| --------- | ----------------- | -------------------------- |
 | `context` | `GenerateContext` | The post-mutation context. |
 
 ### `run_as_subprocess`

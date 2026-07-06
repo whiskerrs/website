@@ -47,12 +47,12 @@ anything up.
 > hot-reload). Physical-iOS support is tracked in
 > [whiskerrs/whisker#223](https://github.com/whiskerrs/whisker/issues/223).
 >
-> | | hot reload |
-> |---|---|
-> | iOS Simulator | ✅ |
-> | iOS physical device | ❌ |
-> | Android emulator | ✅ |
-> | Android physical device | ✅ |
+> |                         | hot reload |
+> | ----------------------- | ---------- |
+> | iOS Simulator           | ✅         |
+> | iOS physical device     | ❌         |
+> | Android emulator        | ✅         |
+> | Android physical device | ✅         |
 
 ## Tier 1 — sub-second hot patch
 
@@ -84,13 +84,13 @@ or has been disabled.
 
 ## What triggers which tier
 
-| Change | Tier | State |
-|---|---|---|
-| Edit a function body / view markup in a watched crate | Tier 1 (patch) | Preserved |
-| Change a `Cargo.toml` (add/remove/bump a dependency) | Tier 2 (rebuild) | Lost |
-| Add a `thread_local!` in the patched function | Tier 2 (rebuild) | Lost |
-| Native config changes (the generated project changes) | Tier 2 (rebuild) | Lost |
-| Tier 1 patch fails to build or apply | Tier 2 (fallback) | Lost |
+| Change                                                | Tier              | State     |
+| ----------------------------------------------------- | ----------------- | --------- |
+| Edit a function body / view markup in a watched crate | Tier 1 (patch)    | Preserved |
+| Change a `Cargo.toml` (add/remove/bump a dependency)  | Tier 2 (rebuild)  | Lost      |
+| Add a `thread_local!` in the patched function         | Tier 2 (rebuild)  | Lost      |
+| Native config changes (the generated project changes) | Tier 2 (rebuild)  | Lost      |
+| Tier 1 patch fails to build or apply                  | Tier 2 (fallback) | Lost      |
 
 In short: code-only edits to your Rust go through Tier 1; anything that
 moves the dependency graph or the native project goes through Tier 2.

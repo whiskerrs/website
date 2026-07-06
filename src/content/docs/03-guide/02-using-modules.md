@@ -213,12 +213,12 @@ pub fn configure(app: &mut whisker_config::Config) {
 }
 ```
 
-| Setter | Effect |
-|---|---|
-| `microphone_permission(text)` | Sets `NSMicrophoneUsageDescription` (iOS) |
-| `record_audio_android(true)` | Adds `android.permission.RECORD_AUDIO` |
-| `enable_background_recording(true)` | Adds `"audio"` to iOS `UIBackgroundModes` |
-| `enable_background_playback(true)` | Same `UIBackgroundModes` entry, for playback |
+| Setter                              | Effect                                       |
+| ----------------------------------- | -------------------------------------------- |
+| `microphone_permission(text)`       | Sets `NSMicrophoneUsageDescription` (iOS)    |
+| `record_audio_android(true)`        | Adds `android.permission.RECORD_AUDIO`       |
+| `enable_background_recording(true)` | Adds `"audio"` to iOS `UIBackgroundModes`    |
+| `enable_background_playback(true)`  | Same `UIBackgroundModes` entry, for playback |
 
 See [Configuration](/docs/configuration-api) for the `whisker.rs`
 file and how plugins are registered.

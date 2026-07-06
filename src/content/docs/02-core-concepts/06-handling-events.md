@@ -93,18 +93,18 @@ mechanics of signals and updates live in
 ## Propagation: capture, bubble, and catch
 
 A touch event travels **down** the tree to the element you touched (the
-*capture* phase, root → target) and then back **up** (the *bubble* phase,
+_capture_ phase, root → target) and then back **up** (the _bubble_ phase,
 target → root). Plain `on_tap` listens during the bubble phase — that's
 the common case, and usually all you need.
 
 Each touch event actually exposes **four** handler variants:
 
-| Handler | Phase | Stops propagation? |
-|---|---|---|
-| `on_tap` | bubble | no |
-| `on_tap_catch` | bubble | yes |
-| `on_capture_tap` | capture | no |
-| `on_capture_tap_catch` | capture | yes |
+| Handler                | Phase   | Stops propagation? |
+| ---------------------- | ------- | ------------------ |
+| `on_tap`               | bubble  | no                 |
+| `on_tap_catch`         | bubble  | yes                |
+| `on_capture_tap`       | capture | no                 |
+| `on_capture_tap_catch` | capture | yes                |
 
 The `_catch` variants stop the event at that element so ancestors don't
 also receive it — use one when an inner control should fully consume the

@@ -32,15 +32,15 @@ components, [`render!`](/docs/macros) mounts them,
 [`ReadSignal`](/docs/reactivity-api) carries reactive state, and the
 [`ref:`](/docs/refs) pattern binds imperative handles.
 
-| Crate | Provides | Native backing |
-|---|---|---|
-| `whisker-image` | `Image` component | Kingfisher (iOS) / Coil (Android) |
-| `whisker-svg` | `Svg` component + display-list compiler | Custom replayer |
-| `whisker-icons` | `Icon` component + `lucide` constants | via `whisker-svg` |
-| `whisker-video` | `Video` component + `VideoHandle` | AVPlayer / Media3 ExoPlayer |
-| `whisker-audio` | `Player` handle + `WhiskerAudio` plugin | AVPlayer / Media3 ExoPlayer |
-| `whisker-safe-area` | `safe_area_insets()` accessor | `UIView` insets / `WindowInsets` |
-| `whisker-local-store` | `WhiskerLocalStore` key-value API | `UserDefaults` / `SharedPreferences` |
+| Crate                 | Provides                                | Native backing                       |
+| --------------------- | --------------------------------------- | ------------------------------------ |
+| `whisker-image`       | `Image` component                       | Kingfisher (iOS) / Coil (Android)    |
+| `whisker-svg`         | `Svg` component + display-list compiler | Custom replayer                      |
+| `whisker-icons`       | `Icon` component + `lucide` constants   | via `whisker-svg`                    |
+| `whisker-video`       | `Video` component + `VideoHandle`       | AVPlayer / Media3 ExoPlayer          |
+| `whisker-audio`       | `Player` handle + `WhiskerAudio` plugin | AVPlayer / Media3 ExoPlayer          |
+| `whisker-safe-area`   | `safe_area_insets()` accessor           | `UIView` insets / `WindowInsets`     |
+| `whisker-local-store` | `WhiskerLocalStore` key-value API       | `UserDefaults` / `SharedPreferences` |
 
 ## `whisker-image`
 
@@ -57,11 +57,11 @@ whisker-image = "0.2"
 A pure component (state captured by props, no handle). Declared via
 `#[whisker::module_component("Image")]`.
 
-| Prop | Type | Notes |
-|---|---|---|
-| `src` | `Signal<String>` | Image URL (HTTPS recommended). |
-| `mode` | `Signal<ImageMode>` | Content fit. Defaults to `ImageMode::AspectFill`. |
-| `style` | `Signal<String>` | Standard inline-style string. Width/height must be set (or via flex). |
+| Prop    | Type                | Notes                                                                 |
+| ------- | ------------------- | --------------------------------------------------------------------- |
+| `src`   | `Signal<String>`    | Image URL (HTTPS recommended).                                        |
+| `mode`  | `Signal<ImageMode>` | Content fit. Defaults to `ImageMode::AspectFill`.                     |
+| `style` | `Signal<String>`    | Standard inline-style string. Width/height must be set (or via flex). |
 
 All props are reactive: swapping `src` re-fetches and swapping `mode`
 re-lays-out without a remount.
@@ -70,12 +70,12 @@ re-lays-out without a remount.
 
 `#[non_exhaustive]` enum of content-fit modes.
 
-| Variant | Behavior |
-|---|---|
-| `AspectFill` | Scale to fill, preserving aspect ratio, cropping the long edge. **Default.** |
-| `AspectFit` | Scale to fit inside, preserving aspect ratio, letterboxing the short edge. |
-| `ScaleToFill` | Stretch to exactly fill the box, ignoring aspect ratio. |
-| `Center` | Render at the source's intrinsic size, centered. |
+| Variant       | Behavior                                                                     |
+| ------------- | ---------------------------------------------------------------------------- |
+| `AspectFill`  | Scale to fill, preserving aspect ratio, cropping the long edge. **Default.** |
+| `AspectFit`   | Scale to fit inside, preserving aspect ratio, letterboxing the short edge.   |
+| `ScaleToFill` | Stretch to exactly fill the box, ignoring aspect ratio.                      |
+| `Center`      | Render at the source's intrinsic size, centered.                             |
 
 `ImageMode::as_str()` returns the camelCase wire string, and the enum
 implements `Display`.
@@ -107,11 +107,11 @@ whisker-svg = "0.2"
 A pure component (declared with `#[component]`, wrapping an internal
 `module_component`).
 
-| Prop | Type | Notes |
-|---|---|---|
+| Prop      | Type             | Notes                                                                                                                                    |
+| --------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `content` | `Signal<String>` | SVG XML source. Must contain a top-level `<svg>` with a `viewBox`. Empty string renders nothing. A content swap recompiles + re-renders. |
-| `color` | `Signal<String>` | CSS color applied to any `fill="currentColor"` / `stroke="currentColor"` paint. |
-| `style` | `Signal<String>` | Standard inline-style string. Width/height MUST be set here (or via flex). |
+| `color`   | `Signal<String>` | CSS color applied to any `fill="currentColor"` / `stroke="currentColor"` paint.                                                          |
+| `style`   | `Signal<String>` | Standard inline-style string. Width/height MUST be set here (or via flex).                                                               |
 
 ```rust
 use whisker_svg::Svg;
@@ -133,12 +133,12 @@ render! {
 For callers who want to drive the compiler directly, the crate
 re-exports the display-list pipeline:
 
-| Symbol | Purpose |
-|---|---|
-| `compile` | Compile SVG XML to a `Compiled` display list. Returns `Result<Compiled, CompileError>`. |
-| `Compiled` / `CompileError` | The success value (carries `bytes` + `warnings`) and the error type. |
-| `Color` / `DisplayListBuilder` / `Transform` | Lower-level builder pieces for constructing a display list by hand. |
-| `replay` / `ReplayError` / `Visitor` / `TraceVisitor` | Walk a compiled display list, dispatching ops to a `Visitor`. |
+| Symbol                                                | Purpose                                                                                 |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `compile`                                             | Compile SVG XML to a `Compiled` display list. Returns `Result<Compiled, CompileError>`. |
+| `Compiled` / `CompileError`                           | The success value (carries `bytes` + `warnings`) and the error type.                    |
+| `Color` / `DisplayListBuilder` / `Transform`          | Lower-level builder pieces for constructing a display list by hand.                     |
+| `replay` / `ReplayError` / `Visitor` / `TraceVisitor` | Walk a compiled display list, dispatching ops to a `Visitor`.                           |
 
 Most apps never touch these — use `Svg` (or [`whisker-icons`](#whisker-icons))
 instead.
@@ -158,11 +158,11 @@ whisker-icons = "0.2"
 
 A pure component that forwards to [`whisker_svg::Svg`](#whisker-svg).
 
-| Prop | Type | Notes |
-|---|---|---|
-| `svg` | `Signal<String>` | The SVG XML to render — usually a `lucide` constant. |
-| `color` | `Signal<String>` | CSS color used as the `currentColor` substitution (Lucide draws with `stroke="currentColor"`). |
-| `size` | `Signal<String>` | Square edge length. Bare numbers (`"24"`) are treated as `px`; values with a unit (`"1.5em"`, `"100%"`) pass through. |
+| Prop    | Type             | Notes                                                                                                                 |
+| ------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `svg`   | `Signal<String>` | The SVG XML to render — usually a `lucide` constant.                                                                  |
+| `color` | `Signal<String>` | CSS color used as the `currentColor` substitution (Lucide draws with `stroke="currentColor"`).                        |
+| `size`  | `Signal<String>` | Square edge length. Bare numbers (`"24"`) are treated as `px`; values with a unit (`"1.5em"`, `"100%"`) pass through. |
 
 ### `lucide`
 
@@ -194,24 +194,24 @@ whisker-video = "0.2"
 
 Declared via `#[whisker::module_component("Video")]`.
 
-| Prop | Type | Notes |
-|---|---|---|
-| `src` | `Signal<String>` | Media URL. |
-| `style` | `Signal<String>` | Standard layout-styling string. |
-| `ref` | `ElementRef` | Pass `handle.r()` to bind a `VideoHandle` on mount. |
+| Prop    | Type             | Notes                                               |
+| ------- | ---------------- | --------------------------------------------------- |
+| `src`   | `Signal<String>` | Media URL.                                          |
+| `style` | `Signal<String>` | Standard layout-styling string.                     |
+| `ref`   | `ElementRef`     | Pass `handle.r()` to bind a `VideoHandle` on mount. |
 
 ### `VideoHandle`
 
 A `Copy` handle wrapping an [`ElementRef`](/docs/refs). Each method
 dispatches a fire-and-forget call to the native player.
 
-| Method | Signature | Effect |
-|---|---|---|
-| `new` | `fn() -> VideoHandle` | Allocate a fresh, unbound handle. |
-| `r` | `fn(&self) -> ElementRef` | The `ElementRef` to pass to `Video(ref: …)`. |
-| `play` | `fn(&self)` | Start or resume playback from the current position. |
-| `pause` | `fn(&self)` | Pause at the current position. |
-| `seek` | `fn(&self, position_seconds: f64)` | Seek to an absolute position (seconds; clamped natively). |
+| Method  | Signature                          | Effect                                                    |
+| ------- | ---------------------------------- | --------------------------------------------------------- |
+| `new`   | `fn() -> VideoHandle`              | Allocate a fresh, unbound handle.                         |
+| `r`     | `fn(&self) -> ElementRef`          | The `ElementRef` to pass to `Video(ref: …)`.              |
+| `play`  | `fn(&self)`                        | Start or resume playback from the current position.       |
+| `pause` | `fn(&self)`                        | Pause at the current position.                            |
+| `seek`  | `fn(&self, position_seconds: f64)` | Seek to an absolute position (seconds; clamped natively). |
 
 `VideoHandle` is `Copy`, so each `move ||` closure captures its own
 copy — no `clone()`.
@@ -252,29 +252,29 @@ A `Clone` handle (internally `Rc`-counted); the native player releases
 when the last clone drops. Methods are fire-and-forget — state changes
 surface through `status()`, not return values.
 
-| Method | Signature | Effect |
-|---|---|---|
-| `new` | `fn(source: impl Into<String>) -> Player` | Construct a player loading from `source` (HTTP/HTTPS or `file://`). |
-| `play` | `fn(&self)` | Start or resume playback. |
-| `pause` | `fn(&self)` | Pause at the current position. |
-| `stop` | `fn(&self)` | Stop and rewind to position 0 (stays loaded). |
-| `seek_to` | `fn(&self, position_seconds: f64)` | Seek to an absolute position (seconds; clamped natively). |
-| `set_source` | `fn(&self, source: impl Into<String>)` | Replace the loaded media (resets the player; empty string releases the source). |
-| `set_volume` | `fn(&self, value: f64)` | Set output gain on `[0.0, 1.0]` (clamped natively). |
-| `set_loop` | `fn(&self, looping: bool)` | Loop the source at end-of-media. |
-| `status` | `fn(&self) -> ReadSignal<PlaybackStatus>` | Reactive playback status. All clones share one signal. |
+| Method       | Signature                                 | Effect                                                                          |
+| ------------ | ----------------------------------------- | ------------------------------------------------------------------------------- |
+| `new`        | `fn(source: impl Into<String>) -> Player` | Construct a player loading from `source` (HTTP/HTTPS or `file://`).             |
+| `play`       | `fn(&self)`                               | Start or resume playback.                                                       |
+| `pause`      | `fn(&self)`                               | Pause at the current position.                                                  |
+| `stop`       | `fn(&self)`                               | Stop and rewind to position 0 (stays loaded).                                   |
+| `seek_to`    | `fn(&self, position_seconds: f64)`        | Seek to an absolute position (seconds; clamped natively).                       |
+| `set_source` | `fn(&self, source: impl Into<String>)`    | Replace the loaded media (resets the player; empty string releases the source). |
+| `set_volume` | `fn(&self, value: f64)`                   | Set output gain on `[0.0, 1.0]` (clamped natively).                             |
+| `set_loop`   | `fn(&self, looping: bool)`                | Loop the source at end-of-media.                                                |
+| `status`     | `fn(&self) -> ReadSignal<PlaybackStatus>` | Reactive playback status. All clones share one signal.                          |
 
 ### `PlaybackStatus`
 
 `#[non_exhaustive]` snapshot pushed by the native side (times in
 seconds). Read fields directly; construct only via the native module.
 
-| Field | Type | Meaning |
-|---|---|---|
-| `position` | `f64` | Current playback position from the start. |
-| `duration` | `f64` | Total media duration. `0.0` while loading or for live streams. |
-| `is_loaded` | `bool` | `true` once the source headers are parsed and `duration` is meaningful. |
-| `is_playing` | `bool` | `true` while audio is actively playing. |
+| Field        | Type   | Meaning                                                                 |
+| ------------ | ------ | ----------------------------------------------------------------------- |
+| `position`   | `f64`  | Current playback position from the start.                               |
+| `duration`   | `f64`  | Total media duration. `0.0` while loading or for live streams.          |
+| `is_loaded`  | `bool` | `true` once the source headers are parsed and `duration` is meaningful. |
+| `is_playing` | `bool` | `true` while audio is actively playing.                                 |
 
 ```rust
 use whisker_audio::Player;
@@ -304,12 +304,12 @@ plugin in `whisker.rs` (see [Configuration](/docs/configuration-api)).
 The plugin contributes the matching `Info.plist` /
 `AndroidManifest.xml` entries.
 
-| Config field / setter | Type | Effect |
-|---|---|---|
-| `microphone_permission` | `Option<String>` | Sets `NSMicrophoneUsageDescription` (iOS). Required before `AVAudioSession` can record. |
-| `record_audio_android` | `bool` | Appends `android.permission.RECORD_AUDIO` to the Android manifest. Default `false`. |
-| `enable_background_recording` | `bool` | Adds `"audio"` to iOS `UIBackgroundModes`. Default `false`. |
-| `enable_background_playback` | `bool` | Same `UIBackgroundModes` entry, expressing playback intent. Default `false`. |
+| Config field / setter         | Type             | Effect                                                                                  |
+| ----------------------------- | ---------------- | --------------------------------------------------------------------------------------- |
+| `microphone_permission`       | `Option<String>` | Sets `NSMicrophoneUsageDescription` (iOS). Required before `AVAudioSession` can record. |
+| `record_audio_android`        | `bool`           | Appends `android.permission.RECORD_AUDIO` to the Android manifest. Default `false`.     |
+| `enable_background_recording` | `bool`           | Adds `"audio"` to iOS `UIBackgroundModes`. Default `false`.                             |
+| `enable_background_playback`  | `bool`           | Same `UIBackgroundModes` entry, expressing playback intent. Default `false`.            |
 
 ```rust
 use whisker_audio::WhiskerAudio;
@@ -346,12 +346,12 @@ called from the main thread.**
 A `Copy` struct of inset amounts in points (iOS) / dp (Android) — the
 same units as Whisker's CSS `px` literals.
 
-| Field | Type | Meaning |
-|---|---|---|
-| `top` | `f64` | Top inset. |
-| `leading` | `f64` | Leading edge (`== left` for LTR). |
+| Field      | Type  | Meaning                             |
+| ---------- | ----- | ----------------------------------- |
+| `top`      | `f64` | Top inset.                          |
+| `leading`  | `f64` | Leading edge (`== left` for LTR).   |
 | `trailing` | `f64` | Trailing edge (`== right` for LTR). |
-| `bottom` | `f64` | Bottom inset. |
+| `bottom`   | `f64` | Bottom inset.                       |
 
 ```rust
 use whisker_safe_area::safe_area_insets;
@@ -391,11 +391,11 @@ whisker-local-store = "0.2"
 Associated functions (no instance to construct). Each returns a
 `Result<_, WhiskerModuleError>`.
 
-| Method | Signature | Returns |
-|---|---|---|
-| `save` | `fn(key: String, value: String) -> Result<bool, WhiskerModuleError>` | `true` on success. Overwrites any existing value. |
-| `load` | `fn(key: String) -> Result<Option<String>, WhiskerModuleError>` | `Some(value)`, or `None` when no entry exists. |
-| `remove` | `fn(key: String) -> Result<(), WhiskerModuleError>` | `Ok(())`. No-op when the key isn't present. |
+| Method   | Signature                                                            | Returns                                           |
+| -------- | -------------------------------------------------------------------- | ------------------------------------------------- |
+| `save`   | `fn(key: String, value: String) -> Result<bool, WhiskerModuleError>` | `true` on success. Overwrites any existing value. |
+| `load`   | `fn(key: String) -> Result<Option<String>, WhiskerModuleError>`      | `Some(value)`, or `None` when no entry exists.    |
+| `remove` | `fn(key: String) -> Result<(), WhiskerModuleError>`                  | `Ok(())`. No-op when the key isn't present.       |
 
 Call from anywhere the reactive runtime runs — component bodies, event
 handlers, or effects.

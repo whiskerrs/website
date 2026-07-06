@@ -46,12 +46,12 @@ fn app() -> Element {
 
 ## How it compares
 
-| | Whisker | Flutter | React Native |
-|---|---|---|---|
-| Language | Rust | Dart | TypeScript / JavaScript |
-| Rendering | Native widgets (Lynx) | Self-rendered (Skia/Impeller) | Native widgets |
-| Runtime dependency | None | Dart VM | JS engine |
-| Reactivity | Fine-grained signals | Widget rebuilds | Component re-render + diff |
+|                    | Whisker               | Flutter                       | React Native               |
+| ------------------ | --------------------- | ----------------------------- | -------------------------- |
+| Language           | Rust                  | Dart                          | TypeScript / JavaScript    |
+| Rendering          | Native widgets (Lynx) | Self-rendered (Skia/Impeller) | Native widgets             |
+| Runtime dependency | None                  | Dart VM                       | JS engine                  |
+| Reactivity         | Fine-grained signals  | Widget rebuilds               | Component re-render + diff |
 
 ## What's here today
 

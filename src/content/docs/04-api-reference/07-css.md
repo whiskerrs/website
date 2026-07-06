@@ -94,20 +94,20 @@ let s = Css::new()
 Shorthand methods expand to their constituent longhands, so the
 last-write-wins rule applies per longhand exactly as a CSS author expects.
 
-| Symbol | Kind | Purpose |
-|---|---|---|
-| `Css` | struct | The style declaration block; chainable builder, one method per CSS longhand. |
+| Symbol    | Kind   | Purpose                                                                                               |
+| --------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| `Css`     | struct | The style declaration block; chainable builder, one method per CSS longhand.                          |
 | `CssProp` | struct | One serialized declaration (`name()` / `value()`). Built only by `Css`; the representation is opaque. |
-| `ToCss` | trait | Serialization trait implemented by every value type. |
+| `ToCss`   | trait  | Serialization trait implemented by every value type.                                                  |
 
 ### `ToCss`
 
 The trait every CSS value type implements:
 
-| Method | Returns | Notes |
-|---|---|---|
-| `to_css(&self, dest: &mut dyn fmt::Write)` | `fmt::Result` | Writes the CSS source form into a sink. |
-| `to_css_string(&self)` | `String` | Convenience wrapper that allocates and returns the text. |
+| Method                                     | Returns       | Notes                                                    |
+| ------------------------------------------ | ------------- | -------------------------------------------------------- |
+| `to_css(&self, dest: &mut dyn fmt::Write)` | `fmt::Result` | Writes the CSS source form into a sink.                  |
+| `to_css_string(&self)`                     | `String`      | Convenience wrapper that allocates and returns the text. |
 
 ## Units & number extensions
 
@@ -131,21 +131,21 @@ let f = 300.ms();     // 300ms
 
 Each returns a typed value (`Length`, `Percentage`, `Angle`, or `Time`):
 
-| Function | Result | Unit |
-|---|---|---|
-| `px(n)` | `Length` | logical pixels |
-| `rpx(n)` | `Length` | Lynx responsive pixel (`750rpx` = device width) |
-| `ppx(n)` | `Length` | physical pixel |
-| `em(n)` | `Length` | `em` |
-| `rem(n)` | `Length` | `rem` |
-| `vh(n)` | `Length` | viewport height |
-| `vw(n)` | `Length` | viewport width |
-| `percent(n)` | `Percentage` | `%` |
-| `deg(n)` | `Angle` | degrees |
-| `rad(n)` | `Angle` | radians |
-| `turn(n)` | `Angle` | turns |
-| `s(n)` | `Time` | seconds |
-| `ms(n)` | `Time` | milliseconds |
+| Function     | Result       | Unit                                            |
+| ------------ | ------------ | ----------------------------------------------- |
+| `px(n)`      | `Length`     | logical pixels                                  |
+| `rpx(n)`     | `Length`     | Lynx responsive pixel (`750rpx` = device width) |
+| `ppx(n)`     | `Length`     | physical pixel                                  |
+| `em(n)`      | `Length`     | `em`                                            |
+| `rem(n)`     | `Length`     | `rem`                                           |
+| `vh(n)`      | `Length`     | viewport height                                 |
+| `vw(n)`      | `Length`     | viewport width                                  |
+| `percent(n)` | `Percentage` | `%`                                             |
+| `deg(n)`     | `Angle`      | degrees                                         |
+| `rad(n)`     | `Angle`      | radians                                         |
+| `turn(n)`    | `Angle`      | turns                                           |
+| `s(n)`       | `Time`       | seconds                                         |
+| `ms(n)`      | `Time`       | milliseconds                                    |
 
 `ZERO` is a `const Length` — the only length CSS allows without a unit.
 
@@ -153,13 +153,13 @@ Each returns a typed value (`Length`, `Percentage`, `Angle`, or `Time`):
 
 The same constructors, as methods on any number (`i32`, `f32`, `u32`):
 
-| Trait | Methods | Result |
-|---|---|---|
-| `IntoF32` | `into_f32()` | internal widening to `f32` for value construction |
-| `LengthExt` | `.px()`, `.rpx()`, `.ppx()`, `.em()`, `.rem()`, `.vh()`, `.vw()` | `Length` |
-| `PercentExt` | `.percent()` | `Percentage` |
-| `AngleExt` | `.deg()`, `.rad()`, `.turn()` | `Angle` |
-| `TimeExt` | `.s()`, `.ms()` | `Time` |
+| Trait        | Methods                                                          | Result                                            |
+| ------------ | ---------------------------------------------------------------- | ------------------------------------------------- |
+| `IntoF32`    | `into_f32()`                                                     | internal widening to `f32` for value construction |
+| `LengthExt`  | `.px()`, `.rpx()`, `.ppx()`, `.em()`, `.rem()`, `.vh()`, `.vw()` | `Length`                                          |
+| `PercentExt` | `.percent()`                                                     | `Percentage`                                      |
+| `AngleExt`   | `.deg()`, `.rad()`, `.turn()`                                    | `Angle`                                           |
+| `TimeExt`    | `.s()`, `.ms()`                                                  | `Time`                                            |
 
 ## Keyword enums
 
@@ -169,28 +169,28 @@ absent so they fail to compile rather than warn at runtime.
 
 ### Layout
 
-| Enum | Purpose |
-|---|---|
-| `Display` | The `display` value (see variants below). |
-| `PositionKind` | The `position` value (no `static` — Lynx defaults to `relative`). |
-| `Overflow` | `overflow` behavior. |
-| `Visibility` | `visibility`. |
-| `BoxSizing` | `box-sizing`. |
-| `PointerEvents` | `pointer-events`. |
+| Enum            | Purpose                                                           |
+| --------------- | ----------------------------------------------------------------- |
+| `Display`       | The `display` value (see variants below).                         |
+| `PositionKind`  | The `position` value (no `static` — Lynx defaults to `relative`). |
+| `Overflow`      | `overflow` behavior.                                              |
+| `Visibility`    | `visibility`.                                                     |
+| `BoxSizing`     | `box-sizing`.                                                     |
+| `PointerEvents` | `pointer-events`.                                                 |
 
 `Display` variants: `None`, `Flex`, `Grid`, `Linear` (default for `<view>`),
 `Relative`.
 
 ### Flex
 
-| Enum | Purpose |
-|---|---|
-| `FlexDirection` | Main-axis direction. |
-| `FlexWrap` | Single- vs multi-line wrapping. |
-| `JustifyContent` | Main-axis alignment. |
-| `AlignItems` | Cross-axis alignment of items. |
-| `AlignSelf` | Per-item override of `AlignItems` (adds `Auto`). |
-| `AlignContent` | Cross-axis alignment of wrapped lines. |
+| Enum             | Purpose                                          |
+| ---------------- | ------------------------------------------------ |
+| `FlexDirection`  | Main-axis direction.                             |
+| `FlexWrap`       | Single- vs multi-line wrapping.                  |
+| `JustifyContent` | Main-axis alignment.                             |
+| `AlignItems`     | Cross-axis alignment of items.                   |
+| `AlignSelf`      | Per-item override of `AlignItems` (adds `Auto`). |
+| `AlignContent`   | Cross-axis alignment of wrapped lines.           |
 
 `FlexDirection` variants: `Row` (default), `RowReverse`, `Column`,
 `ColumnReverse`.
@@ -203,104 +203,104 @@ absent so they fail to compile rather than warn at runtime.
 
 ### Typography
 
-| Enum | Purpose |
-|---|---|
-| `FontStyle` | `font-style`. |
-| `FontWeight` | `font-weight`. |
+| Enum          | Purpose         |
+| ------------- | --------------- |
+| `FontStyle`   | `font-style`.   |
+| `FontWeight`  | `font-weight`.  |
 | `FontVariant` | `font-variant`. |
-| `Cursor` | `cursor`. |
+| `Cursor`      | `cursor`.       |
 
 ### Text
 
-| Enum | Purpose |
-|---|---|
-| `TextAlign` | `text-align`. |
-| `TextDecorationLine` | `text-decoration-line`. |
-| `TextDecorationStyle` | `text-decoration-style`. |
-| `TextOverflow` | `text-overflow`. |
-| `TextTransform` | `text-transform`. |
-| `VerticalAlign` | `vertical-align`. |
-| `Direction` | `direction` (text direction). |
-| `WhiteSpace` | `white-space`. |
-| `WordBreak` | `word-break`. |
-| `WordWrap` | `word-wrap`. |
+| Enum                  | Purpose                       |
+| --------------------- | ----------------------------- |
+| `TextAlign`           | `text-align`.                 |
+| `TextDecorationLine`  | `text-decoration-line`.       |
+| `TextDecorationStyle` | `text-decoration-style`.      |
+| `TextOverflow`        | `text-overflow`.              |
+| `TextTransform`       | `text-transform`.             |
+| `VerticalAlign`       | `vertical-align`.             |
+| `Direction`           | `direction` (text direction). |
+| `WhiteSpace`          | `white-space`.                |
+| `WordBreak`           | `word-break`.                 |
+| `WordWrap`            | `word-wrap`.                  |
 
 ### Border
 
-| Enum | Purpose |
-|---|---|
+| Enum          | Purpose         |
+| ------------- | --------------- |
 | `BorderStyle` | `border-style`. |
 
 ### Background
 
-| Enum | Purpose |
-|---|---|
-| `BackgroundRepeat` | `background-repeat`. |
-| `BackgroundClip` | `background-clip`. |
-| `BackgroundOrigin` | `background-origin`. |
-| `BackgroundAttachment` | `background-attachment`. |
-| `BackgroundSize` | `background-size` keyword form. |
+| Enum                   | Purpose                         |
+| ---------------------- | ------------------------------- |
+| `BackgroundRepeat`     | `background-repeat`.            |
+| `BackgroundClip`       | `background-clip`.              |
+| `BackgroundOrigin`     | `background-origin`.            |
+| `BackgroundAttachment` | `background-attachment`.        |
+| `BackgroundSize`       | `background-size` keyword form. |
 
 ### Grid
 
-| Enum | Purpose |
-|---|---|
+| Enum           | Purpose           |
+| -------------- | ----------------- |
 | `GridAutoFlow` | `grid-auto-flow`. |
 
 ### Linear (Lynx linear layout)
 
-| Enum | Purpose |
-|---|---|
-| `LinearOrientation` | `linear-orientation` (stacking axis). |
-| `LinearGravity` | `linear-gravity`. |
-| `LinearCrossGravity` | `linear-cross-gravity`. |
-| `LinearLayoutGravity` | `linear-layout-gravity`. |
+| Enum                  | Purpose                               |
+| --------------------- | ------------------------------------- |
+| `LinearOrientation`   | `linear-orientation` (stacking axis). |
+| `LinearGravity`       | `linear-gravity`.                     |
+| `LinearCrossGravity`  | `linear-cross-gravity`.               |
+| `LinearLayoutGravity` | `linear-layout-gravity`.              |
 
 ### Transform
 
-| Enum | Purpose |
-|---|---|
-| `TransformBox` | `transform-box`. |
-| `TransformStyle` | `transform-style`. |
+| Enum                 | Purpose                |
+| -------------------- | ---------------------- |
+| `TransformBox`       | `transform-box`.       |
+| `TransformStyle`     | `transform-style`.     |
 | `BackfaceVisibility` | `backface-visibility`. |
 
 ### Animation
 
-| Enum | Purpose |
-|---|---|
-| `AnimationDirection` | `animation-direction`. |
-| `AnimationFillMode` | `animation-fill-mode`. |
-| `AnimationIterationCount` | `animation-iteration-count`. |
-| `AnimationPlayState` | `animation-play-state`. |
-| `TransitionPropertyKind` | The property a `transition` targets. |
+| Enum                      | Purpose                              |
+| ------------------------- | ------------------------------------ |
+| `AnimationDirection`      | `animation-direction`.               |
+| `AnimationFillMode`       | `animation-fill-mode`.               |
+| `AnimationIterationCount` | `animation-iteration-count`.         |
+| `AnimationPlayState`      | `animation-play-state`.              |
+| `TransitionPropertyKind`  | The property a `transition` targets. |
 
 ## Data types
 
 Structured CSS value types from the `data_type` module (with
 `data_type_ext` for the inline types Lynx does not document standalone).
 
-| Type | Purpose |
-|---|---|
-| `Angle` | An `<angle>` (`Deg`, `Rad`, `Turn`). |
-| `CalcExpr` | A `calc()` expression. |
-| `Color` | A `<color>` — see below. |
-| `ColorStop` | One color stop in a gradient. |
-| `CssString` | A quoted CSS string (e.g. `content`, font family). |
-| `FitContent` | The `fit-content()` sizing function. |
-| `Gradient` | A `<gradient>` image (linear/radial). |
-| `Length` | A `<length>` (`Px`, `Rpx`, `Ppx`, `Em`, `Rem`, `Vh`, `Vw`, `Zero`). |
-| `LengthPercentage` | A value that may be a length or a percentage. |
-| `LinearDirection` | Direction of a linear gradient. |
-| `MaxContent` | The `max-content` sizing keyword. |
-| `NamedColor` | One of the 147 CSS named colors — see below. |
-| `Number` | A unit-less `<number>`. |
-| `Percentage` | A `<percentage>` (`50%`). |
-| `RadialShape` | Shape of a radial gradient. |
-| `StopPosition` | Position of a gradient stop. |
-| `Time` | A `<time>` (`S`, `Ms`). |
-| `EasingFunction` | A transition/animation easing function. |
-| `Integer` | An `<integer>`. |
-| `Position` | A `<position>` (background/object position). |
+| Type               | Purpose                                                             |
+| ------------------ | ------------------------------------------------------------------- |
+| `Angle`            | An `<angle>` (`Deg`, `Rad`, `Turn`).                                |
+| `CalcExpr`         | A `calc()` expression.                                              |
+| `Color`            | A `<color>` — see below.                                            |
+| `ColorStop`        | One color stop in a gradient.                                       |
+| `CssString`        | A quoted CSS string (e.g. `content`, font family).                  |
+| `FitContent`       | The `fit-content()` sizing function.                                |
+| `Gradient`         | A `<gradient>` image (linear/radial).                               |
+| `Length`           | A `<length>` (`Px`, `Rpx`, `Ppx`, `Em`, `Rem`, `Vh`, `Vw`, `Zero`). |
+| `LengthPercentage` | A value that may be a length or a percentage.                       |
+| `LinearDirection`  | Direction of a linear gradient.                                     |
+| `MaxContent`       | The `max-content` sizing keyword.                                   |
+| `NamedColor`       | One of the 147 CSS named colors — see below.                        |
+| `Number`           | A unit-less `<number>`.                                             |
+| `Percentage`       | A `<percentage>` (`50%`).                                           |
+| `RadialShape`      | Shape of a radial gradient.                                         |
+| `StopPosition`     | Position of a gradient stop.                                        |
+| `Time`             | A `<time>` (`S`, `Ms`).                                             |
+| `EasingFunction`   | A transition/animation easing function.                             |
+| `Integer`          | An `<integer>`.                                                     |
+| `Position`         | A `<position>` (background/object position).                        |
 
 ### `Color`
 
@@ -309,15 +309,15 @@ Structured CSS value types from the `data_type` module (with
 (`currentColor`, `hwb()`, `lab()`, `oklch()`, `color()`) are intentionally
 absent and will not compile.
 
-| Constructor | Form |
-|---|---|
-| `Color::hex(0xRRGGBB)` | 24-bit packed RGB, fully opaque. |
-| `Color::hex_alpha(0xRRGGBBAA)` | 32-bit packed RGBA. |
-| `Color::rgb(r, g, b)` | 8-bit channels, opaque. |
-| `Color::rgba(r, g, b, a)` | 8-bit channels with alpha `0.0..=1.0`. |
-| `Color::hsl(h_deg, s%, l%)` | HSL, opaque. |
-| `Color::Named(NamedColor::…)` | A named color. |
-| `Color::Transparent` | Fully transparent. |
+| Constructor                    | Form                                   |
+| ------------------------------ | -------------------------------------- |
+| `Color::hex(0xRRGGBB)`         | 24-bit packed RGB, fully opaque.       |
+| `Color::hex_alpha(0xRRGGBBAA)` | 32-bit packed RGBA.                    |
+| `Color::rgb(r, g, b)`          | 8-bit channels, opaque.                |
+| `Color::rgba(r, g, b, a)`      | 8-bit channels with alpha `0.0..=1.0`. |
+| `Color::hsl(h_deg, s%, l%)`    | HSL, opaque.                           |
+| `Color::Named(NamedColor::…)`  | A named color.                         |
+| `Color::Transparent`           | Fully transparent.                     |
 
 ```rust
 use whisker_css::{Color, NamedColor};
@@ -340,32 +340,32 @@ Compound builders from the `shorthand` module, for properties whose CSS
 shorthand combines multiple longhands. Each expands to its constituent
 longhands when applied.
 
-| Type | Shorthand |
-|---|---|
-| `Animation` | `animation`. |
-| `Background` | `background`. |
-| `BackgroundLayer` | One layer within a `background`. |
-| `Border` | `border`. |
-| `Flex` | `flex`. |
-| `Margin` | `margin`. |
-| `MarginValue` | One side of a `margin` (length, percentage, or `auto`). |
-| `Padding` | `padding`. |
-| `Transform` | `transform` (a list of `TransformFn`). |
-| `TransformFn` | A single transform function (`translate`, `rotate`, `scale`, …). |
-| `Transition` | `transition`. |
+| Type              | Shorthand                                                        |
+| ----------------- | ---------------------------------------------------------------- |
+| `Animation`       | `animation`.                                                     |
+| `Background`      | `background`.                                                    |
+| `BackgroundLayer` | One layer within a `background`.                                 |
+| `Border`          | `border`.                                                        |
+| `Flex`            | `flex`.                                                          |
+| `Margin`          | `margin`.                                                        |
+| `MarginValue`     | One side of a `margin` (length, percentage, or `auto`).          |
+| `Padding`         | `padding`.                                                       |
+| `Transform`       | `transform` (a list of `TransformFn`).                           |
+| `TransformFn`     | A single transform function (`translate`, `rotate`, `scale`, …). |
+| `Transition`      | `transition`.                                                    |
 
 ## Value helpers
 
 Higher-level value types from the `value` module that model a single
 property's accepted grammar.
 
-| Type | Property |
-|---|---|
-| `BorderRadius` | `border-radius` (one to four corners). |
-| `FlexBasis` | `flex-basis`. |
-| `GridLine` | A `grid-row` / `grid-column` line. |
-| `GridTemplate` | `grid-template-rows` / `-columns`. |
-| `ImageRef` | An image reference (URL or gradient) for `background-image`. |
-| `LineHeight` | `line-height` (number or length). |
-| `Repeated` | A repeated track list (`repeat()`). |
-| `Size` | A `width` / `height` value. |
+| Type           | Property                                                     |
+| -------------- | ------------------------------------------------------------ |
+| `BorderRadius` | `border-radius` (one to four corners).                       |
+| `FlexBasis`    | `flex-basis`.                                                |
+| `GridLine`     | A `grid-row` / `grid-column` line.                           |
+| `GridTemplate` | `grid-template-rows` / `-columns`.                           |
+| `ImageRef`     | An image reference (URL or gradient) for `background-image`. |
+| `LineHeight`   | `line-height` (number or length).                            |
+| `Repeated`     | A repeated track list (`repeat()`).                          |
+| `Size`         | A `width` / `height` value.                                  |
