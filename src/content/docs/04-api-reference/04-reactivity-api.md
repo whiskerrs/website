@@ -56,22 +56,22 @@ pair. All three view the same underlying slot.
 
 ### `ReadSignal<T>`
 
-| Method | Signature | Notes |
-|---|---|---|
-| `get` | `(self) -> T` | Read + subscribe. Requires `T: Clone`. |
-| `get_untracked` | `(self) -> T` | Read without subscribing. Requires `T: Clone`. |
-| `with` | `(self, f: impl FnOnce(&T) -> R) -> R` | Borrowed read + subscribe. No `Clone` bound. |
-| `with_untracked` | `(self, f: impl FnOnce(&T) -> R) -> R` | Borrowed read, no subscribe. |
+| Method           | Signature                              | Notes                                          |
+| ---------------- | -------------------------------------- | ---------------------------------------------- |
+| `get`            | `(self) -> T`                          | Read + subscribe. Requires `T: Clone`.         |
+| `get_untracked`  | `(self) -> T`                          | Read without subscribing. Requires `T: Clone`. |
+| `with`           | `(self, f: impl FnOnce(&T) -> R) -> R` | Borrowed read + subscribe. No `Clone` bound.   |
+| `with_untracked` | `(self, f: impl FnOnce(&T) -> R) -> R` | Borrowed read, no subscribe.                   |
 
 Use `with` / `with_untracked` when `T` is expensive to clone or isn't
 `Clone`.
 
 ### `WriteSignal<T>`
 
-| Method | Signature | Notes |
-|---|---|---|
-| `set` | `(self, value: T)` | Replace the value, notify subscribers. |
-| `update` | `(self, f: impl FnOnce(&mut T))` | Mutate in place, notify subscribers. |
+| Method             | Signature                        | Notes                                                   |
+| ------------------ | -------------------------------- | ------------------------------------------------------- |
+| `set`              | `(self, value: T)`               | Replace the value, notify subscribers.                  |
+| `update`           | `(self, f: impl FnOnce(&mut T))` | Mutate in place, notify subscribers.                    |
 | `update_untracked` | `(self, f: impl FnOnce(&mut T))` | Mutate without notifying. Escape hatch — use sparingly. |
 
 ```rust
@@ -99,21 +99,21 @@ count.update(|n| *n += 1);
 let n = count.get();
 ```
 
-| Method | Signature | Notes |
-|---|---|---|
-| `new` | `(initial: T) -> Self` | Allocate in the current owner. `signal(initial)` is the free-fn shorthand. |
-| `read_only` | `(self) -> ReadSignal<T>` | Project to a read-only handle on the same value. Pass this to a child that only displays state. |
-| `write_only` | `(self) -> WriteSignal<T>` | Project to a write-only handle on the same value. Pass this to a child that only mutates. |
-| `split` | `(self) -> (ReadSignal<T>, WriteSignal<T>)` | Split into the read and write halves at once. |
-| `get` | `(self) -> T` | Read + subscribe. `T: Clone`. |
-| `get_untracked` | `(self) -> T` | Read, no subscribe. `T: Clone`. |
-| `with` | `(self, f) -> R` | Borrowed read + subscribe. |
-| `with_untracked` | `(self, f) -> R` | Borrowed read, no subscribe. |
-| `set` | `(self, value: T)` | Replace + notify. Panics if disposed. |
-| `update` | `(self, f)` | Mutate + notify. Panics if disposed. |
-| `update_untracked` | `(self, f)` | Mutate, no notify. |
-| `try_set` | `(self, value: T) -> bool` | Like `set`, returns `false` if the signal was already disposed. |
-| `try_update` | `(self, f) -> bool` | Like `update`, returns `false` if disposed. |
+| Method             | Signature                                   | Notes                                                                                           |
+| ------------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `new`              | `(initial: T) -> Self`                      | Allocate in the current owner. `signal(initial)` is the free-fn shorthand.                      |
+| `read_only`        | `(self) -> ReadSignal<T>`                   | Project to a read-only handle on the same value. Pass this to a child that only displays state. |
+| `write_only`       | `(self) -> WriteSignal<T>`                  | Project to a write-only handle on the same value. Pass this to a child that only mutates.       |
+| `split`            | `(self) -> (ReadSignal<T>, WriteSignal<T>)` | Split into the read and write halves at once.                                                   |
+| `get`              | `(self) -> T`                               | Read + subscribe. `T: Clone`.                                                                   |
+| `get_untracked`    | `(self) -> T`                               | Read, no subscribe. `T: Clone`.                                                                 |
+| `with`             | `(self, f) -> R`                            | Borrowed read + subscribe.                                                                      |
+| `with_untracked`   | `(self, f) -> R`                            | Borrowed read, no subscribe.                                                                    |
+| `set`              | `(self, value: T)`                          | Replace + notify. Panics if disposed.                                                           |
+| `update`           | `(self, f)`                                 | Mutate + notify. Panics if disposed.                                                            |
+| `update_untracked` | `(self, f)`                                 | Mutate, no notify.                                                                              |
+| `try_set`          | `(self, value: T) -> bool`                  | Like `set`, returns `false` if the signal was already disposed.                                 |
+| `try_update`       | `(self, f) -> bool`                         | Like `update`, returns `false` if disposed.                                                     |
 
 `try_set` / `try_update` exist for callers that legitimately race owner
 disposal (e.g. a write from an `on_cleanup` callback that may fire after
@@ -141,11 +141,11 @@ count.set(1);
 assert_eq!(count.get(), 1);
 ```
 
-| Type | Role | Cloneability |
-|---|---|---|
-| `ArcRwSignal<T>` | Combined read/write | `Clone` (Rc bump), **not** `Copy` |
-| `ArcReadSignal<T>` | Read-only projection | `Clone`, not `Copy` |
-| `ArcWriteSignal<T>` | Write-only projection | `Clone`, not `Copy` |
+| Type                | Role                  | Cloneability                      |
+| ------------------- | --------------------- | --------------------------------- |
+| `ArcRwSignal<T>`    | Combined read/write   | `Clone` (Rc bump), **not** `Copy` |
+| `ArcReadSignal<T>`  | Read-only projection  | `Clone`, not `Copy`               |
+| `ArcWriteSignal<T>` | Write-only projection | `Clone`, not `Copy`               |
 
 `arc_signal(initial) -> ArcRwSignal<T>` is the Arc analog of
 [`signal`](#signal) — a single combined handle. `ArcRwSignal::new`,
@@ -199,11 +199,11 @@ Pass values down the owner tree without threading props.
 `provide_context::<T>(value)` stores a value in the current owner;
 lookups walk up the owner chain to the nearest provider.
 
-| Function | Signature | Notes |
-|---|---|---|
-| `provide_context` | `(value: T)` | Store a `T` in the current owner. Re-providing the same `T` replaces it. |
-| `use_context` | `() -> Option<T>` | Nearest provided `T`, cloned. `T: Clone`. |
-| `with_context` | `(f: impl FnOnce(&T) -> R) -> Option<R>` | Borrow the nearest `T` without cloning. |
+| Function          | Signature                                | Notes                                                                    |
+| ----------------- | ---------------------------------------- | ------------------------------------------------------------------------ |
+| `provide_context` | `(value: T)`                             | Store a `T` in the current owner. Re-providing the same `T` replaces it. |
+| `use_context`     | `() -> Option<T>`                        | Nearest provided `T`, cloned. `T: Clone`.                                |
+| `with_context`    | `(f: impl FnOnce(&T) -> R) -> Option<R>` | Borrow the nearest `T` without cloning.                                  |
 
 ```rust
 #[derive(Clone)]
@@ -238,10 +238,10 @@ let stories = resource(|| async {
 });
 ```
 
-| Function | Signature | Notes |
-|---|---|---|
-| `resource` | `(fetcher) -> Resource<T>` | Spawns the fetcher on the task pool. Returns immediately in `Loading`. **Reactive:** the fetcher runs in an effect, so signals it reads are tracked and it **re-fetches when any of them change**. |
-| `resource_sync` | `(fetcher) -> Resource<T>` | Runs the fetcher inline (no worker thread). Resolves to `Ready`/`Error` immediately, never `Loading`. **One-shot / untracked** — does not subscribe to signals it reads, so it never re-fetches. |
+| Function        | Signature                  | Notes                                                                                                                                                                                              |
+| --------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resource`      | `(fetcher) -> Resource<T>` | Spawns the fetcher on the task pool. Returns immediately in `Loading`. **Reactive:** the fetcher runs in an effect, so signals it reads are tracked and it **re-fetches when any of them change**. |
+| `resource_sync` | `(fetcher) -> Resource<T>` | Runs the fetcher inline (no worker thread). Resolves to `Ready`/`Error` immediately, never `Loading`. **One-shot / untracked** — does not subscribe to signals it reads, so it never re-fetches.   |
 
 The `fetcher` returns `Result<T, String>` — by convention you stringify
 upstream errors with `.map_err(|e| e.to_string())`.
@@ -270,8 +270,8 @@ The semantics:
   before an in-flight fetch resolves, the stale result is discarded; only
   the most recent run commits.
 
-Put a signal in the fetcher when it decides *what to fetch*. If a signal
-only *transforms already-fetched data*, wrap the resource in a `computed`
+Put a signal in the fetcher when it decides _what to fetch_. If a signal
+only _transforms already-fetched data_, wrap the resource in a `computed`
 instead of re-fetching. See
 [Async & Data Loading](/docs/async-and-data) for the worked pattern.
 
@@ -279,12 +279,12 @@ instead of re-fetching. See
 
 `Copy`. Requires `T: Clone`.
 
-| Method | Signature | Notes |
-|---|---|---|
-| `get` | `(&self) -> Option<T>` | `Some(value)` when ready, else `None`. |
-| `loading` | `(&self) -> bool` | `true` while the fetch is in flight. |
-| `error` | `(&self) -> Option<String>` | `Some(message)` if the fetch failed. |
-| `state` | `(&self) -> ResourceState<T>` | The full state (reactive read). |
+| Method       | Signature                                     | Notes                                               |
+| ------------ | --------------------------------------------- | --------------------------------------------------- |
+| `get`        | `(&self) -> Option<T>`                        | `Some(value)` when ready, else `None`.              |
+| `loading`    | `(&self) -> bool`                             | `true` while the fetch is in flight.                |
+| `error`      | `(&self) -> Option<String>`                   | `Some(message)` if the fetch failed.                |
+| `state`      | `(&self) -> ResourceState<T>`                 | The full state (reactive read).                     |
 | `from_state` | `(state: RwSignal<ResourceState<T>>) -> Self` | Build a synthetic resource from an existing signal. |
 
 All accessors read the underlying signal reactively — calling them inside
@@ -300,11 +300,11 @@ pub enum ResourceState<T> {
 }
 ```
 
-| Method | Returns | True when |
-|---|---|---|
-| `is_loading` | `bool` | state is `Loading` |
-| `is_ready` | `bool` | state is `Ready(_)` |
-| `is_error` | `bool` | state is `Error(_)` |
+| Method       | Returns | True when           |
+| ------------ | ------- | ------------------- |
+| `is_loading` | `bool`  | state is `Loading`  |
+| `is_ready`   | `bool`  | state is `Ready(_)` |
+| `is_error`   | `bool`  | state is `Error(_)` |
 
 ## `StoredValue<T>`
 
@@ -313,13 +313,13 @@ reads don't subscribe and writes don't notify. It's the scoped
 equivalent of `Rc<RefCell<...>>`: share non-reactive state across
 closures in a component and have it freed automatically on unmount.
 
-| Method | Signature | Notes |
-|---|---|---|
-| `new` | `(initial: T) -> Self` | Allocate in the current owner. |
-| `get` | `(self) -> T` | Read (no subscribe). `T: Clone`. |
-| `with` | `(self, f: impl FnOnce(&T) -> R) -> R` | Borrowed read. |
-| `update` | `(self, f: impl FnOnce(&mut T) -> R) -> R` | Borrowed mutation (no notify). |
-| `set` | `(self, value: T)` | Replace the value. |
+| Method   | Signature                                  | Notes                            |
+| -------- | ------------------------------------------ | -------------------------------- |
+| `new`    | `(initial: T) -> Self`                     | Allocate in the current owner.   |
+| `get`    | `(self) -> T`                              | Read (no subscribe). `T: Clone`. |
+| `with`   | `(self, f: impl FnOnce(&T) -> R) -> R`     | Borrowed read.                   |
+| `update` | `(self, f: impl FnOnce(&mut T) -> R) -> R` | Borrowed mutation (no notify).   |
+| `set`    | `(self, value: T)`                         | Replace the value.               |
 
 ## The Signal prop type
 
@@ -342,12 +342,12 @@ conversion is implicit. Passing a `T` yields `Static`; passing a
 [`computed`](#computed) yields `Dynamic`. A `&str` literal converts to
 `Signal::Static(String)`.
 
-| `From` impl | Produces |
-|---|---|
-| `From<T>` | `Signal::Static(value)` |
-| `From<ReadSignal<T>>` | `Signal::Dynamic` |
-| `From<RwSignal<T>>` | `Signal::Dynamic` (via `read_only()`) |
-| `From<&str>` for `Signal<String>` | `Signal::Static(String)` |
+| `From` impl                       | Produces                              |
+| --------------------------------- | ------------------------------------- |
+| `From<T>`                         | `Signal::Static(value)`               |
+| `From<ReadSignal<T>>`             | `Signal::Dynamic`                     |
+| `From<RwSignal<T>>`               | `Signal::Dynamic` (via `read_only()`) |
+| `From<&str>` for `Signal<String>` | `Signal::Static(String)`              |
 
 Read a `Signal<T>` prop with `.get()`:
 
@@ -386,14 +386,14 @@ Disposing an owner cascades into its children, frees every node it
 allocated, releases its element handles, and runs its cleanup callbacks
 in LIFO order.
 
-| Method | Signature | Notes |
-|---|---|---|
-| `Owner::new` | `(parent: Option<Owner>) -> Owner` | `None` ⇒ child of the current owner. Inherits the parent's paused flag. |
-| `with` | `(self, f: impl FnOnce() -> R) -> R` | Run `f` with `self` as the current scope; primitives allocated inside belong to it. |
-| `dispose` | `(self)` | Tear down the scope and all descendants. Idempotent. |
-| `pause` | `(self)` | Freeze the subtree — scheduled effects defer instead of running. |
-| `resume` | `(self)` | Unfreeze and re-queue deferred effects. |
-| `is_paused` | `(self) -> bool` | Mainly for tests. |
+| Method       | Signature                            | Notes                                                                               |
+| ------------ | ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `Owner::new` | `(parent: Option<Owner>) -> Owner`   | `None` ⇒ child of the current owner. Inherits the parent's paused flag.             |
+| `with`       | `(self, f: impl FnOnce() -> R) -> R` | Run `f` with `self` as the current scope; primitives allocated inside belong to it. |
+| `dispose`    | `(self)`                             | Tear down the scope and all descendants. Idempotent.                                |
+| `pause`      | `(self)`                             | Freeze the subtree — scheduled effects defer instead of running.                    |
+| `resume`     | `(self)`                             | Unfreeze and re-queue deferred effects.                                             |
+| `is_paused`  | `(self) -> bool`                     | Mainly for tests.                                                                   |
 
 `pause` / `resume` back off-screen-but-mounted UI (e.g. back-stack
 routes) — state survives but no CPU is spent on signal-driven re-renders
@@ -401,11 +401,11 @@ behind the top route.
 
 ### Lifecycle free functions
 
-| Function | Signature | Notes |
-|---|---|---|
-| `on_mount` | `(f: impl FnOnce() + 'static)` | Fires once after the component's view is appended to the tree. |
-| `on_cleanup` | `(f: impl FnOnce() + 'static)` | Runs when the current owner is disposed. Accumulates LIFO. |
-| `flush` | `()` | Drain the pending queue, re-running scheduled effects/computeds now. No-op if a flush is already in progress. |
+| Function     | Signature                      | Notes                                                                                                         |
+| ------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `on_mount`   | `(f: impl FnOnce() + 'static)` | Fires once after the component's view is appended to the tree.                                                |
+| `on_cleanup` | `(f: impl FnOnce() + 'static)` | Runs when the current owner is disposed. Accumulates LIFO.                                                    |
+| `flush`      | `()`                           | Drain the pending queue, re-running scheduled effects/computeds now. No-op if a flush is already in progress. |
 
 `on_mount` is the right place for post-mount measurement or kicking off
 background work; `on_cleanup` for releasing resources. `flush` is rarely

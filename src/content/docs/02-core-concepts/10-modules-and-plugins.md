@@ -10,8 +10,8 @@ The Whisker core stays small on purpose. Anything that needs a real
 native widget, a platform service, or a tweak to the generated native
 project comes from one of two extension mechanisms: a **module** or a
 **plugin**. They sound similar but solve different problems — a module
-adds *code* (a capability your app calls or renders), while a plugin
-adds *native project configuration* (Info.plist keys, permissions,
+adds _code_ (a capability your app calls or renders), while a plugin
+adds _native project configuration_ (Info.plist keys, permissions,
 Gradle deps).
 
 This page explains the mental model. When you're ready to build one,
@@ -21,7 +21,7 @@ see [Authoring a Module](/docs/authoring-a-module) and
 ## Whisker modules
 
 A **Whisker module** is a single cargo crate that ships Rust, Swift, and
-Kotlin *together* to expose one native capability. From your app you add
+Kotlin _together_ to expose one native capability. From your app you add
 it to `Cargo.toml` like any other dependency, `use` its types, and the
 build wires the native side in for you.
 
@@ -86,11 +86,11 @@ separate SwiftPM Registry or Maven Central publishing is needed for a
 module.** One `cargo publish` ships all three languages.
 
 Contrast this with the **core runtime**. The Swift/Kotlin runtime that
-every app links against is *not* shipped this way — it's distributed as
+every app links against is _not_ shipped this way — it's distributed as
 a remote SwiftPM package (resolved by tagged git URL on iOS) and as
 Maven AARs on Android. The reason is that static, generated native
 project manifests need a single stable reference to the runtime: every
-module's `Package.swift` points at the *same* remote `whisker` package
+module's `Package.swift` points at the _same_ remote `whisker` package
 URL so the build graph ends up with one shared runtime identity rather
 than a copy per module. Modules ride on crates.io; the core runtime they
 all depend on lives behind a versioned remote package.
@@ -98,7 +98,7 @@ all depend on lives behind a versioned remote package.
 ## Whisker plugins
 
 A **Whisker plugin** doesn't add a capability your code calls — it
-contributes to the *generated native project* during `whisker run` or a
+contributes to the _generated native project_ during `whisker run` or a
 build. Plugins are how you reach into the parts of the iOS/Android
 project Whisker generates: `Info.plist` keys, Android manifest
 permissions, Gradle plugins and dependencies, and arbitrary extra files.
@@ -123,9 +123,9 @@ trait, the per-platform IR it mutates — is in the
 
 The two mechanisms compose. `whisker-audio` ships **both**:
 
-- a *module* — the `Player` handle and the native audio engine behind
+- a _module_ — the `Player` handle and the native audio engine behind
   it, and
-- a *plugin* — `WhiskerAudio`, which contributes the microphone usage
+- a _plugin_ — `WhiskerAudio`, which contributes the microphone usage
   description (iOS) and the `RECORD_AUDIO` permission (Android) needed
   before the engine can record.
 
@@ -138,13 +138,13 @@ contributes nothing — you don't pay for permissions you didn't ask for.
 
 A quick rule of thumb:
 
-- **Module** — you're adding a *capability your code uses*: a native
+- **Module** — you're adding a _capability your code uses_: a native
   widget to render, or a native function/service to call. It ships Rust
-  + Swift + Kotlin and is consumed as a normal crate dependency.
-- **Plugin** — you're adjusting the *native project itself*: a
+  - Swift + Kotlin and is consumed as a normal crate dependency.
+- **Plugin** — you're adjusting the _native project itself_: a
   permission, a plist key, a Gradle dependency, an extra bundled file.
 
-If you need both — a capability *and* the project config that lets it
+If you need both — a capability _and_ the project config that lets it
 run — ship both from the same crate, as `whisker-audio` does.
 
 When you're ready, head to [Authoring a Module](/docs/authoring-a-module)

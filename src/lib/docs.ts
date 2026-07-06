@@ -94,9 +94,7 @@ export const docs: DocEntry[] = Object.entries(modules)
   })
   .sort(
     (a, b) =>
-      a.sectionOrder - b.sectionOrder ||
-      a.order - b.order ||
-      a.title.localeCompare(b.title),
+      a.sectionOrder - b.sectionOrder || a.order - b.order || a.title.localeCompare(b.title),
   );
 
 // Grouped by section, in section order, each section's entries in

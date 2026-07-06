@@ -161,9 +161,9 @@ published `vX.Y.Z` git tag — every module's `Package.swift` hardcodes
 the same `exact:` version, so all of them, the constant, and the tag
 move together. The pieces that have to align per release:
 
-| crates.io | iOS SwiftPM tag | Android SDK (Maven) | Gradle plugin | Lynx fork |
-|---|---|---|---|---|
-| `0.7.0` | `v0.1.2` | `0.1.5` | `0.4.1` | `3.8.0-whisker.12` |
+| crates.io | iOS SwiftPM tag | Android SDK (Maven) | Gradle plugin | Lynx fork          |
+| --------- | --------------- | ------------------- | ------------- | ------------------ |
+| `0.7.0`   | `v0.1.2`        | `0.1.5`             | `0.4.1`       | `3.8.0-whisker.12` |
 
 For most app authors this is invisible: you install a `whisker-cli`
 version, and the iOS package version it pins comes along for the ride.

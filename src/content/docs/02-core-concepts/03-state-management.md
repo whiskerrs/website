@@ -102,7 +102,7 @@ render! {
 }
 ```
 
-`computed(f)` returns a `ReadSignal<T>` — the *same* type a plain signal
+`computed(f)` returns a `ReadSignal<T>` — the _same_ type a plain signal
 hands out — so you read it with `.get()` just like any other signal, and
 you can pass it anywhere a reactive value is accepted.
 
@@ -135,7 +135,7 @@ render! {
 ```
 
 The same rule applies to your own `#[component]` props. A prop typed
-`Signal<T>` accepts *either* a plain value or a signal handle, and
+`Signal<T>` accepts _either_ a plain value or a signal handle, and
 chooses static-vs-reactive based on what you pass. This is
 [The Signal prop type](/docs/reactivity-api#the-signal-prop-type), and
 it's why `Badge(label: "items")` and `Badge(label: my_signal)` are both
@@ -175,8 +175,8 @@ manual wiring.
 
 An `RwSignal` carries both capabilities, but you don't always want to
 hand both to everyone. When you pass state into a child component, you
-usually want to grant exactly one capability — a child that *displays*
-state shouldn't be able to *mutate* it, and vice versa. The `RwSignal`
+usually want to grant exactly one capability — a child that _displays_
+state shouldn't be able to _mutate_ it, and vice versa. The `RwSignal`
 projects into narrower handles:
 
 - **`count.read_only()` → `ReadSignal<T>`** — a read-only view of the

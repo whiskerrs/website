@@ -119,53 +119,53 @@ function Hero() {
       <div className="relative z-10 mx-auto w-full max-w-7xl">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="min-w-0 max-w-2xl">
-          <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100">
-            <Smartphone className="size-4" aria-hidden="true" />
-            Rust-first mobile UI framework · pre-alpha
-          </div>
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100">
+              <Smartphone className="size-4" aria-hidden="true" />
+              Rust-first mobile UI framework · pre-alpha
+            </div>
 
-          <h1 className="max-w-[760px] text-5xl font-semibold leading-[0.96] tracking-normal text-white sm:text-7xl">
-            Build native mobile apps in Rust.
-          </h1>
+            <h1 className="max-w-[760px] text-5xl font-semibold leading-[0.96] tracking-normal text-white sm:text-7xl">
+              Build native mobile apps in Rust.
+            </h1>
 
-          <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
-            Whisker brings Rust to Android and iOS app development: ergonomic UI, native widgets,
-            Lynx-powered CSS, sub-second hot reload, and an extension model built for native APIs.
-          </p>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
+              Whisker brings Rust to Android and iOS app development: ergonomic UI, native widgets,
+              Lynx-powered CSS, sub-second hot reload, and an extension model built for native APIs.
+            </p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="https://github.com/whiskerrs/whisker"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-orange-300 px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_60px_rgba(251,146,60,0.28)] transition hover:bg-orange-200"
-            >
-              <Github className="size-4" aria-hidden="true" />
-              Explore the repository
-            </a>
-            <a
-              href="#features"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/12 bg-white/[0.04] px-5 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.08]"
-            >
-              See what makes it different
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </a>
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-2">
-            {platformItems.map((item) => (
-              <span
-                key={item}
-                className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200"
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="https://github.com/whiskerrs/whisker"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-orange-300 px-5 text-sm font-semibold text-slate-950 shadow-[0_18px_60px_rgba(251,146,60,0.28)] transition hover:bg-orange-200"
               >
-                {item}
-              </span>
-            ))}
-          </div>
+                <Github className="size-4" aria-hidden="true" />
+                Explore the repository
+              </a>
+              <a
+                href="#features"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/12 bg-white/[0.04] px-5 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.08]"
+              >
+                See what makes it different
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </a>
+            </div>
 
-          <div className="mt-10 lg:hidden">
-            <MobileCodePanel />
-          </div>
+            <div className="mt-10 flex flex-wrap gap-2">
+              {platformItems.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-slate-200"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-10 lg:hidden">
+              <MobileCodePanel />
+            </div>
           </div>
 
           <div className="hidden lg:block">
@@ -222,10 +222,39 @@ function MobileCodePanel() {
 }
 
 const RUST_KEYWORDS = new Set([
-  "use", "fn", "let", "move", "mut", "pub", "impl", "struct", "enum", "return",
-  "as", "for", "in", "if", "else", "match", "self", "Self", "crate", "mod",
-  "trait", "type", "const", "static", "where", "async", "await", "dyn", "ref",
-  "loop", "while", "break", "continue",
+  "use",
+  "fn",
+  "let",
+  "move",
+  "mut",
+  "pub",
+  "impl",
+  "struct",
+  "enum",
+  "return",
+  "as",
+  "for",
+  "in",
+  "if",
+  "else",
+  "match",
+  "self",
+  "Self",
+  "crate",
+  "mod",
+  "trait",
+  "type",
+  "const",
+  "static",
+  "where",
+  "async",
+  "await",
+  "dyn",
+  "ref",
+  "loop",
+  "while",
+  "break",
+  "continue",
 ]);
 
 const RUST_TOKEN_RE =
@@ -233,7 +262,7 @@ const RUST_TOKEN_RE =
 
 function CodeLine({ line }: { line: string }) {
   if (!line) {
-    return <span>{" "}</span>;
+    return <span> </span>;
   }
 
   const tokens: ReactNode[] = [];

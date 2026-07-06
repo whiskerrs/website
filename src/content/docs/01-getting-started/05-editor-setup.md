@@ -33,7 +33,7 @@ rust-analyzer" / reload refreshes its macro expansion.
 ## Formatting
 
 Use [`whisker fmt`](/docs/formatting) — a rustfmt drop-in that formats your
-Rust *and* the `render!` / `css!` macro bodies (and the expressions inside
+Rust _and_ the `render!` / `css!` macro bodies (and the expressions inside
 them) that plain `cargo fmt` leaves untouched. It respects your
 `rustfmt.toml` and nothing else.
 

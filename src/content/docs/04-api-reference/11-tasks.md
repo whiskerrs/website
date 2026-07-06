@@ -20,11 +20,11 @@ All three are in the prelude; they also live under
 use whisker::prelude::*;
 ```
 
-| Function | Signature | Runs on |
-|---|---|---|
-| `spawn_local` | `(future: impl Future<Output = ()> + 'static)` | Main thread (cooperative) |
-| `run_blocking` | `(f: impl FnOnce() -> T + Send + 'static) -> impl Future<Output = T>` | Fresh worker thread |
-| `run_on_main_thread` | `(f: impl FnOnce() + Send + 'static)` | Main thread (marshalled) |
+| Function             | Signature                                                             | Runs on                   |
+| -------------------- | --------------------------------------------------------------------- | ------------------------- |
+| `spawn_local`        | `(future: impl Future<Output = ()> + 'static)`                        | Main thread (cooperative) |
+| `run_blocking`       | `(f: impl FnOnce() -> T + Send + 'static) -> impl Future<Output = T>` | Fresh worker thread       |
+| `run_on_main_thread` | `(f: impl FnOnce() + Send + 'static)`                                 | Main thread (marshalled)  |
 
 ## `spawn_local`
 

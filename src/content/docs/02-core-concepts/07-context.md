@@ -8,7 +8,7 @@ order: 7
 
 Some values are needed all over the tree: the current theme, the
 logged-in user, an app-wide store, the router's navigation stack.
-Threading those through every component as props — *prop drilling* —
+Threading those through every component as props — _prop drilling_ —
 gets tedious fast, and every intermediate component has to forward a prop
 it doesn't even use. **Context** lets an ancestor publish a value that any
 descendant can read directly.

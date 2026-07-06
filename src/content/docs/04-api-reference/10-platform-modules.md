@@ -39,13 +39,13 @@ A lightweight, name-keyed reference (modelled on Expo's
 unregistered module surfaces as a `WhiskerValue::Error` at `invoke` time.
 `Clone`.
 
-| Method | Signature | Notes |
-|---|---|---|
-| `named` | `PlatformModule::named(name: impl Into<String>) -> Self` | Reference a **fully-qualified** name (`<crate>:<Name>`). Prefer `module!`. |
-| `name` | `&self -> &str` | The fully-qualified name this handle dispatches to. |
-| `invoke` | `&self, function: &str, args: Vec<WhiskerValue> -> WhiskerValue` | Synchronous dispatch on the calling thread. Returns the raw value, with `WhiskerValue::Error` on failure. |
-| `invoke_async` | `async &self, function: &str, args: Vec<WhiskerValue> -> WhiskerValue` | Resolves when the bridge fires the result callback. |
-| `on_event` | `&self, event: &str, callback: F -> ModuleSubscription` where `F: Fn(WhiskerValue) + Send + Sync + 'static` | Subscribe to a module event. |
+| Method         | Signature                                                                                                   | Notes                                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `named`        | `PlatformModule::named(name: impl Into<String>) -> Self`                                                    | Reference a **fully-qualified** name (`<crate>:<Name>`). Prefer `module!`.                                |
+| `name`         | `&self -> &str`                                                                                             | The fully-qualified name this handle dispatches to.                                                       |
+| `invoke`       | `&self, function: &str, args: Vec<WhiskerValue> -> WhiskerValue`                                            | Synchronous dispatch on the calling thread. Returns the raw value, with `WhiskerValue::Error` on failure. |
+| `invoke_async` | `async &self, function: &str, args: Vec<WhiskerValue> -> WhiskerValue`                                      | Resolves when the bridge fires the result callback.                                                       |
+| `on_event`     | `&self, event: &str, callback: F -> ModuleSubscription` where `F: Fn(WhiskerValue) + Send + Sync + 'static` | Subscribe to a module event.                                                                              |
 
 `invoke` is synchronous but **fire-and-forget-ish**: the method body runs
 on the calling thread, but a method that produces a value you need should
@@ -71,10 +71,10 @@ holding or dropping the value. The `OnStartObserving` / `OnStopObserving`
 native hooks fire on the 0↔1 listener transition, letting a module
 lazily attach / detach its source.
 
-| Method | Signature | Notes |
-|---|---|---|
+| Method  | Signature               | Notes                                                                                             |
+| ------- | ----------------------- | ------------------------------------------------------------------------------------------------- |
 | `error` | `&self -> Option<&str>` | `Some(_)` if registration failed; `None` for a live subscription. A failed subscription is inert. |
-| `id` | `&self -> i32` | Bridge-assigned listener id (positive for live, `0` for failed). Mainly for tests / tracing. |
+| `id`    | `&self -> i32`          | Bridge-assigned listener id (positive for live, `0` for failed). Mainly for tests / tracing.      |
 
 The event closure runs on whichever thread the bridge dispatches on
 (typically the platform main thread) — hence the `Send + Sync` bound.
@@ -91,40 +91,40 @@ It is an intentionally **closed** enum — **not** `#[non_exhaustive]` — so
 you may match it exhaustively. (Adding a variant is a deliberate, breaking
 wire-format change touching both sides of the FFI boundary.)
 
-| Variant | Payload |
-|---|---|
-| `Null` | — (the `Default`) |
-| `Bool` | `bool` |
-| `Int` | `i64` |
-| `Float` | `f64` |
-| `String` | `String` |
-| `Bytes` | `Vec<u8>` |
-| `Array` | `Vec<WhiskerValue>` |
-| `Map` | `BTreeMap<String, WhiskerValue>` (deterministic key order) |
-| `Error` | `String` (bridge / platform failure description) |
+| Variant  | Payload                                                    |
+| -------- | ---------------------------------------------------------- |
+| `Null`   | — (the `Default`)                                          |
+| `Bool`   | `bool`                                                     |
+| `Int`    | `i64`                                                      |
+| `Float`  | `f64`                                                      |
+| `String` | `String`                                                   |
+| `Bytes`  | `Vec<u8>`                                                  |
+| `Array`  | `Vec<WhiskerValue>`                                        |
+| `Map`    | `BTreeMap<String, WhiskerValue>` (deterministic key order) |
+| `Error`  | `String` (bridge / platform failure description)           |
 
 ### Constructors & methods
 
-| Item | Signature | Purpose |
-|---|---|---|
-| `map` | `WhiskerValue::map(entries: impl IntoIterator<Item = (impl Into<String>, WhiskerValue)>) -> Self` | Build a `Map` without importing `BTreeMap`. |
-| `args` | `WhiskerValue::args(items: impl IntoIterator<Item = WhiskerValue>) -> Self` | Build the `{ "args": [ … ] }` params object Whisker module **elements** read. |
-| `as_error` | `&self -> Option<&str>` | The message if `self` is `Error`, else `None`. |
-| `deserialize_into` | `&self -> Result<T, String>` where `T: DeserializeOwned` | Decode the value tree into a typed `T` (via `serde`). |
+| Item               | Signature                                                                                         | Purpose                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `map`              | `WhiskerValue::map(entries: impl IntoIterator<Item = (impl Into<String>, WhiskerValue)>) -> Self` | Build a `Map` without importing `BTreeMap`.                                   |
+| `args`             | `WhiskerValue::args(items: impl IntoIterator<Item = WhiskerValue>) -> Self`                       | Build the `{ "args": [ … ] }` params object Whisker module **elements** read. |
+| `as_error`         | `&self -> Option<&str>`                                                                           | The message if `self` is `Error`, else `None`.                                |
+| `deserialize_into` | `&self -> Result<T, String>` where `T: DeserializeOwned`                                          | Decode the value tree into a typed `T` (via `serde`).                         |
 
 ### `From` conversions
 
 `From<T>` impls let you build args with `value.into()`:
 
-| `T` | Maps to |
-|---|---|
-| `()` | `Null` |
-| `bool` | `Bool` |
-| `i32` / `i64` / `u32` | `Int` |
-| `f32` / `f64` | `Float` |
-| `&str` / `String` | `String` |
-| `Vec<u8>` | `Bytes` |
-| `Vec<T>` where `T: Into<WhiskerValue>` | `Array` |
+| `T`                                    | Maps to  |
+| -------------------------------------- | -------- |
+| `()`                                   | `Null`   |
+| `bool`                                 | `Bool`   |
+| `i32` / `i64` / `u32`                  | `Int`    |
+| `f32` / `f64`                          | `Float`  |
+| `&str` / `String`                      | `String` |
+| `Vec<u8>`                              | `Bytes`  |
+| `Vec<T>` where `T: Into<WhiskerValue>` | `Array`  |
 
 ```rust
 let store = whisker::module!("WhiskerLocalStore");
@@ -158,11 +158,11 @@ messages a typed proxy synthesises). Implements `Display` +
 A lower-level surface for code that wants the raw functions directly,
 re-exported from `whisker::platform_module`:
 
-| Re-export | Purpose |
-|---|---|
-| `invoke` | `invoke(name: &str, method: &str, args: Vec<WhiskerValue>) -> WhiskerValue` — the free function `PlatformModule::invoke` calls. |
-| `invoke_async` | Async variant. |
-| `from_raw` | `unsafe` — copy a bridge-produced `WhiskerValueRaw` into an owned `WhiskerValue`. FFI plumbing. |
+| Re-export      | Purpose                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `invoke`       | `invoke(name: &str, method: &str, args: Vec<WhiskerValue>) -> WhiskerValue` — the free function `PlatformModule::invoke` calls. |
+| `invoke_async` | Async variant.                                                                                                                  |
+| `from_raw`     | `unsafe` — copy a bridge-produced `WhiskerValueRaw` into an owned `WhiskerValue`. FFI plumbing.                                 |
 
 Most code should use the `PlatformModule` handle (or a typed wrapper)
 instead. The first-party modules — image, audio, and friends — wrap all

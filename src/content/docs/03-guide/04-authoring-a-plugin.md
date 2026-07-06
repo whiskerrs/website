@@ -6,8 +6,8 @@ order: 4
 
 # Authoring a Plugin
 
-A Whisker **plugin** is a cargo crate that contributes to the *generated
-native host project* during `whisker run` or a build — `Info.plist`
+A Whisker **plugin** is a cargo crate that contributes to the _generated
+native host project_ during `whisker run` or a build — `Info.plist`
 keys, Android manifest permissions, Gradle dependencies, xcodeproj build
 phases, and arbitrary dropped-in files. Plugins run at **generate time**,
 against an in-memory model of the iOS/Android project; they are not part
@@ -20,16 +20,16 @@ workspace, see [Local Modules & Plugins](/docs/local-modules-and-plugins).
 
 ## Plugin or module?
 
-Reach for a plugin when you're adjusting the *native project itself*: a
+Reach for a plugin when you're adjusting the _native project itself_: a
 permission, a plist key, a Gradle dependency, an extra bundled file. If
-instead you're adding a *capability your code uses* — a native widget to
+instead you're adding a _capability your code uses_ — a native widget to
 render or a native function to call — you want a **module**, which ships
 Rust + Swift + Kotlin and is consumed as a normal crate dependency. See
 [Modules & Plugins](/docs/modules-and-plugins) for the full mental model
 and [Authoring a Module](/docs/authoring-a-module) for that path.
 
 The two mechanisms compose: a crate can ship both. `whisker-audio` does
-exactly this — a `Player` runtime *module* plus a `WhiskerAudio` *plugin*
+exactly this — a `Player` runtime _module_ plus a `WhiskerAudio` _plugin_
 that contributes the microphone usage description (iOS) and the
 `RECORD_AUDIO` permission (Android) the engine needs before it can
 record.
@@ -89,7 +89,7 @@ serde = { version = "1", features = ["derive"] }
 anyhow = "1"
 ```
 
-A published plugin is *just a crate on crates.io* — no `Package.swift`,
+A published plugin is _just a crate on crates.io_ — no `Package.swift`,
 no `build.gradle.kts`, no native source dirs (unless the crate is also a
 module).
 
@@ -196,11 +196,11 @@ impl Plugin for WhiskerFoo {
 The trait has three more slots, all defaulted; most plugins leave them
 alone:
 
-| Slot | Default | Use when |
-|---|---|---|
-| `name` | `Self::Config::NAME` | You want a different registration identifier than the Config's `NAME`. Rare. |
-| `after` / `before` | `&[]` | Your plugin reads a field another plugin writes (`after`), or sets a default another plugin should be able to override (`before`). |
-| `validate` | `Ok(())` | The Config admits combinations the type system can't reject — run it *before* mutating so a bad config aborts cleanly. |
+| Slot               | Default              | Use when                                                                                                                           |
+| ------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `name`             | `Self::Config::NAME` | You want a different registration identifier than the Config's `NAME`. Rare.                                                       |
+| `after` / `before` | `&[]`                | Your plugin reads a field another plugin writes (`after`), or sets a default another plugin should be able to override (`before`). |
+| `validate`         | `Ok(())`             | The Config admits combinations the type system can't reject — run it _before_ mutating so a bad config aborts cleanly.             |
 
 ## Step 3 — contributing to iOS
 
@@ -310,7 +310,7 @@ engine doesn't parse it.
 
 > **`app_meta` vs the IR.** `ctx.app_meta` is a read-only snapshot frozen
 > at pipeline entry. If you override `ios.bundle_id`, downstream plugins
-> reading `ctx.app_meta.ios_bundle_id` still see the *original* user
+> reading `ctx.app_meta.ios_bundle_id` still see the _original_ user
 > value. Use `app_meta` for attribution and diagnostics; use the IR for
 > fields that flow into the rendered project.
 

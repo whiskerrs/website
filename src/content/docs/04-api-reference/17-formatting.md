@@ -7,7 +7,7 @@ order: 17
 # API Reference: Formatting
 
 `whisker fmt` is a **rustfmt drop-in**. It formats your code by delegating to
-the real `rustfmt` binary, and *additionally* formats the `render!`, `css!`,
+the real `rustfmt` binary, and _additionally_ formats the `render!`, `css!`,
 and `routes!` macro bodies that plain rustfmt leaves untouched — rustfmt
 never reaches inside a macro's token tree, so those blocks normally stay
 exactly as you typed them. As of the latest version it also formats the Rust
@@ -15,7 +15,7 @@ expressions embedded inside those macro bodies (keyword-argument values,
 event-handler closures, transition expressions, `format!(…)` arguments, …)
 by running them through rustfmt too.
 
-For non-macro code the output matches `cargo fmt`, because it *is* rustfmt
+For non-macro code the output matches `cargo fmt`, because it _is_ rustfmt
 underneath.
 
 ## Behavior
@@ -23,7 +23,7 @@ underneath.
 - **No whisker-specific config.** `whisker fmt` respects only your
   [`rustfmt.toml`](https://rust-lang.github.io/rustfmt/). `max_width`,
   `tab_spaces`, `hard_tabs`, and `edition` all come from rustfmt's own
-  settings and are used as-is — for the base pass *and* for the macro and
+  settings and are used as-is — for the base pass _and_ for the macro and
   embedded-expression formatting. There are no whisker-invented options.
 - **Project toolchain rustfmt.** It locates rustfmt via `$RUSTFMT`, then
   `rustup which rustfmt`, then `rustfmt` on `PATH` — so it uses your
@@ -37,11 +37,11 @@ underneath.
 whisker fmt [FILES…] [--check] [--stdin]
 ```
 
-| Argument / Option | Notes |
-|---|---|
-| `[FILES…]` (positional) | Format each file in place. |
-| `--check` | Print a unified diff per file and exit non-zero if anything would change; don't write. Use it in CI. |
-| `--stdin` | Read source from stdin, write the formatted result to stdout. The editor-integration entry point. With `--check`, diff to stderr and exit non-zero. |
+| Argument / Option       | Notes                                                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[FILES…]` (positional) | Format each file in place.                                                                                                                          |
+| `--check`               | Print a unified diff per file and exit non-zero if anything would change; don't write. Use it in CI.                                                |
+| `--stdin`               | Read source from stdin, write the formatted result to stdout. The editor-integration entry point. With `--check`, diff to stderr and exit non-zero. |
 
 ```sh
 # format files in place
@@ -156,7 +156,7 @@ prefers leaving a block untouched over risking a regression.
 
 - A macro body that contains comments in the **macro grammar** (between
   tags or arguments, rather than inside an expression value) is left
-  untouched rather than risk dropping the comment. Comments *inside* an
+  untouched rather than risk dropping the comment. Comments _inside_ an
   expression value are preserved and reformatted with it.
 - Embedded expressions are handed to rustfmt at a fixed, shallow
   indentation. An expression near `max_width` that lands at a deep column

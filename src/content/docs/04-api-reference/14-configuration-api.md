@@ -59,66 +59,66 @@ The root configuration object.
 
 ### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `name` | `Option<String>` | App display name. |
-| `bundle_id` | `Option<String>` | Default bundle id; iOS / Android fall back to it when their own is unset. |
-| `version` | `Option<String>` | Marketing version (e.g. `CFBundleShortVersionString` / Gradle `versionName`). |
-| `build_number` | `Option<u32>` | Build number (e.g. `CFBundleVersion` / Gradle `versionCode`). |
-| `ios` | [`IosConfig`](#iosconfig) | iOS-specific settings. |
-| `android` | [`AndroidConfig`](#androidconfig) | Android-specific settings. |
-| `plugins` | `BTreeMap<String, serde_json::Value>` | Per-plugin config, keyed by `PluginConfig::NAME`. Populated by [`plugin`](#plugin). |
+| Field          | Type                                  | Notes                                                                               |
+| -------------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
+| `name`         | `Option<String>`                      | App display name.                                                                   |
+| `bundle_id`    | `Option<String>`                      | Default bundle id; iOS / Android fall back to it when their own is unset.           |
+| `version`      | `Option<String>`                      | Marketing version (e.g. `CFBundleShortVersionString` / Gradle `versionName`).       |
+| `build_number` | `Option<u32>`                         | Build number (e.g. `CFBundleVersion` / Gradle `versionCode`).                       |
+| `ios`          | [`IosConfig`](#iosconfig)             | iOS-specific settings.                                                              |
+| `android`      | [`AndroidConfig`](#androidconfig)     | Android-specific settings.                                                          |
+| `plugins`      | `BTreeMap<String, serde_json::Value>` | Per-plugin config, keyed by `PluginConfig::NAME`. Populated by [`plugin`](#plugin). |
 
 ### Methods
 
-| Method | Signature | Notes |
-|---|---|---|
-| `name` | `name(impl Into<String>) -> &mut Self` | Set the app name. |
-| `bundle_id` | `bundle_id(impl Into<String>) -> &mut Self` | Set the default bundle id. |
-| `version` | `version(impl Into<String>) -> &mut Self` | Set the marketing version. |
-| `build_number` | `build_number(u32) -> &mut Self` | Set the build number. |
-| `ios` | `ios(impl FnOnce(&mut IosConfig)) -> &mut Self` | Configure the iOS block. |
-| `android` | `android(impl FnOnce(&mut AndroidConfig)) -> &mut Self` | Configure the Android block. |
-| `plugin::<P>` | `plugin<P: Plugin>(impl FnOnce(&mut P::Config)) -> &mut Self` | Declare and configure a plugin. |
+| Method         | Signature                                                     | Notes                           |
+| -------------- | ------------------------------------------------------------- | ------------------------------- |
+| `name`         | `name(impl Into<String>) -> &mut Self`                        | Set the app name.               |
+| `bundle_id`    | `bundle_id(impl Into<String>) -> &mut Self`                   | Set the default bundle id.      |
+| `version`      | `version(impl Into<String>) -> &mut Self`                     | Set the marketing version.      |
+| `build_number` | `build_number(u32) -> &mut Self`                              | Set the build number.           |
+| `ios`          | `ios(impl FnOnce(&mut IosConfig)) -> &mut Self`               | Configure the iOS block.        |
+| `android`      | `android(impl FnOnce(&mut AndroidConfig)) -> &mut Self`       | Configure the Android block.    |
+| `plugin::<P>`  | `plugin<P: Plugin>(impl FnOnce(&mut P::Config)) -> &mut Self` | Declare and configure a plugin. |
 
 ## `IosConfig`
 
 ### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `bundle_id` | `Option<String>` | `CFBundleIdentifier`. Falls back to `Config::bundle_id` if unset. |
-| `scheme` | `Option<String>` | Xcode scheme + `<scheme>.app` filename. |
-| `deployment_target` | `Option<String>` | `IPHONEOS_DEPLOYMENT_TARGET` (default `"13.0"`). |
+| Field               | Type             | Notes                                                             |
+| ------------------- | ---------------- | ----------------------------------------------------------------- |
+| `bundle_id`         | `Option<String>` | `CFBundleIdentifier`. Falls back to `Config::bundle_id` if unset. |
+| `scheme`            | `Option<String>` | Xcode scheme + `<scheme>.app` filename.                           |
+| `deployment_target` | `Option<String>` | `IPHONEOS_DEPLOYMENT_TARGET` (default `"13.0"`).                  |
 
 ### Methods
 
-| Method | Signature |
-|---|---|
-| `bundle_id` | `bundle_id(impl Into<String>) -> &mut Self` |
-| `scheme` | `scheme(impl Into<String>) -> &mut Self` |
+| Method              | Signature                                           |
+| ------------------- | --------------------------------------------------- |
+| `bundle_id`         | `bundle_id(impl Into<String>) -> &mut Self`         |
+| `scheme`            | `scheme(impl Into<String>) -> &mut Self`            |
 | `deployment_target` | `deployment_target(impl Into<String>) -> &mut Self` |
 
 ## `AndroidConfig`
 
 ### Fields
 
-| Field | Type | Notes |
-|---|---|---|
-| `package` | `Option<String>` | Kotlin/Java package declared in the manifest (for `R.java` lookups). |
-| `min_sdk` | `Option<u32>` | Gradle `minSdk` (default `24`). |
-| `target_sdk` | `Option<u32>` | Gradle `targetSdk` (default `34`). |
-| `application_id` | `Option<String>` | Gradle `applicationId` — the launcher's package. Falls back to `Config::bundle_id`. |
-| `launcher_activity` | `Option<String>` | Launcher activity class with a leading dot (default `.MainActivity`). |
+| Field               | Type             | Notes                                                                               |
+| ------------------- | ---------------- | ----------------------------------------------------------------------------------- |
+| `package`           | `Option<String>` | Kotlin/Java package declared in the manifest (for `R.java` lookups).                |
+| `min_sdk`           | `Option<u32>`    | Gradle `minSdk` (default `24`).                                                     |
+| `target_sdk`        | `Option<u32>`    | Gradle `targetSdk` (default `34`).                                                  |
+| `application_id`    | `Option<String>` | Gradle `applicationId` — the launcher's package. Falls back to `Config::bundle_id`. |
+| `launcher_activity` | `Option<String>` | Launcher activity class with a leading dot (default `.MainActivity`).               |
 
 ### Methods
 
-| Method | Signature |
-|---|---|
-| `package` | `package(impl Into<String>) -> &mut Self` |
-| `min_sdk` | `min_sdk(u32) -> &mut Self` |
-| `target_sdk` | `target_sdk(u32) -> &mut Self` |
-| `application_id` | `application_id(impl Into<String>) -> &mut Self` |
+| Method              | Signature                                           |
+| ------------------- | --------------------------------------------------- |
+| `package`           | `package(impl Into<String>) -> &mut Self`           |
+| `min_sdk`           | `min_sdk(u32) -> &mut Self`                         |
+| `target_sdk`        | `target_sdk(u32) -> &mut Self`                      |
+| `application_id`    | `application_id(impl Into<String>) -> &mut Self`    |
 | `launcher_activity` | `launcher_activity(impl Into<String>) -> &mut Self` |
 
 ## Registering plugins
@@ -160,14 +160,14 @@ practical guide.
 
 ### `AppIconConfig`
 
-| Method | Signature | Notes |
-|---|---|---|
-| `source` | `source(impl Into<PathBuf>) -> &mut Self` | **Required.** Square PNG, ≥ 1024×1024. Feeds the iOS asset catalog and the Android legacy + adaptive icons. |
-| `ios_icon` | `ios_icon(impl Into<PathBuf>) -> &mut Self` | Icon Composer `.icon` bundle. Replaces the PNG-derived iOS catalog with the iOS 26 Liquid Glass appearances. Requires Xcode 26+ to build. |
-| `android_foreground` | `android_foreground(impl Into<PathBuf>) -> &mut Self` | Adaptive-icon foreground layer (API 26+). Square PNG; keep art in the central ~66% safe zone. Defaults to `source`. |
-| `android_background` | `android_background(impl Into<PathBuf>) -> &mut Self` | Adaptive-icon background as an image. Mutually exclusive with `android_background_color`. |
-| `android_background_color` | `android_background_color(impl Into<String>) -> &mut Self` | Adaptive-icon background as a flat color (`#RRGGBB` / `#AARRGGBB`). Defaults to white. |
-| `android_monochrome` | `android_monochrome(impl Into<PathBuf>) -> &mut Self` | Monochrome layer for Android 13+ themed icons. Square PNG; only its alpha matters. |
+| Method                     | Signature                                                  | Notes                                                                                                                                     |
+| -------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `source`                   | `source(impl Into<PathBuf>) -> &mut Self`                  | **Required.** Square PNG, ≥ 1024×1024. Feeds the iOS asset catalog and the Android legacy + adaptive icons.                               |
+| `ios_icon`                 | `ios_icon(impl Into<PathBuf>) -> &mut Self`                | Icon Composer `.icon` bundle. Replaces the PNG-derived iOS catalog with the iOS 26 Liquid Glass appearances. Requires Xcode 26+ to build. |
+| `android_foreground`       | `android_foreground(impl Into<PathBuf>) -> &mut Self`      | Adaptive-icon foreground layer (API 26+). Square PNG; keep art in the central ~66% safe zone. Defaults to `source`.                       |
+| `android_background`       | `android_background(impl Into<PathBuf>) -> &mut Self`      | Adaptive-icon background as an image. Mutually exclusive with `android_background_color`.                                                 |
+| `android_background_color` | `android_background_color(impl Into<String>) -> &mut Self` | Adaptive-icon background as a flat color (`#RRGGBB` / `#AARRGGBB`). Defaults to white.                                                    |
+| `android_monochrome`       | `android_monochrome(impl Into<PathBuf>) -> &mut Self`      | Monochrome layer for Android 13+ themed icons. Square PNG; only its alpha matters.                                                        |
 
 Validation runs before generation: `source` must be square and at least
 1024×1024, adaptive layers must be square and at least 432×432,

@@ -101,7 +101,7 @@ fn app() -> Element {
 ### Advanced: explicit handle
 
 `Router` builds the `RouterHandle` for you from `routes`. If you need
-the handle *before* the Router mounts — for example, to build a
+the handle _before_ the Router mounts — for example, to build a
 navigation facade that a feature crate can call into — create it
 manually with `RouterHandle::new(...)` and publish it with
 `provide_router(handle)`:
@@ -147,14 +147,14 @@ fn home() -> Element {
 
 The six navigation operations:
 
-| Call | Effect |
-|---|---|
-| `nav.navigate("/detail/42")` | Push a new screen onto the active Stack |
-| `nav.back()` | Pop the top of the deepest active Stack |
-| `nav.select("/(home)")` | Switch a tab (change Switch branch) |
-| `nav.replace("/other")` | Swap the top entry (same Stack only) |
-| `nav.pop_to("/")` | Pop until the target is on top (same Stack only) |
-| `nav.reset("/")` | **Global** — clear *every* back stack and go to the target (logout) |
+| Call                         | Effect                                                              |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `nav.navigate("/detail/42")` | Push a new screen onto the active Stack                             |
+| `nav.back()`                 | Pop the top of the deepest active Stack                             |
+| `nav.select("/(home)")`      | Switch a tab (change Switch branch)                                 |
+| `nav.replace("/other")`      | Swap the top entry (same Stack only)                                |
+| `nav.pop_to("/")`            | Pop until the target is on top (same Stack only)                    |
+| `nav.reset("/")`             | **Global** — clear _every_ back stack and go to the target (logout) |
 
 All targets are plain URL strings. Dynamic `:param` segments are
 extracted automatically by matching against the route tree.
@@ -162,7 +162,7 @@ extracted automatically by matching against the route tree.
 `reset` is the odd one out: `replace` and `pop_to` only touch the current
 Stack, but `reset` rebuilds the whole navigation state onto a single clean
 path to the target — switching tabs toward it and clearing the back stack of
-*every* Stack. A URL resolves to a **leaf screen**, and `/` is the home index
+_every_ Stack. A URL resolves to a **leaf screen**, and `/` is the home index
 screen (reachable from any tab); group segments like `(home)` are optional.
 
 ## 5. Read route params
@@ -246,7 +246,7 @@ Router(routes: routes! {
 ### Layout routes
 
 `Route(component: TabsLayout)` is a **layout route**: it has a
-component *and* children. The component renders shared chrome (a tab
+component _and_ children. The component renders shared chrome (a tab
 bar) with an `Outlet` for the active child. This is the same concept
 as Expo Router's `_layout.tsx`.
 

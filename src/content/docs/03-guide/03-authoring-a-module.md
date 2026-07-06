@@ -7,7 +7,7 @@ order: 3
 # Authoring a Module
 
 A **Whisker module** is a single cargo crate that ships Rust, Swift, and
-Kotlin *together* to expose one native capability. From the consuming
+Kotlin _together_ to expose one native capability. From the consuming
 app it looks like a normal dependency: add it to `Cargo.toml`, `use` its
 types, and the build wires the native side in for you. This guide walks
 through scaffolding one, the layout it uses, and how it reaches your
@@ -42,7 +42,7 @@ because it determines what gets scaffolded:
 > macro at all. (Older prose sometimes mentions a `platform_module`
 > attribute — it does not exist.)
 
-Picking the *user-facing surface* within those shapes (a pure component,
+Picking the _user-facing surface_ within those shapes (a pure component,
 a `ref:`-bound handle, a `Clone` value handle, a free function returning
 a signal, or static methods) is its own small design decision. The
 [First-party Modules](/docs/modules-api) are worked examples of each:
@@ -70,10 +70,10 @@ crates can ship same-named tags without colliding.
 
 The `--shape` flag selects what gets written:
 
-| `--shape` | Rust side | Native side |
-|---|---|---|
+| `--shape`                | Rust side                                        | Native side                                                          |
+| ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------- |
 | `view-bearing` (default) | a `#[whisker::module_component("Name")]` element | a DSL module with a `View(...)` block + a `WhiskerUI<View>` subclass |
-| `function-only` | a `module!`-based typed wrapper | a DSL module with module-level `Function`s and no `View(...)` |
+| `function-only`          | a `module!`-based typed wrapper                  | a DSL module with module-level `Function`s and no `View(...)`        |
 
 Either way you get the same set of files:
 
@@ -106,7 +106,7 @@ Android Studio. The three build manifests stay at the crate root:
 
 - **`Cargo.toml`** carries the `[package.metadata.whisker]` marker (more
   on that below) and the `include` list.
-- **`Package.swift`** *has* to sit at the root: SwiftPM derives a local
+- **`Package.swift`** _has_ to sit at the root: SwiftPM derives a local
   package's identity from its directory name, so a `Package.swift` inside
   `ios/` would make the package identity `ios` and collide with every
   other module. Its target's `path:` points into `ios/Sources/<Module>/`.
@@ -240,7 +240,7 @@ author at least once.
 ### Reserved event names — the silent swallow
 
 > **⚠️ Never name a custom event after a built-in touch or gesture
-> event.** Lynx's native gesture pipeline consumes those names *before*
+> event.** Lynx's native gesture pipeline consumes those names _before_
 > the custom-event path runs, so the event is swallowed silently — your
 > Rust `on_<name>` handler simply never fires. There is **no error and
 > no log**. Renaming to a non-colliding name fixes it instantly.
@@ -257,14 +257,14 @@ The reserved set is documented in the Whisker runtime
 
 So the names to **avoid** for a custom event are:
 
-| Family | Reserved names |
-|---|---|
+| Family          | Reserved names                                                                    |
+| --------------- | --------------------------------------------------------------------------------- |
 | Touch / gesture | `tap`, `longpress`, `touchstart`, `touchmove`, `touchend`, `touchcancel`, `click` |
-| Animation | `animationstart`, `animationend`, `transitionend` |
+| Animation       | `animationstart`, `animationend`, `transitionend`                                 |
 
 There's a spelling trap here too. Whisker derives the **event name** by
 stripping `on_` from the prop, so an `on_long_press` prop dispatches the
-name `long_press` — which is *not* spelled the same as Lynx's built-in
+name `long_press` — which is _not_ spelled the same as Lynx's built-in
 `longpress`. Don't rely on that gap: treat the whole touch/gesture/
 animation family as off-limits regardless of underscore spelling.
 
@@ -320,7 +320,7 @@ pub struct InputDetail {
 ```
 
 **2. Swift — list the event, then dispatch it.** The `Events("…")`
-block in the module definition is *declaration-only* metadata (so the
+block in the module definition is _declaration-only_ metadata (so the
 codegen/docs scanner sees the full surface); the actual dispatch happens
 in the view:
 
@@ -354,10 +354,10 @@ Input(
 
 Notice the `DispatchQueue.main.async` wrapping the dispatch above. It is
 **not** optional. UIKit delegate callbacks (`textFieldDidEndEditing`,
-`textViewDidChange`, …) can fire *synchronously during Lynx's native
-teardown* — e.g. on a hot-reload remount, while `remove_child` still
+`textViewDidChange`, …) can fire _synchronously during Lynx's native
+teardown_ — e.g. on a hot-reload remount, while `remove_child` still
 holds the renderer's `CURRENT_RENDERER` `RefCell` borrow. A synchronous
-dispatch reenters Rust's `dispatch_event`, takes a *second* borrow, and
+dispatch reenters Rust's `dispatch_event`, takes a _second_ borrow, and
 panics with "RefCell already borrowed" (the event is dropped). Deferring
 one tick guarantees the dispatch lands at idle. The canonical comment
 from `InputView.swift` spells it out:
@@ -374,7 +374,7 @@ from `InputView.swift` spells it out:
 // guarantees the dispatch lands at idle, never inside a render borrow.
 ```
 
-Snapshot any state (`self`, the text) *before* the async block, capture
+Snapshot any state (`self`, the text) _before_ the async block, capture
 `self` weakly, and a torn-down view will simply skip the dispatch.
 
 ### Gotcha 2: don't wrap your payload in `detail`
@@ -383,7 +383,7 @@ The params dict you hand `dispatch(from:name:params:)` is delivered **as
 the event's params**, and Lynx's `generateEventBody` (iOS) / the Android
 event reporter already nests that dict under a `detail` key in the event
 body — `{ type, target, currentTarget, detail: <params> }`. Your Rust
-`InputEvent { detail: { value } }` reads `body.detail`. If you *also*
+`InputEvent { detail: { value } }` reads `body.detail`. If you _also_
 wrap your payload in a `detail` key yourself, it double-nests
 (`detail: { detail: { value } }`) and the typed payload arrives empty —
 e.g. every `on_input` delivers `""`. Pass the **flat** dict:
@@ -438,9 +438,9 @@ library in as a Gradle subproject. The two manifests' own `path:` /
 source list to keep in sync.
 
 > **Contrast: the core runtime.** The Swift/Kotlin runtime every app
-> links against is *not* shipped this way — it's a remote SwiftPM package
+> links against is _not_ shipped this way — it's a remote SwiftPM package
 > (tagged git URL) and Maven AARs. Every module's `Package.swift` points
-> at that *same* remote `whisker` package URL so the build graph ends up
+> at that _same_ remote `whisker` package URL so the build graph ends up
 > with one shared runtime identity. See
 > [Modules & Plugins](/docs/modules-and-plugins) for why.
 

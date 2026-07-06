@@ -19,12 +19,12 @@ into the precise APIs.
 
 Whisker runs your Rust UI on top of the **Lynx** C++ engine. Lynx is not
 a JavaScript runtime, and Whisker is not a self-rendered canvas — Lynx
-drives *real native widgets* (`UIView` on iOS, Android `View`s), handling
+drives _real native widgets_ (`UIView` on iOS, Android `View`s), handling
 layout, paint, and the native view hierarchy.
 
 The division of labour:
 
-- **Your Rust code** owns the logic and the view *description*.
+- **Your Rust code** owns the logic and the view _description_.
   Components are plain functions; [signals](/docs/reactivity-api) hold
   state; [`render!`](/docs/components) builds an element tree.
 - **The Whisker runtime** maintains that element tree, runs the
@@ -92,7 +92,7 @@ The walkthrough — what hot reload can and can't patch, and how to drive
 it — is in the [Hot Reload](/docs/hot-reload) guide, and every flag of
 the command itself is in the [CLI reference](/docs/cli-reference).
 
-> Behind the scenes the CLI first runs a *config probe*: it compiles and
+> Behind the scenes the CLI first runs a _config probe_: it compiles and
 > runs your `whisker.rs` to produce the app's `Config`, then hands the
 > flat result to the dev loop. That probe depends only on the tiny
 > `whisker-config` crate, which is why it stays fast.
@@ -110,5 +110,5 @@ holding in your head:
   consumes them straight from the cargo registry. One `cargo publish`
   ships all three languages.
 
-The full reasoning — and why a module needs *no* separate SwiftPM/Maven
+The full reasoning — and why a module needs _no_ separate SwiftPM/Maven
 publishing — is in [Modules & Plugins](/docs/modules-and-plugins).

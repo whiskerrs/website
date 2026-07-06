@@ -132,10 +132,10 @@ A `resource` is **reactive**, not one-shot. The fetcher runs inside an
 [effect](/docs/reactivity-api), so every signal you read while it runs
 becomes a dependency — and when one of those signals changes, the fetcher
 **re-runs and the resource re-fetches**. That makes `resource` the right
-tool for a *keyed* fetch: a query, a selected id, a page number.
+tool for a _keyed_ fetch: a query, a selected id, a page number.
 
 Read the dependency **inside the async block** — that's where tracking is
-active. (A read in the synchronous closure body that merely *returns* the
+active. (A read in the synchronous closure body that merely _returns_ the
 future runs once at setup and is **not** tracked; see the pitfall below.)
 Here a search box drives an iTunes-style lookup that re-fetches as the
 query changes:
@@ -167,9 +167,9 @@ no out-of-order flicker. This mirrors the shape we ship in
 
 > **Common pitfall: where you read the signal decides whether it
 > re-fetches.** Tracking happens while the **async block** runs. Read the
-> signal *inside* the async block and the resource is reactive — it
+> signal _inside_ the async block and the resource is reactive — it
 > refetches on every change. Read it in a **synchronous prelude** that
-> only *returns* the future, and the read happens once at setup, outside
+> only _returns_ the future, and the read happens once at setup, outside
 > the tracked async body — so it is **not** a dependency and the resource
 > **never refetches**.
 >
@@ -193,7 +193,7 @@ no out-of-order flicker. This mirrors the shape we ship in
 
 ### Fetch-dependency vs. derive
 
-The deciding question is *what the signal does*:
+The deciding question is _what the signal does_:
 
 - If a signal decides **what to fetch** — a query, an id, a page — put it
   inside the `resource` fetcher so changing it re-fetches.
@@ -322,7 +322,7 @@ point at.
 
 For the curious: Whisker drives its cooperative task pool off the native
 **main loop**. A waker that fires on a foreign thread doesn't post to that
-loop, so the parked task is never re-polled. This is *not* the same as a
+loop, so the parked task is never re-polled. This is _not_ the same as a
 deadlock you can spot in a stack trace — the thread is simply idle,
 waiting for a wake that will never come.
 

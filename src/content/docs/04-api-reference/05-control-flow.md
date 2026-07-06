@@ -52,10 +52,10 @@ fn toggle() -> Element {
 
 ### `ShowProps`
 
-| Prop | Type | Required | Role |
-|---|---|---|---|
-| `when` | [`WhenFn`](#function-wrapper-prop-types) | yes | Reactive `move \|\| bool` predicate. |
-| `children` | [`Children`](#function-wrapper-prop-types) | yes | Mounted when `when` is `true`. |
+| Prop       | Type                                       | Required           | Role                                                          |
+| ---------- | ------------------------------------------ | ------------------ | ------------------------------------------------------------- |
+| `when`     | [`WhenFn`](#function-wrapper-prop-types)   | yes                | Reactive `move \|\| bool` predicate.                          |
+| `children` | [`Children`](#function-wrapper-prop-types) | yes                | Mounted when `when` is `true`.                                |
 | `fallback` | [`Fallback`](#function-wrapper-prop-types) | no (default empty) | Mounted when `when` is `false`; renders nothing when omitted. |
 
 ## `ForEach`
@@ -103,11 +103,11 @@ tree. For large or scrolling collections, use the
 
 ### `ForEachProps`
 
-| Prop | Type | Required | Role |
-|---|---|---|---|
-| `each` | [`EachFn<T>`](#function-wrapper-prop-types) | yes | Reactive `move \|\| Vec<T>` items source. |
-| `key` | [`KeyFn<T, K>`](#function-wrapper-prop-types) | yes | `\|item: &T\| -> K`; `K: Eq + Hash + Clone`. |
-| `children` | [`ItemFn<T>`](#function-wrapper-prop-types) | yes | `\|item: T\| -> Element`; renders one item. |
+| Prop       | Type                                          | Required | Role                                         |
+| ---------- | --------------------------------------------- | -------- | -------------------------------------------- |
+| `each`     | [`EachFn<T>`](#function-wrapper-prop-types)   | yes      | Reactive `move \|\| Vec<T>` items source.    |
+| `key`      | [`KeyFn<T, K>`](#function-wrapper-prop-types) | yes      | `\|item: &T\| -> K`; `K: Eq + Hash + Clone`. |
+| `children` | [`ItemFn<T>`](#function-wrapper-prop-types)   | yes      | `\|item: T\| -> Element`; renders one item.  |
 
 ## Function-wrapper prop types
 
@@ -115,14 +115,14 @@ These newtypes wrap the closures the props accept. Each has a blanket
 `From<closure>` impl, so you almost always pass a plain closure and let
 inference fill the type in — you rarely name them.
 
-| Type | Used by | Wraps |
-|---|---|---|
-| `WhenFn` | `Show.when` | `Fn() -> bool` |
-| `Children` | `Show.children` (and `#[component]` `children`) | `Fn() -> View` |
-| `Fallback` | `Show.fallback` | `Option<Fn() -> Element>` (`None` = empty) |
-| `EachFn<T>` | `ForEach.each` | `Fn() -> Vec<T>` |
-| `KeyFn<T, K>` | `ForEach.key` | `Fn(&T) -> K` |
-| `ItemFn<T>` | `ForEach.children` | `Fn(T) -> Element` |
+| Type          | Used by                                         | Wraps                                      |
+| ------------- | ----------------------------------------------- | ------------------------------------------ |
+| `WhenFn`      | `Show.when`                                     | `Fn() -> bool`                             |
+| `Children`    | `Show.children` (and `#[component]` `children`) | `Fn() -> View`                             |
+| `Fallback`    | `Show.fallback`                                 | `Option<Fn() -> Element>` (`None` = empty) |
+| `EachFn<T>`   | `ForEach.each`                                  | `Fn() -> Vec<T>`                           |
+| `KeyFn<T, K>` | `ForEach.key`                                   | `Fn(&T) -> K`                              |
+| `ItemFn<T>`   | `ForEach.children`                              | `Fn(T) -> Element`                         |
 
 > Because `Show` and `ForEach` are plain `#[component]`s, the
 > `render!` macro lowers each call to `ShowProps::builder()…build()` /
