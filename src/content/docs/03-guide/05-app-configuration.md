@@ -1,6 +1,6 @@
 ---
 title: App Configuration
-description: Set bundle id, versions, permissions, and platform settings in whisker.rs.
+description: Set bundle id, versions, permissions, app icons, and platform settings in whisker.rs.
 order: 5
 ---
 
@@ -132,15 +132,84 @@ For the full plugin config surface see
 [First-party Modules](/docs/modules-api); to write your own plugin see the
 [Plugin API](/docs/plugin-api).
 
-## A note on app icons and splash screens
+## Step 5: App icon
 
-App icons and splash screens are **not first-class `whisker.rs` fields
-yet**. There is no `app.icon(…)` or `app.splash(…)`. Until they land, the
-options are:
+App icons ship as a **built-in plugin**, `AppIcon`, exported by
+`whisker_config` — no extra dependency to add. One square PNG
+(1024×1024 or larger) is enough for both platforms:
+
+```rust
+use whisker_config::AppIcon;
+
+app.plugin::<AppIcon>(|c| {
+    c.source("assets/icon.png");
+});
+```
+
+The path is relative to the app crate root (the directory holding
+`Cargo.toml` and `whisker.rs`). From that one image Whisker generates:
+
+- **iOS** — a single-size asset catalog (`AppIcon.appiconset`). Xcode's
+  actool derives every runtime size and the `Info.plist` icon entries
+  during the build. Transparency is flattened onto white — App Store
+  validation rejects transparent icons.
+- **Android** — legacy launcher mipmaps (five densities, for API ≤ 25)
+  plus an adaptive icon (API 26+) that uses the source as the
+  foreground over a white background, and the `android:icon` manifest
+  attribute.
+
+Two optional per-platform refinements sit on top of `source`.
+
+### Android adaptive-icon layers
+
+Android 8+ renders launcher icons from separate foreground/background
+layers (the [adaptive icon](https://developer.android.com/develop/ui/views/launch/icon_design_adaptive)
+model). Supply them explicitly for full control:
+
+```rust
+app.plugin::<AppIcon>(|c| {
+    c.source("assets/icon.png")
+        .android_foreground("assets/icon-fg.png")   // 108 dp layer
+        .android_background_color("#0087DC")        // or android_background(image)
+        .android_monochrome("assets/icon-fg.png");  // Android 13+ themed icon
+});
+```
+
+Launchers mask the adaptive canvas to its central ~66%, so keep the
+foreground artwork inside that safe zone (transparent padding around
+it). `android_background` (an image) and `android_background_color`
+(`#RRGGBB` / `#AARRGGBB`) are mutually exclusive; the default is white.
+`android_monochrome` feeds the `<monochrome>` layer that Android 13+
+uses for themed icons — launchers tint it, so only its alpha matters.
+
+### iOS Liquid Glass (`.icon`)
+
+For the iOS 26 Liquid Glass appearances (default / dark / clear /
+tinted), export a layered `.icon` bundle from **Icon Composer** (an app
+bundled with Xcode 26) and point `ios_icon` at it:
+
+```rust
+app.plugin::<AppIcon>(|c| {
+    c.source("assets/icon.png") // still required — it feeds Android
+        .ios_icon("assets/AppIcon.icon");
+});
+```
+
+This replaces the PNG-derived asset catalog: actool renders every
+appearance from the bundle's layered definition and generates flattened
+fallbacks for older iOS versions automatically. Building with `ios_icon`
+requires Xcode 26 or newer. Without it, iOS 26 still shows your PNG icon
+and derives the glass variants from it on-device — `ios_icon` is for
+tuning how they look.
+
+## A note on splash screens
+
+Splash screens are **not a first-class `whisker.rs` field yet**. There
+is no `app.splash(…)`. Until it lands, the options are:
 
 - **A plugin** — any plugin can drop arbitrary files into the generated
-  project (asset catalogs, drawable resources, plist keys), so
-  icon/splash provisioning can be packaged as one. See the
+  project (storyboards, drawable resources, plist keys), so splash
+  provisioning can be packaged as one. See the
   [Plugin API](/docs/plugin-api).
 - **Edit the generated project** — the native project Whisker emits lives
   under `gen/` (`gen/ios/`, `gen/android/`). You can drop assets in
@@ -149,11 +218,12 @@ options are:
 
 ## A complete `whisker.rs`
 
-Putting it together — identity, both platforms, and the audio plugin:
+Putting it together — identity, both platforms, the app icon, and the
+audio plugin:
 
 ```rust
 use whisker_audio::WhiskerAudio;
-use whisker_config::Config;
+use whisker_config::{AppIcon, Config};
 
 pub fn configure(app: &mut Config) {
     app.name("Podcast")
@@ -173,6 +243,10 @@ pub fn configure(app: &mut Config) {
             .launcher_activity(".MainActivity")
             .min_sdk(24)
             .target_sdk(34);
+    });
+
+    app.plugin::<AppIcon>(|c| {
+        c.source("assets/icon.png");
     });
 
     app.plugin::<WhiskerAudio>(|c| {

@@ -179,5 +179,10 @@ there:
   `xcrun altool`, or Transporter), and submit for review.
 - **Android** — upload the AAB to the Play Console and roll it out.
 
+Both stores require an app icon. Set one with the built-in `AppIcon`
+plugin — see [App Configuration](/docs/app-configuration#step-5-app-icon).
+Without it, submission fails validation (iOS rejects the missing icon;
+Play requires a launcher icon).
+
 See the [CLI reference](/docs/cli-reference) for the development
 commands that produce the `gen/` projects these builds run against.
