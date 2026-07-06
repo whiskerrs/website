@@ -152,7 +152,7 @@ is defined once in Rust:
 ```rust
 // crates/whisker-build/src/ios.rs
 pub const WHISKER_IOS_SPM_URL: &str = "https://github.com/whiskerrs/whisker.git";
-pub const WHISKER_IOS_SPM_VERSION: &str = "0.1.0";
+pub const WHISKER_IOS_SPM_VERSION: &str = "0.1.2";
 ```
 
 That constant drives the `XCRemoteSwiftPackageReference` the generator
@@ -163,7 +163,7 @@ move together. The pieces that have to align per release:
 
 | crates.io | iOS SwiftPM tag | Android SDK (Maven) | Gradle plugin | Lynx fork |
 |---|---|---|---|---|
-| `0.1.0` | `v0.1.0` | `0.1.1` | `0.4.0` | `3.8.0-whisker.6` |
+| `0.7.0` | `v0.1.2` | `0.1.5` | `0.4.1` | `3.8.0-whisker.12` |
 
 For most app authors this is invisible: you install a `whisker-cli`
 version, and the iOS package version it pins comes along for the ride.
