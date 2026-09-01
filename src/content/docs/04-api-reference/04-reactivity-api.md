@@ -326,7 +326,7 @@ closures in a component and have it freed automatically on unmount.
 > Reachable at `/docs/reactivity-api#the-signal-prop-type`.
 
 `Signal<T>` is the **prop value type** used by `#[component]`,
-built-in tags, and `#[whisker::module_component]` builders. It encodes
+built-in elements, and `#[whisker::module_element]` builders. It encodes
 "this prop accepts either a plain value **or** a reactive signal":
 
 ```rust
@@ -359,7 +359,7 @@ Read a `Signal<T>` prop with `.get()`:
 #[component]
 fn badge(label: Signal<String>) -> Element {
     let style = computed(move || format!("content: {}", label.get()));
-    render! { view(style: style) { text(value: label) } }
+    render! { View(style: style) { Text(value: label) } }
 }
 
 // static prop:

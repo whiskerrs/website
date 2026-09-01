@@ -14,6 +14,8 @@ fast path is usually under a second, with your app's state intact.
 ```sh
 whisker run ios
 whisker run android
+whisker run web
+whisker run desktop
 ```
 
 This guide explains the two tiers, what triggers which, what survives a
@@ -32,14 +34,15 @@ you save a .rs file
 file watcher  →  decide tier  →  Tier 1 patch  ·or·  Tier 2 rebuild
 ```
 
-The dev server (on your machine) and the running app talk over a local
-WebSocket. The app dials the dev server; on Android the device-to-host
+The dev server and the running Host talk over a local WebSocket. The Host dials
+the dev server; on Android the device-to-host
 hop is bridged with `adb reverse` automatically, so you don't set
 anything up.
 
 > **Platform support.** Hot reload (and `whisker run` in general) is
-> available on the **iOS Simulator**, **Android emulators**, and **physical
-> Android devices** — but **not on physical iOS devices**. `whisker run ios`
+> available on the **iOS Simulator**, **Android emulators**, **physical Android
+> devices**, **Web**, and **desktop on macOS** — but **not on physical iOS
+> devices**. `whisker run ios`
 > targets the Simulator only: the dev-server address is delivered via
 > `simctl` (simulator processes only) and the Tier 1 patch `dlopen`s a
 > dylib that a non-jailbroken iPhone/iPad blocks via code signing. For a
@@ -53,6 +56,8 @@ anything up.
 > | iOS physical device     | ❌         |
 > | Android emulator        | ✅         |
 > | Android physical device | ✅         |
+> | Web                     | ✅         |
+> | Desktop (macOS)         | ✅         |
 
 ## Tier 1 — sub-second hot patch
 

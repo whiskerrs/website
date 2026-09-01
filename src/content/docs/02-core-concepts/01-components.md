@@ -1,158 +1,145 @@
 ---
 title: Components & render!
-description: How views are built — the render! macro, components, props, and children.
+description: Element builders, render! syntax, components, props, and children.
 order: 1
 ---
 
 # Components & `render!`
 
-A Whisker UI is a tree of **components**. Each component is a plain Rust
-function that returns an [`Element`](/docs/elements) by describing its
-view with the `render!` macro. Components run **once** when they mount;
-after that, fine-grained [signals](/docs/state-management) update only
-the attributes that change — there is no re-render of the whole function.
-
-## The `render!` macro
-
-`render!` looks like markup but is ordinary Rust. Tags take keyword
-arguments in parentheses and children in braces:
+A Whisker UI declaration builds a tree of small [`Element`](/docs/elements)
+handles. Built-in elements and user components both expose ordinary Rust
+builders; `render!` adds named-argument and nested-body syntax on top.
 
 ```rust
 use whisker::prelude::*;
 
 render! {
-    view(style: "padding: 16px;") {
-        text(value: "Hello, Whisker")
-        view(on_tap: move |_| println!("tapped")) {
-            text(value: "Tap me")
+    View(style: css!(padding: px(16))) {
+        Text(value: "Hello, Whisker")
+        View(on_tap: move |_| println!("tapped")) {
+            Text(value: "Tap me")
         }
     }
 }
 ```
 
-- **Attributes** (`style`, `on_tap`, `value`, …) go in the parentheses.
-- **Children** go in the braces. A tag with only children can drop the
-  parens: `view { text(value: "hi") }`.
-- Children must be elements — bare string literals aren't allowed; wrap
-  text in `text(value: …)`.
-
-The full tag list and every builder method live in the
-[Elements reference](/docs/elements); the macro grammar is in the
-[Macros reference](/docs/macros).
-
-## The app entry point
-
-Every app has exactly one `#[whisker::main]` function — the root of the
-tree:
+The same tree can be built without the macro:
 
 ```rust
-use whisker::prelude::*;
+View::builder()
+    .style(css!(padding: px(16)))
+    .body(|body| {
+        body.push(Text::builder().value("Hello, Whisker").build());
+    })
+    .build()
+```
 
+`render!` does not special-case `View`, `Text`, or your component names. Every
+node follows the same `Type::builder().prop(value).body(...).build()` contract.
+
+## Syntax
+
+- Named arguments go in parentheses: `View(style: style, on_tap: handler)`.
+- Children go in a trailing body: `View { Text(value: "hi") }`.
+- Parentheses are optional when there are no named arguments.
+- A Rust expression child is written as `{expression}`; an iterable can be
+  spread with `..items`.
+- Text literals and primitive values can be children where text content is
+  accepted. `Text(value: ...)` is the explicit text element form.
+
+Use [`whisker fmt`](/docs/formatting) to format composition bodies. Plain
+`rustfmt` deliberately leaves macro contents untouched.
+
+## App entry point
+
+Each app has one `#[whisker::main]` function. Keep it small and mount a root
+component so that component-level hot reload can preserve state:
+
+```rust
 #[whisker::main]
 fn app() -> Element {
-    render! {
-        view {
-            text(value: "It works")
-        }
-    }
+    render! { Root }
+}
+
+#[component]
+fn root() -> Element {
+    render! { View { Text(value: "It works") } }
 }
 ```
 
-## Defining a component
+## Defining components
 
-Annotate a function with `#[component]`. Its parameters become **props**,
-passed as keyword arguments at the call site:
+Annotate an idiomatic `snake_case` function with `#[component]`. The macro
+generates a PascalCase marker, a props type, and a public builder:
 
 ```rust
 #[component]
-fn greeting(name: Signal<String>) -> Element {
-    render! {
-        text(value: name)
-    }
+fn greeting(name: Signal<String>, excited: Option<bool>) -> Element {
+    let suffix = if excited.unwrap_or(false) { "!" } else { "" };
+    render! { Text(value: computed(move || format!("Hello, {}{suffix}", name.get()))) }
 }
 
-#[whisker::main]
-fn app() -> Element {
-    render! {
-        view {
-            Greeting(name: "world")
-        }
-    }
+render! {
+    Greeting(name: "world", excited: true)
 }
 ```
 
-> **Naming.** Define the function in idiomatic Rust `lower_snake_case`
-> (`fn greeting`, `fn todo_list`). The `#[component]` macro generates a
-> `PascalCase` alias (`Greeting`, `TodoList`) which is the name you call
-> inside `render!`. So a `fn todo_list` component is written
-> `TodoList(...)` at the call site. The PascalCase call name is also how
-> the macro tells your components apart from built-in tags like `view`.
+`Greeting(...)` lowers to `Greeting::builder()...build()`. Required props are
+tracked in the builder type state, so omitting `name` is a compile-time error.
+`Option<T>`, `Children`, and props with `#[prop(default = ...)]` may be omitted.
+Required and optional props may appear in any order.
 
-### Props are values or signals
+The component function runs when it mounts. Signals and computed properties
+then update their exact renderer bindings; Whisker does not repeatedly diff a
+virtual tree. A hot-reload patch may remount the affected component when its
+body changes, while preserving compatible surrounding state.
 
-A prop typed `Signal<T>` accepts **either** a plain value (static) **or**
-a reactive signal. Pass a value and the prop never changes; pass a
-signal and the component updates when it changes:
+## Static and reactive props
+
+A prop typed `Signal<T>` accepts either a plain `T` or a signal handle:
 
 ```rust
 let count = signal(0);
 
 render! {
-    // static — set once
-    Badge(label: "items")
-    // reactive — re-renders when `count` changes
-    Counter(value: count)
+    Badge(label: "items") // static
+    Counter(value: count) // reactive
 }
 ```
 
-Read a `Signal<T>` prop inside the component with `.get()`. This
-value-or-signal type is described in
-[The Signal prop type](/docs/reactivity-api#the-signal-prop-type).
+Inside the component, `value.get()` participates in dependency tracking. If a
+built-in builder receives a signal directly, it installs the effect needed to
+reapply that property. Passing `count.get()` instead passes a one-time snapshot.
 
-### Optional props and defaults
-
-`Option<T>` props default to `None`. Use `#[prop(default = …)]` to give a
-prop a default value so callers can omit it:
+## Defaults and children
 
 ```rust
 #[component]
-fn avatar(url: Signal<String>, #[prop(default = 40)] size: i32) -> Element {
-    // `size` is optional; defaults to 40
-    render! { /* … */ }
-}
-```
-
-> A **missing required prop** is reported when the component mounts, not
-> at compile time. This keeps editor autocompletion clean inside
-> `render!`; the trade-off is that forgetting a required prop surfaces at
-> runtime with a clear message.
-
-## Children
-
-Give a component a `children: Children` prop to accept nested content,
-then call `children()` where it should appear:
-
-```rust
-#[component]
-fn card(children: Children) -> Element {
+fn card(
+    #[prop(default = px(16))] padding: Length,
+    children: Children,
+) -> Element {
     render! {
-        view(class: "card") {
-            children()
+        View(style: css!(padding: padding)) {
+            {children()}
         }
     }
 }
 
-// Usage:
 render! {
     Card {
-        text(value: "Inside the card")
+        Text(value: "Inside the card")
     }
 }
 ```
 
+A `children: Children` parameter adds the builder's trailing `body` method.
+`Children` is reusable, so framework-level components can project it more than
+once, although ordinary layout components usually call it once.
+
 ## What's next
 
-- Style your views in [Styling with CSS](/docs/styling).
-- Make them reactive in [State Management](/docs/state-management).
-- Render lists and conditionals in
-  [Lists & Conditionals](/docs/lists-and-conditionals).
+- [Styling](/docs/styling)
+- [State Management](/docs/state-management)
+- [Lists & Conditionals](/docs/lists-and-conditionals)
+- [Macro Reference](/docs/macros)

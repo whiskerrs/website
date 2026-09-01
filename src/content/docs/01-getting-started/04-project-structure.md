@@ -6,7 +6,7 @@ order: 4
 
 # Project Structure
 
-A Whisker app is an ordinary Rust crate with two Whisker-specific files.
+A Whisker app is an ordinary Rust crate with one Whisker configuration file.
 
 ```text
 my-app/
@@ -15,7 +15,7 @@ my-app/
 ├── whisker.rs      # app configuration (compiled separately by the CLI)
 ├── .gitignore
 ├── README.md
-├── gen/            # generated native host projects (do not edit, gitignored)
+├── gen/            # generated Host projects (do not edit, gitignored)
 └── target/         # cargo build output (gitignored)
 ```
 
@@ -50,9 +50,10 @@ where you register [plugins](/docs/modules-and-plugins). Full field list:
 
 ## `gen/`
 
-The generated **native host projects** — an Xcode project under
-`gen/ios/` and a Gradle project under `gen/android/`. Whisker regenerates
-this tree on every `whisker run`, so:
+Generated **Host projects**. Depending on the command, CNG materializes a
+Gradle project under `gen/android/`, an Xcode project under `gen/ios/`, a
+Cargo-based native project under `gen/macos/`, or a WASM/browser shell under
+`gen/web/`. `whisker run` and `whisker build` share this tree, so:
 
 - **Don't edit it by hand** — changes are overwritten. Shape the native
   side through `whisker.rs` and [plugins](/docs/plugin-api) instead.

@@ -23,8 +23,8 @@ and others.
 `render!` is a macro, but it's written so rust-analyzer can still help
 inside it:
 
-- Tag names complete (`vie` → `view`, `te` → `text`).
-- Keyword-argument names complete (`view(sty…` → `style`).
+- Element names complete (`Vie` → `View`, `Te` → `Text`).
+- Keyword-argument names complete (`View(sty…` → `style`).
 - Component names and their props complete like any function call.
 
 If completion inside the macro ever looks stale, a quick "restart

@@ -1,225 +1,146 @@
 ---
-title: Styling with CSS
-description: Style views with the css! macro and typed CSS values.
+title: Styling
+description: Structured CSS authoring, Taffy layout, paint, and reactive styles.
 order: 2
 ---
 
-# Styling with CSS
+# Styling
 
-Every element takes a `style:` attribute. Whisker hands the declarations to
-the **Lynx layout engine**, which runs flexbox, grid, gradients, transforms,
-and transitions — so the property set looks like CSS you already know.
-
-A `style:` accepts three things:
-
-- a typed **`css!(...)`** value,
-- a **raw CSS string**, or
-- a **reactive signal** of either (the styles re-apply when it changes).
+Every visual element accepts one structured `style` value. Whisker does not
+parse CSS strings at runtime: property names and values are Rust methods and
+types, so unsupported combinations fail during compilation.
 
 ```rust
+use whisker::css::{AlignItems, Color, Display, FlexDirection};
 use whisker::prelude::*;
 
 render! {
-    // typed
-    view(style: css!(padding: 16.px(), background_color: Color::hex(0x1A1A2E))) {
-        text(value: "Card")
-    }
-    // raw string — handy for one-offs
-    view(style: "padding: 16px;") {
-        text(value: "Quick")
-    }
-}
-```
-
-This is uniform across **built-in and module** components: `style:` on a
-module component (`Input`, `WebView`, `Image`, …) takes a `css!(…)` / `Css`
-value — or a reactive `Css` / `String` signal — directly, exactly like a
-built-in element. There's no `.to_css_string()` to call by hand.
-
-## The `css!` macro
-
-`css!(name: value, …)` builds a type-checked declaration block at compile
-time, with IDE completion on every property. Property names are
-**snake_case** (mapping to CSS's kebab-case), and values are typed enums and
-units rather than bare strings:
-
-```rust
-use whisker::prelude::*;
-
-let style = css!(
-    display: Display::Flex,
-    flex_direction: FlexDirection::Column,
-    align_items: AlignItems::Center,
-    gap: 12.px(),
-    padding: 16.px(),
-    background_color: Color::hex(0x1A1A2E),
-    border_radius: 10.px(),
-);
-```
-
-### Units
-
-Numbers get their unit from extension methods — `12.px()`, `50.percent()`,
-`90.deg()`, `300.ms()`. `i32` widens to `f32` automatically, so `8.px()` and
-`8.0.px()` are the same:
-
-```rust
-css!(
-    width: 50.percent(),
-    height: 200.px(),
-    margin_top: 8.px(),
-)
-```
-
-The full list of unit helpers (`rpx`, `rem`, `vh`, `vw`, …) is in the
-[CSS reference](/docs/css#units--number-extensions).
-
-### Typed enums vs. raw strings
-
-Keyword values come from typed enums, so a value Lynx rejects fails to
-compile instead of silently doing nothing. Lowercase keywords like
-`flex` and `column` in `css!` resolve to those enum variants; you can also
-name them explicitly when it reads clearer:
-
-```rust
-use whisker::css::{Display, FlexDirection};
-
-css!(display: Display::Flex, flex_direction: FlexDirection::Column)
-// equivalent to
-css!(display: Display::Flex, flex_direction: FlexDirection::Column)
-```
-
-If you need a Lynx-only property the typed builder doesn't model, append it
-raw — the chain stays typed everywhere else:
-
-```rust
-css!(font_size: 16.px(), color: Color::hex(0xFFFFFF))
-    .raw("text-maxline", "2")
-```
-
-## Layout with flexbox
-
-Lynx lays out with flexbox once you opt in with `display: flex`. **The one
-thing to remember:** `flex-direction` defaults to **`row`**, so a container
-of children you expect to stack vertically will instead squeeze across the
-screen. Always declare `flex_direction: column` for a vertical stack:
-
-```rust
-render! {
-    // vertical stack — note the explicit `column`
-    view(style: css!(
+    View(style: css!(
         display: Display::Flex,
         flex_direction: FlexDirection::Column,
-        gap: 8.px(),
+        align_items: AlignItems::Center,
+        gap: px(12),
+        padding: px(16),
+        border_radius: px(12),
+        background_color: Color::hex(0x1A1A2E),
     )) {
-        text(value: "First")
-        text(value: "Second")
+        Text(value: "Card", style: css!(color: Color::hex(0xFFFFFF)))
     }
 }
 ```
 
-The usual flex properties are all here — `justify_content`, `align_items`,
-`gap`, and per-item `flex_grow` / `flex_shrink` (which take plain numbers):
+## `css!` and `Css`
+
+`css!` is named-argument syntax over the public `Css` builder. These forms are
+equivalent:
 
 ```rust
-css!(
-    display: Display::Flex,
-    flex_direction: FlexDirection::Row,
-    justify_content: JustifyContent::SpaceBetween,
-    align_items: AlignItems::Center,
-    flex_grow: 1.0,
-)
+let a = css!(padding: px(16), opacity: 0.8);
+
+let b = Css::builder()
+    .padding(px(16))
+    .opacity(0.8);
 ```
+
+Use the macro for declarations embedded in UI and the builder when ordinary
+Rust composition, generics, or conditional method calls are clearer. `Css`
+values are owned, cloneable declaration sets and can be returned from helper
+functions or merged before use.
+
+Raw strings are intentionally rejected:
+
+```text
+View(style: "padding: 16px") // does not compile
+```
+
+## Values and units
+
+Length helpers make units explicit:
+
+```rust
+px(16)
+percent(100)
+1.25.rem()
+24.rpx()
+90.deg()
+250.ms()
+```
+
+Keyword values use enums such as `Display::Grid`,
+`JustifyContent::SpaceBetween`, or `Overflow::Hidden`. Colors, gradients,
+transforms, shadows, clip paths, transitions, and animations use structured
+value or shorthand builders rather than encoded strings.
+
+## Layout
+
+Whisker resolves structured declarations in Rust and sends computed layout
+inputs to Taffy. The supported layout surface follows Taffy's capabilities:
+
+- block, flexbox, and grid layout;
+- absolute and relative positioning;
+- intrinsic measurement for text and Host elements;
+- percentages, min/max constraints, aspect ratio, gaps, and overflow clipping.
+
+The Host receives final logical-pixel geometry. Browser or native layout is not
+the source of truth, so the same tree uses the same layout model on every Host.
+
+## Paint and platform coverage
+
+The Rust frame protocol represents semantic paint such as backgrounds, borders,
+rounded corners, shadows, transforms, opacity, clipping, text, and image
+resources. Each Host implements those operations with its platform renderer.
+Properties outside layout generally follow Whisker's supported Lynx-compatible
+subset, excluding removed vendor-only features. The
+[CSS Reference](/docs/css) lists the actual typed surface; a method's presence
+on `Css` is the compile-time contract.
 
 ## Reactive styles
 
-Pass a signal to `style:` and the styles re-apply whenever it changes. The
-common pattern is a [`computed`](/docs/reactivity-api) that derives a style
-string from some state:
+Pass a `ReadSignal<Css>` or `RwSignal<Css>` directly to `style` to reapply it
+when dependencies change:
 
 ```rust
-use whisker::prelude::*;
+let selected = signal(false);
+let card_style = computed(move || {
+    Css::builder()
+        .padding(px(16))
+        .background_color(if selected.get() {
+            Color::hex(0x2563EB)
+        } else {
+            Color::hex(0x1F2937)
+        })
+});
 
-#[component]
-fn toggle() -> Element {
-    let on = signal(false);
-
-    let box_style = computed(move || {
-        css!(
-            width: 80.px(),
-            height: 80.px(),
-            border_radius: 8.px(),
-            background_color: if on.get() {
-                Color::hex(0x4F46E5)
-            } else {
-                Color::hex(0x334155)
-            },
-        )
-        .to_css_string()
-    });
-
-    render! {
-        view(style: box_style, on_tap: move |_| on.set(!on.get())) {
-            text(value: "tap")
-        }
-    }
-}
-```
-
-`computed` returns a `ReadSignal<String>` here; wiring it as `style:` makes
-the view re-paint without the body touching the DOM. See
-[State Management](/docs/state-management) and
-[Reactivity](/docs/reactivity) for how this tracking works.
-
-## Classes
-
-`class:` attaches one or more CSS class names, the same as in HTML — useful
-when a component library or page ships shared classes:
-
-```rust
 render! {
-    view(class: "card elevated") {
-        text(value: "Styled by a class")
+    View(
+        style: card_style,
+        on_tap: move |_| selected.set(!selected.get()),
+    ) {
+        Text(value: "Select")
     }
 }
 ```
 
-## Putting it together: a styled card
+Passing a computed style keeps the declaration reactive. Passing
+`card_style.get()` takes a snapshot, just like other signal-backed props.
+
+## Reuse and custom properties
+
+Ordinary Rust functions and constants are the simplest reuse mechanism:
 
 ```rust
-use whisker::prelude::*;
-
-#[component]
-fn profile_card(name: Signal<String>, role: Signal<String>) -> Element {
-    render! {
-        view(style: css!(
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            gap: 4.px(),
-            padding: 16.px(),
-            border_radius: 12.px(),
-            background_color: Color::hex(0x1A1A2E),
-        )) {
-            text(style: css!(
-                font_size: 18.px(),
-                color: Color::hex(0xFFFFFF),
-            ), value: name)
-            text(style: css!(
-                font_size: 14.px(),
-                color: Color::hex(0x94A3B8),
-            ), value: role)
-        }
-    }
+fn card_style() -> Css {
+    css!(padding: px(16), border_radius: px(12))
 }
 ```
 
-Run it on a simulator with `whisker run ios`.
+Typed custom properties are also available when a value must inherit through
+the element tree or participate in a reusable style fragment. They retain CSS
+`var(--name, fallback)` semantics while values remain structured; Whisker does
+not expose a selector cascade or stylesheet class system.
 
 ## What's next
 
-- The complete enum, unit, color, and shorthand list lives in the
-  [CSS reference](/docs/css).
-- Keep `css!` blocks tidy with [`whisker fmt`](/docs/formatting), which
-  formats macro bodies that `cargo fmt` skips.
-- Make styles react to state in [State Management](/docs/state-management).
-- Render lists and conditions in [Lists & Conditionals](/docs/lists-and-conditionals).
+- [CSS Reference](/docs/css)
+- [Animations](/docs/css#animation)
+- [Lists & Conditionals](/docs/lists-and-conditionals)

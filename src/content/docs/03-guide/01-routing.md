@@ -23,7 +23,7 @@ fast path to a working router.
 ```toml
 [dependencies]
 whisker = { workspace = true }
-whisker-router = "0.6"
+whisker-router = "0.12"
 ```
 
 Import what you need directly — the crate has no `prelude`:
@@ -72,7 +72,7 @@ creates a positioned root container. Inside it, mount an `Outlet`
 #[whisker::main]
 fn app() -> Element {
     render! {
-        view(style: css!(
+        View(style: css!(
             flex_grow: 1.0,
             width: vw(100),
             height: vh(100),
@@ -122,23 +122,23 @@ the handle and navigate by URL:
 fn home() -> Element {
     let nav = use_navigator();
     render! {
-        view(style: css!(
+        View(style: css!(
             flex_grow: 1.0,
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
         )) {
-            text(value: "Items")
-            view(on_tap: move |_| {
+            Text(value: "Items")
+            View(on_tap: move |_| {
                 let _ = nav.navigate("/detail/1");
             }) {
-                text(value: "Open item 1")
+                Text(value: "Open item 1")
             }
-            view(on_tap: move |_| {
+            View(on_tap: move |_| {
                 let _ = nav.navigate("/detail/2");
             }) {
-                text(value: "Open item 2")
+                Text(value: "Open item 2")
             }
         }
     }
@@ -177,16 +177,16 @@ fn detail() -> Element {
     let id = use_param("id");
 
     render! {
-        view(style: css!(
+        View(style: css!(
             flex_grow: 1.0,
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
         )) {
-            text(value: format!("Detail #{}", id.get().unwrap_or_default()))
-            view(on_tap: move |_| { let _ = nav.back(); }) {
-                text(value: "Back")
+            Text(value: format!("Detail #{}", id.get().unwrap_or_default()))
+            View(on_tap: move |_| { let _ = nav.back(); }) {
+                Text(value: "Back")
             }
         }
     }
@@ -255,30 +255,30 @@ as Expo Router's `_layout.tsx`.
 fn tabs_layout() -> Element {
     let nav = use_navigator();
     render! {
-        view(style: css!(
+        View(style: css!(
             flex_grow: 1.0,
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
         )) {
             // Content area
-            view(style: css!(flex_grow: 1.0)) {
+            View(style: css!(flex_grow: 1.0)) {
                 Outlet {}
             }
             // Tab bar
-            view(style: css!(
+            View(style: css!(
                 display: Display::Flex,
                 flex_direction: FlexDirection::Row,
                 justify_content: JustifyContent::SpaceAround,
                 height: px(56),
             )) {
-                view(on_tap: move |_| { let _ = nav.select("/(home)"); }) {
-                    text(value: "Home")
+                View(on_tap: move |_| { let _ = nav.select("/(home)"); }) {
+                    Text(value: "Home")
                 }
-                view(on_tap: {
+                View(on_tap: {
                     let nav = nav.clone();
                     move |_| { let _ = nav.select("/(search)"); }
                 }) {
-                    text(value: "Search")
+                    Text(value: "Search")
                 }
             }
         }

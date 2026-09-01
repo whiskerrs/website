@@ -84,7 +84,7 @@ bench = false
 doc = false
 
 [dependencies]
-whisker-plugin = "0.2"
+whisker-plugin = "0.12"
 serde = { version = "1", features = ["derive"] }
 anyhow = "1"
 ```
@@ -364,7 +364,7 @@ plugin in from `whisker.rs`:
 ```toml
 # app/Cargo.toml
 [dependencies]
-whisker-foo = "0.2"
+whisker-foo = "0.12"
 ```
 
 ```rust

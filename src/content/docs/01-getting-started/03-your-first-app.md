@@ -37,10 +37,15 @@ fn app() -> Element {
     let count = signal(0);
 
     render! {
-        view(style: "flex-direction: column; padding: 24px; gap: 16px;") {
-            text(value: computed(move || format!("Taps: {}", count.get())))
-            view(on_tap: move |_| count.set(count.get() + 1)) {
-                text(value: "Tap me")
+        View(style: css!(
+            flex_grow: 1.0,
+            flex_direction: FlexDirection::Column,
+            padding: px(24),
+            gap: px(16),
+        )) {
+            Text(value: computed(move || format!("Taps: {}", count.get())))
+            View(on_tap: move |_| count.set(count.get() + 1)) {
+                Text(value: "Tap me")
             }
         }
     }
@@ -49,24 +54,28 @@ fn app() -> Element {
 
 ## Run
 
-Boot a simulator/emulator (or connect a device), then:
+Choose a Host. Boot a simulator/emulator first when using mobile:
 
 ```bash
-whisker run ios       # or: whisker run android
+whisker run ios
+whisker run android
+whisker run web
+whisker run desktop
 ```
 
 The first run sets up the native host project under `gen/`, builds your
 crate, and installs and launches the app. It takes a moment; subsequent
 runs are much faster.
 
-> **Targets are positional**: `whisker run ios` / `whisker run android`
+> **Targets are positional**: `whisker run ios` / `whisker run android` /
+> `whisker run web` / `whisker run desktop`
 > (not `--ios`). See the [CLI reference](/docs/cli-reference) for flags
 > like `--bind` and `--no-tui`.
 
 ## Edit with hot reload
 
 Leave `whisker run` running and edit `src/lib.rs` — change the button
-text, tweak a style, add a `view`. Save, and the change **hot reloads**
+text, tweak a style, add a `View`. Save, and the change **hot reloads**
 onto the running app in about a second, with state preserved.
 
 Changes to `whisker.rs` (bundle id, app name, platform settings) reshape

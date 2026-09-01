@@ -1,144 +1,86 @@
 ---
 title: Handling Events
-description: Respond to taps, gestures, scrolls, and lifecycle.
+description: Respond to pointer, scroll, animation, and module events.
 order: 6
 ---
 
 # Handling Events
 
-UIs are interactive: a tap toggles something, a scroll loads more, a
-view appears and you kick off work. In Whisker you wire all of this up by
-attaching **handlers** as attributes on built-in elements, right inside
-`render!`. A handler is just a closure — usually a `move ||` closure so
-it owns the signals it touches.
+Event handlers are builder arguments. They run on the `RuntimeInstance` while
+the Host is driving an input transaction, so they can update signals directly:
 
 ```rust
 use whisker::prelude::*;
 
-render! {
-    view(on_tap: move |_| println!("tapped")) {
-        text(value: "Tap me")
-    }
-}
-```
-
-## Handlers are element attributes
-
-Event handlers go in the parentheses alongside `style`, `class`, and the
-rest. The attribute name is `on_` followed by the event: `on_tap`,
-`on_longpress`, `on_touchstart` / `on_touchmove` / `on_touchend`, the
-`<scroll_view>` scroll handlers, and lifecycle handlers like
-`on_uiappear` / `on_uidisappear`. Which events a given tag supports is
-listed per-element in the [Elements reference](/docs/elements).
-
-```rust
-render! {
-    view(
-        on_touchstart: move |_| println!("finger down"),
-        on_touchend: move |_| println!("finger up"),
-    ) {
-        text(value: "Press and release")
-    }
-}
-```
-
-## The event argument
-
-Every handler receives a **typed event** describing what happened. For
-touch handlers that's a [`TouchEvent`](/docs/events). You get to choose
-whether to look at it:
-
-```rust
-// Ignore the event — you only care that the tap happened.
-view(on_tap: move |_| open_menu())
-
-// Read the event — `e` is a TouchEvent.
-view(on_tap: move |e| {
-    let p = e.detail; // first touch point, in LynxView coordinates
-    println!("tapped at {}, {}", p.x, p.y);
-})
-```
-
-The handler signature is `Fn(E) + 'static`, so `move |e| …` binds the
-event and `move |_| …` discards it. The payload is a convenience, not a
-gate: the handler fires whenever the event fires, even when the body is
-empty — see [Events](/docs/events) for the full list of event types and
-their fields.
-
-## The common pattern: a handler updates a signal
-
-Most handlers exist to change state. Reach for a signal, mutate it in the
-closure, and the parts of the view that read it update on their own:
-
-```rust
-use whisker::prelude::*;
-
-#[whisker::main]
-fn app() -> Element {
+#[whisker::component]
+fn Counter() -> Element {
     let count = signal(0);
 
     render! {
-        view(on_tap: move |_| count.update(|n| *n += 1)) {
-            text(value: count)
+        View(on_tap: move |_| count.update(|value| *value += 1)) {
+            Text(value: computed(move || format!("Count: {}", count.get())))
         }
     }
 }
 ```
 
-Because `RwSignal` is `Copy`, it moves cleanly into the closure. The
-mechanics of signals and updates live in
-[State Management](/docs/state-management) and the
-[Reactivity reference](/docs/reactivity-api).
+## Pointer handlers
 
-## Propagation: capture, bubble, and catch
+`View`, `Text`, `ScrollView`, and module elements share the `ElementBuilder`
+pointer methods:
 
-A touch event travels **down** the tree to the element you touched (the
-_capture_ phase, root → target) and then back **up** (the _bubble_ phase,
-target → root). Plain `on_tap` listens during the bubble phase — that's
-the common case, and usually all you need.
+- `on_tap`, `on_click`
+- `on_touchstart`, `on_touchmove`, `on_touchend`, `on_touchcancel`
+- the corresponding `_catch`, `on_capture_*`, and
+  `on_capture_*_catch` variants
 
-Each touch event actually exposes **four** handler variants:
-
-| Handler                | Phase   | Stops propagation? |
-| ---------------------- | ------- | ------------------ |
-| `on_tap`               | bubble  | no                 |
-| `on_tap_catch`         | bubble  | yes                |
-| `on_capture_tap`       | capture | no                 |
-| `on_capture_tap_catch` | capture | yes                |
-
-The `_catch` variants stop the event at that element so ancestors don't
-also receive it — use one when an inner control should fully consume the
-tap and not trigger an outer handler:
+The normal handler participates in the bubble phase. Capture handlers run from
+the root toward the target. A `catch` handler stops propagation at that
+listener. Hit testing and propagation happen in Whisker's retained scene, so
+the semantics do not change between Hosts.
 
 ```rust
-render! {
-    // Tapping the card navigates...
-    view(on_tap: move |_| open_card()) {
-        text(value: "Open")
-        // ...but tapping the close button must NOT also open the card.
-        view(on_tap_catch: move |_| dismiss()) {
-            text(value: "✕")
-        }
+View(on_capture_tap: |_| println!("outer capture")) {
+    View(on_tap_catch: |event| {
+        println!("tap at {}, {}", event.detail.x, event.detail.y);
+    }) {
+        Text(value: "Tap")
     }
 }
 ```
 
-The same four-variant shape applies to `longpress`, `click`, and the
-`touch*` events. The full matrix is in the
-[Events reference](/docs/events#event-propagation-the-four-variant-handler-pattern).
+## Event metadata
 
-## Accessibility
+`TouchEvent` includes surface coordinates, pointer identity/type, buttons,
+active touches, and both `target` and `current_target`. An element's `id` and
+structured `Dataset` are included in those targets.
 
-Accessibility props sit on elements too, right alongside event handlers —
-labels, roles, and traits go in the same parentheses. See
-[Elements](/docs/elements) for the available a11y attributes.
+```rust
+View(
+    id: "album",
+    dataset: Dataset::new().int("album_id", 42),
+    on_tap: |event| {
+        if let Some(value) = event.target.dataset.get("album_id") {
+            println!("album: {value:?}");
+        }
+    },
+)
+```
 
-## A note on text input
+## Scroll and animation events
 
-There is **no text-input element** yet, so there are no text-change
-events to handle. When one lands, this page will grow to cover it.
+`ScrollView` and `List` expose `on_scroll: Fn(ScrollEvent)`. Its detail contains
+the current offset, content and viewport sizes, deltas, and drag state.
 
-## What's next
+CSS transitions and keyframe animations expose lifecycle handlers such as
+`on_animationstart`, `on_animationend`, `on_animationcancel`,
+`on_transitionstart`, and `on_transitionend`.
 
-- Drive your handlers' updates through [State Management](/docs/state-management).
-- Share values without threading them through props in [Context](/docs/context).
+## Module events
+
+A `#[whisker::module_element]` event prop is deserialized from
+`WhiskerValue` into the Rust event type declared in the function signature.
+Function-shaped modules use `PlatformModule::on_event`; keep the returned
+subscription alive for as long as events are needed.
+
+See the [event type reference](/docs/events) for exact payload fields.

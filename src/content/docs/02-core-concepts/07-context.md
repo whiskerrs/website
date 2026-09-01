@@ -33,7 +33,7 @@ fn app() -> Element {
     provide_context(Theme { dark: true });
 
     render! {
-        view {
+        View {
             Toolbar()
         }
     }
@@ -43,11 +43,15 @@ fn app() -> Element {
 fn toolbar() -> Element {
     // ...read it anywhere below, no props in between.
     let theme = use_context::<Theme>().expect("Theme provided at root");
-    let bg = if theme.dark { "#111" } else { "#fff" };
+    let bg = if theme.dark {
+        Color::hex(0x111111)
+    } else {
+        Color::hex(0xFFFFFF)
+    };
 
     render! {
-        view(style: format!("background: {bg};")) {
-            text(value: "Toolbar")
+        View(style: css!(background_color: bg)) {
+            Text(value: "Toolbar")
         }
     }
 }
@@ -102,7 +106,7 @@ fn dark_section() -> Element {
     provide_context(Theme { dark: true }); // overrides the ancestor here down
 
     render! {
-        view { /* ...descendants see the dark theme... */ }
+        View { /* ...descendants see the dark theme... */ }
     }
 }
 ```
