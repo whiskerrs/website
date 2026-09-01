@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install the Whisker CLI and the toolchain for iOS and Android.
+description: Install the Whisker CLI and the toolchain for your target Hosts.
 order: 2
 ---
 
@@ -15,12 +15,16 @@ page sets up the toolchain; the next page scaffolds and runs an app.
 - **iOS**: Xcode and its Command Line Tools. Simulator builds work out
   of the box.
 - **Android**: an Android SDK, the NDK (`21.1.6352462`), and a JDK.
+- **Web**: the `wasm32-unknown-unknown` Rust target and a modern browser.
+- **Desktop**: the native build toolchain for your OS and graphics drivers
+  supported by wgpu. `whisker run desktop` currently ships the macOS path.
 
 Add the device build targets you plan to use:
 
 ```bash
 rustup target add aarch64-apple-ios-sim    # iOS Simulator
 rustup target add aarch64-linux-android    # Android device/emulator
+rustup target add wasm32-unknown-unknown   # Web
 ```
 
 ## Install the CLI
@@ -29,10 +33,10 @@ rustup target add aarch64-linux-android    # Android device/emulator
 cargo install whisker-cli
 ```
 
-This installs the `whisker` command (and a `cargo whisker` alias). It's
-the only install you need: the `whisker` binary drives **both** iOS and
-Android builds — Xcode's build phase and Gradle invoke it to
-cross-compile your Rust crate into the native artifact.
+This installs the `whisker` command (and a `cargo whisker` alias). It is the
+user-facing entry point for every Host. Xcode and Gradle can also invoke
+Whisker's build adapter from their own build phases, so generated mobile
+projects remain buildable from the native IDEs.
 
 ## Check your setup
 

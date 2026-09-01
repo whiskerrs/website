@@ -103,7 +103,7 @@ handler produce a **single** update wave:
 ```rust
 use whisker::prelude::*;
 
-view(on_tap: move |_| {
+View(on_tap: move |_| {
     set_first.set("Ada".to_string());
     set_last.set("Lovelace".to_string());
     set_dirty.set(true);
@@ -111,7 +111,7 @@ view(on_tap: move |_| {
     //   these runs exactly ONCE here, when the handler returns — not
     //   once per write.
 }) {
-    text(value: "Update")
+    Text(value: "Update")
 }
 ```
 
@@ -157,7 +157,7 @@ fn timer() -> Element {
     });
 
     render! {
-        text { "Elapsed: " {elapsed.get()} }
+        Text(value: computed(move || format!("Elapsed: {}", elapsed.get())))
     }
 }
 ```
@@ -188,7 +188,7 @@ use whisker::prelude::*;
 let show_panel = signal(true);
 
 render! {
-    Show(when: move || show_panel.get(), fallback: || render! { fragment() }) {
+    Show(when: move || show_panel.get(), fallback: || render! { Fragment() }) {
         // Signals and effects created in here are disposed the moment
         // `show_panel` becomes false, and recreated fresh if it flips back.
         ExpensivePanel()

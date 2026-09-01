@@ -1,15 +1,15 @@
 ---
 title: Introduction
-description: What Whisker is and why you'd build your next mobile app with it.
+description: What Whisker is and how one Rust UI runs on mobile, web, and desktop.
 order: 1
 ---
 
 # Introduction
 
-**Whisker is a Rust-first framework for building native Android and iOS
-apps.** You write the UI, the state graph, your business logic, and your
-native calls in one systems language — no JavaScript runtime, no Dart VM,
-no scripting layer.
+**Whisker is a Rust-first framework for building iOS, Android, Web, and
+Desktop apps.** Application state, UI declarations, layout, and frame
+production stay in Rust. Each platform Host turns the same semantic frame into
+UIKit views, Android views, DOM nodes, or wgpu drawing.
 
 ```rust
 use whisker::prelude::*;
@@ -19,10 +19,15 @@ fn app() -> Element {
     let count = signal(0);
 
     render! {
-        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 12.px())) {
-            text(value: format!("Count: {}", count.get()))
-            view(on_tap: move |_| count.update(|n| *n += 1)) {
-                text(value: "+1")
+        View(style: css!(
+            flex_grow: 1.0,
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            gap: px(12),
+        )) {
+            Text(value: computed(move || format!("Count: {}", count.get())))
+            View(on_tap: move |_| count.update(|n| *n += 1)) {
+                Text(value: "+1")
             }
         }
     }
@@ -31,11 +36,15 @@ fn app() -> Element {
 
 ## Why Whisker
 
-- **One language, end to end.** Rust is the application language, not a
-  native escape hatch. Props, state, and platform calls are all typed.
-- **Native output.** Whisker renders through the
-  [Lynx](https://github.com/lynx-family/lynx) engine, which drives **real
-  native widgets** — not a self-rendered canvas.
+- **One application language.** Rust is the application language, not a
+  native escape hatch. Props, state, styling, and module values are typed.
+- **A small retained core.** Rust owns the element tree, Taffy layout,
+  scheduling, input routing, and the platform-neutral frame protocol. There is
+  no JavaScript runtime, Dart VM, virtual DOM, or Lynx dependency.
+- **Purpose-built Hosts.** iOS and Android project frames into native view
+  hierarchies, Web projects them into the DOM, and Desktop paints with wgpu.
+  Host-backed module elements can still embed controls such as text input,
+  video, maps, or toggles.
 - **Fine-grained reactivity.** Components run once; signals and effects
   update only the exact attributes that changed. No virtual DOM, no
   re-render passes.
@@ -46,12 +55,12 @@ fn app() -> Element {
 
 ## How it compares
 
-|                    | Whisker               | Flutter                       | React Native               |
-| ------------------ | --------------------- | ----------------------------- | -------------------------- |
-| Language           | Rust                  | Dart                          | TypeScript / JavaScript    |
-| Rendering          | Native widgets (Lynx) | Self-rendered (Skia/Impeller) | Native widgets             |
-| Runtime dependency | None                  | Dart VM                       | JS engine                  |
-| Reactivity         | Fine-grained signals  | Widget rebuilds               | Component re-render + diff |
+|                    | Whisker                             | Flutter                       | React Native               |
+| ------------------ | ----------------------------------- | ----------------------------- | -------------------------- |
+| Language           | Rust                                | Dart                          | TypeScript / JavaScript    |
+| Rendering          | Rust frame protocol + platform Host | Self-rendered (Skia/Impeller) | Fabric native components   |
+| Runtime dependency | Native Rust library                 | Dart VM                       | JS engine                  |
+| Reactivity         | Fine-grained signals, no VDOM       | Widget rebuilds               | Component re-render + diff |
 
 ## What's here today
 
@@ -59,14 +68,14 @@ Whisker is in active early release. The core is solid and used to build
 real apps:
 
 - Components, the `render!` macro, and fine-grained signals
-- Styling via a typed `css!` macro on the Lynx layout engine
+- Structured styling through `css!` or the public `Css` builder, with Taffy
+  layout and Host paint
 - Routing, lists, images, SVG, icons, video, audio, safe-area, and
   local storage as first-party modules
-- iOS and Android builds with sub-second hot reload
+- iOS, Android, Web, and Desktop run/build paths with sub-second hot reload
 
-A few things aren't there yet — most notably there's **no text-input
-element**, and deep linking is stubbed. The docs call these out where
-they're relevant so you're never surprised.
+Whisker is pre-alpha. APIs and exact platform coverage can still change; pages
+call out platform-specific limitations where they matter.
 
 ## Where to go next
 

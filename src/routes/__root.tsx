@@ -20,7 +20,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Whisker is a Rust-first framework for building native Android and iOS apps — ergonomic UI, Lynx-powered CSS, sub-second hot reload, and native modules.",
+          "Whisker is a Rust-first framework for Android, iOS, Web, and desktop apps with retained rendering, typed styling, hot reload, and native modules.",
       },
       // Open Graph
       { property: "og:type", content: "website" },
@@ -28,30 +28,28 @@ export const Route = createRootRoute({
       { property: "og:url", content: "https://whisker.rs" },
       {
         property: "og:title",
-        content: "Whisker — Build native mobile apps in Rust",
+        content: "Whisker — Build cross-platform apps in Rust",
       },
       {
         property: "og:description",
-        content:
-          "Ergonomic UI, native widgets, Lynx-powered CSS, and sub-second hot reload — for iOS and Android, in Rust.",
+        content: "One retained Rust UI runtime with native, Web, and desktop Hosts.",
       },
       { property: "og:image", content: "https://whisker.rs/og.png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       {
         property: "og:image:alt",
-        content: "Whisker — Build native mobile apps in Rust",
+        content: "Whisker — Build cross-platform apps in Rust",
       },
       // Twitter
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "Whisker — Build native mobile apps in Rust",
+        content: "Whisker — Build cross-platform apps in Rust",
       },
       {
         name: "twitter:description",
-        content:
-          "Ergonomic UI, native widgets, Lynx-powered CSS, and sub-second hot reload — for iOS and Android, in Rust.",
+        content: "One retained Rust UI runtime with native, Web, and desktop Hosts.",
       },
       { name: "twitter:image", content: "https://whisker.rs/og.png" },
     ],

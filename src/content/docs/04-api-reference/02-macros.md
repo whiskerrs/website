@@ -1,153 +1,155 @@
 ---
 title: Macros
-description: The five proc macros and the module! helper.
+description: Entry points, components, composition syntax, modules, and formatting.
 order: 2
 ---
 
 # API Reference: Macros
 
-Whisker ships five procedural macros plus one declarative macro. All are
-re-exported from the crate root and prelude.
+Whisker keeps macro responsibilities narrow. `compose!` owns the common
+named-argument/body grammar; `render!`, `css!`, and `routes!` adapt that grammar
+to public builders. Every generated call can also be written as ordinary Rust.
 
 ## `#[whisker::main]`
 
-Marks the app entry point. Wraps a `fn() -> Element` and generates the
-FFI symbols the iOS/Android host calls into.
+Marks the single application entry point:
 
 ```rust
 #[whisker::main]
 fn app() -> Element {
-    render! { view { text(value: "Hello") } }
+    render! { Root }
 }
 ```
 
-- The function takes no arguments and returns [`Element`](/docs/elements).
-- It runs **once** at mount; subsequent updates happen through the
-  reactive runtime, not by re-calling this function.
-- There must be exactly one `#[whisker::main]` in an app.
+The macro generates the platform entry symbols and hot-reload anchor needed by
+the Hosts. The function takes no arguments and returns `Element`.
 
 ## `#[component]`
 
-Defines a reusable component. Generates a typed `XxxProps` builder and a
-PascalCase alias usable inside `render!`.
+Turns a function into a reactive component and generates a PascalCase builder.
 
 ```rust
 #[component]
-fn badge(label: Signal<String>, count: i32) -> Element {
-    render! {
-        view { text(value: label) }
+fn badge(label: Signal<String>, emphasis: Option<bool>) -> Element {
+    render! { Text(value: label) }
+}
+
+let element = Badge::builder()
+    .label("new")
+    .emphasis(true)
+    .build();
+```
+
+- ordinary parameters are required builder setters;
+- `Option<T>` is optional and defaults to `None`;
+- `#[prop(default = expression)]` makes a parameter optional with that default;
+- `children: Children` adds a trailing `.body(...)` method;
+- required props are enforced by Rust type state at `build()`;
+- props must be cloneable so the body can be safely remounted by hot reload.
+
+Inside composition syntax, call the generated PascalCase name:
+
+```rust
+render! { Badge(label: "new") }
+```
+
+## `#[whisker::module_element]`
+
+Defines the Rust authoring side of a Host-backed element. It generates the same
+builder shape as `#[component]`, plus an element schema for properties, events,
+measurement, and commands. Host implementations register the same module and
+element names on Android, iOS, Web, or Desktop.
+
+```rust
+#[whisker::module_element(
+    name = "acme.maps/Map",
+    measurement = Custom,
+    commands = [("setCamera", Object)],
+)]
+fn map(latitude: Signal<f64>, longitude: Signal<f64>, on_region_change: CustomEvent) {}
+```
+
+Use this only when the element owns a Host view or Host-specific presentation.
+A pure Rust composition remains a normal `#[component]`.
+
+## `compose!`
+
+The generic composition macro lowers one builder tree:
+
+```rust
+compose! {
+    View(style: style) {
+        Text(value: "hello")
     }
 }
-
-// Call site, inside another render!:
-render! { Badge(label: "items", count: 3) }
 ```
 
-- **Naming**: define the function in `lower_snake_case` (`fn badge`,
-  `fn todo_list`); the macro generates the `PascalCase` alias
-  (`Badge`, `TodoList`) used at the `render!` call site.
-- Each parameter becomes a prop. Call sites pass them as keyword
-  arguments (`Badge(label: …, count: …)`); positional calls are not
-  supported.
-- Prop attributes:
-  - `#[prop(default = expr)]` — supply a default so the prop is optional.
-  - `#[prop(into)]` behavior is automatic for most types; a prop whose
-    type is a bare generic parameter skips `into` to keep inference
-    working.
-- `Option<T>` props and `children: Children` props default to
-  empty/`None` automatically.
-- A **missing required prop** is reported at component mount time, not at
-  compile time (a deliberate trade-off for cleaner editor completion).
-- Read reactive props with [`.get()`](/docs/reactivity-api#signal-prop-type);
-  see [`Signal<T>`](/docs/reactivity-api#signal-prop-type) for the
-  value-or-signal prop type.
+Each node must provide:
 
-### Children
-
-A `children: Children` parameter receives the nested content a caller
-passes in `render!`:
-
-```rust
-#[component]
-fn card(children: Children) -> Element {
-    render! { view(class: "card") { children() } }
-}
+```text
+Type::builder()
+    .named_argument(value)
+    .body(|body| { body.push(child); }) // only when a body is present
+    .build()
 ```
 
-## `#[whisker::module_component("Name")]`
+This protocol does not know which types are UI elements. Libraries may expose
+their own compatible builders and use them from the same macro.
 
-Wraps a native **view** module (an iOS/Android widget) as a Whisker
-component. The macro generates the body that mounts the native element
-and applies each prop as an attribute or style.
+## `render!`
 
-```rust
-#[whisker::module_component("Image")]
-pub fn image(src: Signal<String>, mode: Signal<ImageMode>) {}
-```
-
-Used by first-party modules like [`whisker-image`](/docs/modules-api).
-For most apps you consume these components, you don't write them — see
-[Authoring a Module](/docs/authoring-a-module) when you do.
-
-## `render! { … }`
-
-The view-construction macro. It looks JSX-like but lowers to imperative
-element-creation calls plus the effects that wire reactive props.
+The UI-named adapter over `compose!`:
 
 ```rust
 render! {
-    view(style: "padding: 16px;") {
-        text(value: greeting)
-        view(on_tap: move |_| count.update(|n| *n += 1)) {
-            text(value: "+1")
-        }
+    View(style: css!(padding: px(16))) {
+        Text(value: "Hello")
+        {optional_element}
+        ..more_elements
     }
 }
 ```
 
-Grammar essentials:
+Named arguments use `name: expression`; the trailing body is optional. A node
+with no arguments may omit parentheses: `render! { Root }`.
 
-- **Keyword args go in parentheses**: `view(style: …, on_tap: …) { … }`.
-  Children go in the braces.
-- A tag with only children can omit the parens: `view { text(…) }`.
-- **Dynamic vs static** is decided by what you pass: a signal handle →
-  reactive; a value or `signal.get()` → static snapshot. See
-  [Handling Events](/docs/events) and [Reactivity](/docs/reactivity-api).
-- Bare string literals and bare `{expr}` blocks as children are
-  rejected — wrap text in `text(value: …)`.
+## `css!`
 
-Full tag and method list: [Elements](/docs/elements). `render!` bodies live
-inside a macro token tree that `cargo fmt` won't touch — format them (and the
-expressions within) with [`whisker fmt`](/docs/formatting).
-
-## `css!(name: value, …)`
-
-Keyword syntax for the [`Css`](/docs/css) builder. Lowers to a
-`Css::new().name(value)…` chain.
+Builds `Css` by mapping names to builder methods:
 
 ```rust
 let style = css!(
-    display: Display::Flex,
-    flex_direction: FlexDirection::Column,
-    gap: 12.px(),
-    background: NamedColor::White,
+    width: percent(100),
+    padding: px(16),
+    background_color: Color::hex(0x2563EB),
 );
 ```
 
-Property names are snake_case (`flex_direction`), values are the typed
-CSS enums and units. Full list: [CSS](/docs/css).
+Equivalent to `Css::builder().width(...).padding(...)...`. It accepts
+structured values only.
+
+## `routes!`
+
+Provided by `whisker-router`. It uses the same composition grammar to build a
+route tree; router-specific path and nesting validation happens during macro
+expansion. See [Routing API](/docs/routing-api).
 
 ## `module!("Name")`
 
-A declarative macro that builds a [`PlatformModule`](/docs/platform-modules)
-handle for a function-shaped native module. The calling crate's name is
-prepended so two crates can ship same-named modules without colliding.
+Creates a handle to a function-shaped Host module, prefixed by the calling
+crate's package name:
 
 ```rust
-let store = whisker::module!("WhiskerLocalStore"); // -> "<crate>:WhiskerLocalStore"
-let saved = store.invoke("save", vec![key.into(), value.into()]);
+let store = whisker::module!("LocalStore");
+let result = store.invoke("get", vec!["token".into()]);
 ```
 
-See [Platform Modules](/docs/platform-modules) for `invoke` / `invoke_async`
-and the [`WhiskerValue`](/docs/platform-modules#whiskervalue) argument
-model.
+Arguments, results, and event payloads use `WhiskerValue`. Prefer a typed public
+wrapper in a reusable module crate rather than exposing string method names to
+application code.
+
+## Formatting
+
+`whisker fmt` delegates ordinary Rust to rustfmt and formats composition macro
+bodies with the same width and indentation settings. See
+[Formatting](/docs/formatting).

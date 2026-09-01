@@ -31,15 +31,15 @@ fn greeting() -> Element {
     let signed_in = signal(false);
 
     render! {
-        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 8.px())) {
-            view(on_tap: move |_| signed_in.set(!signed_in.get())) {
-                text(value: "toggle")
+        View(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 8.px())) {
+            View(on_tap: move |_| signed_in.set(!signed_in.get())) {
+                Text(value: "toggle")
             }
             Show(
                 when: move || signed_in.get(),
-                fallback: move || render! { text(value: "Please sign in") },
+                fallback: move || render! { Text(value: "Please sign in") },
             ) {
-                text(value: "Welcome back!")
+                Text(value: "Welcome back!")
             }
         }
     }
@@ -67,12 +67,12 @@ struct Todo { id: u32, title: String }
 #[component]
 fn todo_list(todos: Signal<Vec<Todo>>) -> Element {
     render! {
-        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 4.px())) {
+        View(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 4.px())) {
             ForEach(
                 each: move || todos.get(),
                 key: |todo: &Todo| todo.id,
                 children: |todo: Todo| render! {
-                    text(value: todo.title)
+                    Text(value: todo.title)
                 },
             )
         }
@@ -105,7 +105,7 @@ and the per-item layout metadata travel together through a `meta`
 prop:
 
 ```rust
-list(
+List(
     each: move || posts.get(),
     meta: |p: &Post| ItemMeta::key(p.id.clone())
         .reuse_identifier("post")
@@ -133,16 +133,16 @@ struct Todo { id: u32, title: String }
 #[component]
 fn todos(todos: Signal<Vec<Todo>>) -> Element {
     render! {
-        view(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 4.px())) {
+        View(style: css!(display: Display::Flex, flex_direction: FlexDirection::Column, gap: 4.px())) {
             Show(
                 when: move || todos.get().is_empty(),
             ) {
-                text(value: "Nothing to do yet")
+                Text(value: "Nothing to do yet")
             }
             ForEach(
                 each: move || todos.get(),
                 key: |t: &Todo| t.id,
-                children: |t: Todo| render! { text(value: t.title) },
+                children: |t: Todo| render! { Text(value: t.title) },
             )
         }
     }

@@ -1,6 +1,6 @@
 ---
 title: Using First-party Modules
-description: Add images, icons, SVG, video, audio, safe-area, and storage.
+description: Add optional UI, media, device, and storage capabilities.
 order: 2
 ---
 
@@ -8,8 +8,9 @@ order: 2
 
 Whisker keeps the core small. Native widgets and platform services ship
 as separate crates you add to `Cargo.toml` on demand — each a thin,
-typed Rust wrapper over a per-platform native module that you consume
-the same way from app code.
+typed Rust wrapper over a Host module that you consume the same way from app
+code. Check the module's Rustdoc for its current platform coverage; not every
+device API has a meaningful implementation on every Host.
 
 This guide is a set of short recipes: for each crate, what to add to
 `Cargo.toml` and a minimal example. For the full prop and method
@@ -27,7 +28,7 @@ usual way to depend on them:
 
 ```toml
 [dependencies]
-whisker-image = "0.2"
+whisker-image = "0.12"
 ```
 
 ## Images — `whisker-image`
@@ -38,7 +39,7 @@ how the image fits its box.
 
 ```toml
 [dependencies]
-whisker-image = "0.2"
+whisker-image = "0.12"
 ```
 
 ```rust
@@ -48,7 +49,7 @@ render! {
     Image(
         src: "https://example.com/cover.jpg",
         mode: ImageMode::AspectFill,
-        style: "width: 240px; height: 240px; border_radius: 8px;",
+        style: css!(width: px(240), height: px(240), border_radius: px(8)),
     )
 }
 ```
@@ -66,7 +67,7 @@ icons are stripped from your binary by the linker.
 
 ```toml
 [dependencies]
-whisker-icons = "0.2"
+whisker-icons = "0.12"
 ```
 
 ```rust
@@ -91,7 +92,7 @@ display-list byte stream in Rust and streams it to a native replayer.
 
 ```toml
 [dependencies]
-whisker-svg = "0.2"
+whisker-svg = "0.12"
 ```
 
 ```rust
@@ -104,7 +105,7 @@ render! {
                   stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>"#,
         color: "#1d9bf0",
-        style: "width: 24px; height: 24px;",
+        style: css!(width: px(24), height: px(24)),
     )
 }
 ```
@@ -119,11 +120,11 @@ width and height must be set via `style` (or flex).
 `Video` is a native playback element (AVPlayer / Media3 ExoPlayer)
 with imperative controls. You drive play/pause/seek through a
 `VideoHandle`, bound to the element on mount via the
-[`ref:`](/docs/refs) pattern.
+[`element_ref:`](/docs/refs) pattern.
 
 ```toml
 [dependencies]
-whisker-video = "0.2"
+whisker-video = "0.12"
 ```
 
 ```rust
@@ -132,23 +133,23 @@ use whisker_video::{Video, VideoHandle};
 let video = VideoHandle::new();
 
 render! {
-    view(style: "flex_direction: column;") {
+    View(style: css!(flex_direction: FlexDirection::Column)) {
         Video(
-            ref: video.r(),
+            element_ref: video.r(),
             src: "https://example.com/clip.mp4",
-            style: "width: 100%; height: 240px;",
+            style: css!(width: percent(100), height: px(240)),
         )
-        view(style: "flex_direction: row;") {
-            text(value: "play",  on_tap: move |_| video.play())
-            text(value: "pause", on_tap: move |_| video.pause())
-            text(value: "+10s",  on_tap: move |_| video.seek(10.0))
+        View(style: css!(flex_direction: FlexDirection::Row)) {
+            Text(value: "play",  on_tap: move |_| video.play())
+            Text(value: "pause", on_tap: move |_| video.pause())
+            Text(value: "+10s",  on_tap: move |_| video.seek(10.0))
         }
     }
 }
 ```
 
 Create the handle with `VideoHandle::new()`, pass `video.r()` to the
-element's `ref:` prop, then call `play()`, `pause()`, or
+element's `element_ref:` prop, then call `play()`, `pause()`, or
 `seek(seconds)` from any handler. `VideoHandle` is `Copy`, so each
 `move ||` closure captures its own copy — no `clone()` needed.
 
@@ -160,7 +161,7 @@ is no element to mount.
 
 ```toml
 [dependencies]
-whisker-audio = "0.2"
+whisker-audio = "0.12"
 ```
 
 ```rust
@@ -170,17 +171,17 @@ let player = Player::new("https://example.com/clip.mp3");
 let status = player.status();
 
 render! {
-    view(style: "flex_direction: column; padding: 16px;") {
-        text(value: computed(move || format!(
+    View(style: css!(flex_direction: FlexDirection::Column, padding: px(16))) {
+        Text(value: computed(move || format!(
             "{:.1}s / {:.1}s",
             status.get().position,
             status.get().duration,
         )))
-        view(on_tap: {
+        View(on_tap: {
             let p = player.clone();
             move |_| p.play()
         }) {
-            text(value: "play")
+            Text(value: "play")
         }
     }
 }
@@ -232,7 +233,7 @@ layout around the unsafe edges.
 
 ```toml
 [dependencies]
-whisker-safe-area = "0.2"
+whisker-safe-area = "0.12"
 ```
 
 ```rust
@@ -249,7 +250,7 @@ let outer_style = move || {
 };
 
 render! {
-    view(style: outer_style()) {
+    View(style: outer_style()) {
         // your content
     }
 }
@@ -270,7 +271,7 @@ across devices.
 
 ```toml
 [dependencies]
-whisker-local-store = "0.2"
+whisker-local-store = "0.12"
 ```
 
 ```rust
@@ -295,5 +296,5 @@ reactive runtime runs — component bodies, event handlers, or effects.
   prop and method surface of every crate above.
 - [Configuration](/docs/configuration-api) — registering plugins in
   `whisker.rs`.
-- [Imperative & Refs](/docs/refs) — the `ref:` pattern that binds
+- [Imperative Handles](/docs/refs) — the `element_ref:` pattern that binds
   handles like `VideoHandle`.

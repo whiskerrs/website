@@ -23,11 +23,11 @@ import { SiteHeader } from "@/components/site-header";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Whisker - Native mobile apps in Rust" },
+      { title: "Whisker - Cross-platform apps in Rust" },
       {
         name: "description",
         content:
-          "Whisker is a Rust-first framework for building native Android and iOS apps with ergonomic UI, Lynx-powered CSS, hot reload, and native modules.",
+          "Whisker is a Rust-first framework for Android, iOS, Web, and desktop apps with retained rendering, typed styling, hot reload, and native modules.",
       },
     ],
   }),
@@ -49,10 +49,10 @@ const codeLines = [
   '    let label = computed(move || format!("Count: {}", count.get()));',
   "",
   "    render! {",
-  "        page(style: css!(display: flex, gap: 12.px())) {",
-  "            text(value: label)",
-  "            view(on_tap: move || count.update(|n| *n += 1)) {",
-  '                text(value: "+1")',
+  "        View(style: css!(display: Display::Flex, gap: px(12))) {",
+  "            Text(value: label)",
+  "            View(on_tap: move |_| count.update(|n| *n += 1)) {",
+  '                Text(value: "+1")',
   "            }",
   "        }",
   "    }",
@@ -82,7 +82,7 @@ const rustAdvantages: Feature[] = [
   },
 ];
 
-const platformItems = ["Android", "iOS", "Web planned", "Desktop planned"];
+const platformItems = ["Android", "iOS", "Web", "Desktop"];
 
 const moduleItems = [
   "audio playback",
@@ -121,16 +121,16 @@ function Hero() {
           <div className="min-w-0 max-w-2xl">
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-sm font-medium text-cyan-100">
               <Smartphone className="size-4" aria-hidden="true" />
-              Rust-first mobile UI framework · pre-alpha
+              Rust-first cross-platform UI · pre-alpha
             </div>
 
             <h1 className="max-w-[760px] text-5xl font-semibold leading-[0.96] tracking-normal text-white sm:text-7xl">
-              Build native mobile apps in Rust.
+              Build cross-platform apps in Rust.
             </h1>
 
             <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
-              Whisker brings Rust to Android and iOS app development: ergonomic UI, native widgets,
-              Lynx-powered CSS, sub-second hot reload, and an extension model built for native APIs.
+              Whisker runs one retained Rust UI core across Android, iOS, Web, and desktop, with
+              typed styling, hot reload, and an extension model for native APIs.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -354,8 +354,8 @@ function ProofStrip() {
       <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           "Rust app code",
-          "Native iOS and Android",
-          "Lynx CSS surface",
+          "Android, iOS, Web, and desktop",
+          "Taffy layout + Host painting",
           "< 1s hot reload target",
         ].map((item) => (
           <div key={item} className="flex items-center gap-3 text-sm text-slate-300">
@@ -378,7 +378,7 @@ function RustSection() {
               Rust changes the baseline
             </p>
             <h2 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-6xl">
-              Mobile apps should not need a scripting runtime to feel productive.
+              Cross-platform apps should not need a scripting runtime to feel productive.
             </h2>
             <p className="mt-6 text-lg leading-8 text-slate-300">
               Whisker makes Rust the application language, not a native escape hatch. Write the UI,
@@ -448,7 +448,7 @@ function DslSection() {
               { icon: Code2, text: "JSX-like Rust view syntax" },
               { icon: ShieldCheck, text: "Safe state and prop flow" },
               { icon: Palette, text: "CSS grid, gradients, and layout" },
-              { icon: Layers, text: "Native widgets through Lynx" },
+              { icon: Layers, text: "Built-in and custom Host elements" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3 rounded-md bg-white p-4">
                 <Icon className="size-5 text-orange-700" aria-hidden="true" />
@@ -471,13 +471,16 @@ function DslSection() {
             </div>
             <pre className="overflow-x-auto text-[13px] leading-6 text-slate-300">
               <code>{`render! {
-    page(style: css!(
-        display: grid,
-        grid_template_columns: "1fr 1fr",
-        background: linear_gradient(...)
+    View(style: css!(
+        display: Display::Grid,
+        grid_template_columns: GridTemplate::tracks([
+            GridTrack::fraction(1.0),
+            GridTrack::fraction(1.0),
+        ]),
+        background_color: Color::hex(0x111827)
     )) {
-        text(value: title)
-        Image(src: cover, mode: AspectFill)
+        Text(value: title)
+        View { Text(value: "Typed layout") }
     }
 }`}</code>
             </pre>
@@ -495,7 +498,7 @@ function DslSection() {
             </div>
             <div className="css-sample-gradient rounded-md p-5 text-white">
               <p className="text-sm font-semibold">Gradients</p>
-              <p className="mt-12 text-2xl font-bold">Lynx-powered visuals</p>
+              <p className="mt-12 text-2xl font-bold">Host-rendered visuals</p>
             </div>
           </div>
         </div>
@@ -621,7 +624,7 @@ function FinalCta() {
             The next serious cross-platform stack should be written in Rust.
           </h2>
           <p className="mt-6 text-lg leading-8 text-slate-300">
-            Whisker is early, but the direction is sharp: mobile UI that keeps the developer
+            Whisker is early, but the direction is sharp: cross-platform UI that keeps the developer
             experience of a modern framework and the engineering fundamentals of Rust.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -635,9 +638,7 @@ function FinalCta() {
               Follow development
             </a>
             <a
-              href="https://github.com/whiskerrs/whisker/tree/main/docs"
-              target="_blank"
-              rel="noreferrer"
+              href="/docs/introduction"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/12 bg-white/[0.04] px-5 text-sm font-semibold text-white transition hover:border-white/25 hover:bg-white/[0.08]"
             >
               Read design docs

@@ -6,19 +6,28 @@ order: 6
 
 # Production Builds
 
-`whisker run` is a development tool: it builds debug binaries, installs
-them, and keeps a hot-reload loop alive. It does **not** wrap release
-builds. To ship, you drive the platform's own toolchain —
-`xcodebuild` and Gradle — directly against the generated native
-projects, exactly the way CI does.
+`whisker run` is the development loop. `whisker build` produces release
+artifacts and drives the same native or Web toolchain used by the generated
+project:
 
-Both platforms scaffold a real native project under `gen/`:
+```sh
+whisker build appbundle
+whisker build apk
+whisker build ipa
+whisker build macos
+whisker build web
+```
+
+Every target shares a generated project under `gen/`:
 
 - `gen/android/` — a standard Gradle project (`./gradlew`, `app/`, …).
 - `gen/ios/` — a standard Xcode project (`<Scheme>.xcodeproj`).
+- `gen/macos/` — a Cargo-based macOS application project.
+- `gen/web/` — the browser entry, loader, and static assets.
 
-These are regenerated whenever you run `whisker run`. Keep that in mind
-when you reach the signing section below — it's the one sharp edge.
+These directories are CNG output shared by `run` and `build`. Do not hand-edit
+them; express persistent configuration in `whisker.rs`, module metadata, or a
+plugin.
 
 ## Android release
 
@@ -65,17 +74,15 @@ android {
 }
 ```
 
-Because `gen/android/` is regenerated on every `whisker run`, treat the
-in-tree `build.gradle.kts` as disposable for signing purposes. The
-robust options are:
+Because `gen/android/` is generated output, treat its `build.gradle.kts` as
+disposable. Persistent signing customization belongs in the credential flow or
+a plugin:
 
-- Keep a release build off a copy of `gen/android/` that you don't
-  regenerate (e.g. a CI checkout where you only `whisker run` for dev).
 - Inject signing from a [plugin](/docs/plugin-api) so it's reapplied
   every time the project is generated.
 
-> First-class signing configuration does not live in `whisker.rs` yet.
-> Until it does, manage it at the Gradle level as above.
+For the supported credential workflow, run `whisker build appbundle --help` or
+`whisker credential --help`.
 
 ## iOS release
 
@@ -131,13 +138,11 @@ Manage signing one of these ways instead:
 
 - Pass `DEVELOPMENT_TEAM` / `CODE_SIGN_STYLE` on the `xcodebuild`
   command line (as above), so nothing needs to persist in the project.
-- Build releases from a non-regenerated copy of `gen/ios/` whose
-  project settings you own.
 - Apply signing from a [plugin](/docs/plugin-api) that re-runs on every
   generation.
 
-As on Android, first-class signing config isn't in `whisker.rs` yet —
-drive it at the `xcodebuild` / Xcode level for now.
+`whisker build ipa --help` documents the supported export and credential
+options; Xcode remains available for custom archive workflows.
 
 ## The iOS SwiftPM runtime dependency
 
@@ -147,27 +152,24 @@ but it's worth understanding what your iOS app actually depends on.
 The generated iOS project doesn't vendor Whisker's Swift runtime. It
 resolves `WhiskerRuntime` (and the companion Swift targets) from the
 remote **`whisker` SwiftPM package**, pinned to a git tag. The version
-is defined once in Rust:
+is defined once in the CNG implementation:
 
 ```rust
-// crates/whisker-build/src/ios.rs
+// crates/whisker-cng/src/ios_modules.rs
 pub const WHISKER_IOS_SPM_URL: &str = "https://github.com/whiskerrs/whisker.git";
-pub const WHISKER_IOS_SPM_VERSION: &str = "0.1.2";
+pub const WHISKER_IOS_SPM_VERSION: &str = "...";
 ```
 
 That constant drives the `XCRemoteSwiftPackageReference` the generator
-writes into your project. It **must stay in lockstep** with the
-published `vX.Y.Z` git tag — every module's `Package.swift` hardcodes
-the same `exact:` version, so all of them, the constant, and the tag
-move together. The pieces that have to align per release:
-
-| crates.io | iOS SwiftPM tag | Android SDK (Maven) | Gradle plugin | Lynx fork          |
-| --------- | --------------- | ------------------- | ------------- | ------------------ |
-| `0.7.0`   | `v0.1.2`        | `0.1.5`             | `0.4.1`       | `3.8.0-whisker.12` |
+writes into your project. It must stay compatible with the published
+Swift package tag and with module `Package.swift` pins. The release process
+also keeps the Rust crates, Android SDK, and Gradle plugin compatible. Consult
+the release notes for exact versions instead of copying a static matrix from
+this guide.
 
 For most app authors this is invisible: you install a `whisker-cli`
 version, and the iOS package version it pins comes along for the ride.
-You only deal with the matrix when you're the one bumping Whisker.
+You only deal with those pins when you're the one releasing Whisker.
 
 ## App Store / Play submission
 

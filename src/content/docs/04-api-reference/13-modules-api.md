@@ -1,16 +1,17 @@
 ---
 title: First-party Modules
-description: The whisker-image / svg / icons / video / audio / safe-area / local-store crates.
+description: The optional UI, media, storage, device, and project modules maintained with Whisker.
 order: 13
 ---
 
 # API Reference: First-party Modules
 
 Whisker keeps the core small. Native widgets and platform services
-ship as separate crates you add to `Cargo.toml` on demand. Each one is
-a thin, typed Rust wrapper over a per-platform native module — backed
-by iOS and Android implementations, but consumed the same way from your
-app code.
+ship as separate crates you add to `Cargo.toml` on demand. Each exposes one
+typed Rust API and supplies Host implementations for the platforms it supports.
+Coverage is module-specific; a module that supports only mobile reports an
+explicit registration error on an unsupported Host instead of silently
+degrading.
 
 All examples assume the prelude is in scope:
 
@@ -23,45 +24,57 @@ usual way to depend on them from an example app:
 
 ```toml
 [dependencies]
-whisker-image = "0.2"
+whisker-image = "0.12"
 ```
 
 The crates pair with the rest of the API:
-[`#[module_component]`](/docs/macros) generates the native view
-components, [`render!`](/docs/macros) mounts them,
+[`#[module_element]`](/docs/macros) generates Host element builders,
+[`render!`](/docs/macros) mounts them,
 [`ReadSignal`](/docs/reactivity-api) carries reactive state, and the
-[`ref:`](/docs/refs) pattern binds imperative handles.
+[`element_ref:`](/docs/refs) pattern binds imperative handles.
 
-| Crate                 | Provides                                | Native backing                       |
-| --------------------- | --------------------------------------- | ------------------------------------ |
-| `whisker-image`       | `Image` component                       | Kingfisher (iOS) / Coil (Android)    |
-| `whisker-svg`         | `Svg` component + display-list compiler | Custom replayer                      |
-| `whisker-icons`       | `Icon` component + `lucide` constants   | via `whisker-svg`                    |
-| `whisker-video`       | `Video` component + `VideoHandle`       | AVPlayer / Media3 ExoPlayer          |
-| `whisker-audio`       | `Player` handle + `WhiskerAudio` plugin | AVPlayer / Media3 ExoPlayer          |
-| `whisker-safe-area`   | `safe_area_insets()` accessor           | `UIView` insets / `WindowInsets`     |
-| `whisker-local-store` | `WhiskerLocalStore` key-value API       | `UserDefaults` / `SharedPreferences` |
+| Crate                   | Provides                                                     |
+| ----------------------- | ------------------------------------------------------------ |
+| `whisker-asset`         | Compile-time checked asset references and bundling plugin    |
+| `whisker-image`         | Network `Image` element and prefetching                      |
+| `whisker-svg`           | SVG element, compiler, and Android/iOS/Web/Desktop renderers |
+| `whisker-icons`         | Lucide `Icon` component built on `whisker-svg`               |
+| `whisker-input`         | Native text input with controlled value and typed handle     |
+| `whisker-toggle`        | Reference custom Host element implementation                 |
+| `whisker-video`         | Video element and imperative playback handle                 |
+| `whisker-audio`         | Audio player, reactive status, and configuration plugin      |
+| `whisker-haptics`       | Impact, selection, and notification feedback                 |
+| `whisker-keyboard`      | Reactive keyboard height and global dismiss                  |
+| `whisker-safe-area`     | Reactive safe-area insets                                    |
+| `whisker-status-bar`    | Status-bar visibility and content style                      |
+| `whisker-paths`         | Cache, documents, support, and temporary directories         |
+| `whisker-local-store`   | Non-secret persistent key/value storage                      |
+| `whisker-secure-store`  | Keychain/Keystore-backed secret storage                      |
+| `whisker-web-browser`   | In-app browser and authentication sessions                   |
+| `whisker-webview`       | Embedded native Web view and message bridge                  |
+| `whisker-splash-screen` | Generated launch/splash-screen plugin                        |
+| `whisker-router`        | Route tree, navigation state, layouts, and transitions       |
 
 ## `whisker-image`
 
-Networked image component. Loads and caches a remote bitmap directly
-from the native module, bypassing Lynx's unimplemented `<image>` stack.
+Networked image element. Loads and caches a remote bitmap through the
+platform-specific Host implementation.
 
 ```toml
 [dependencies]
-whisker-image = "0.2"
+whisker-image = "0.12"
 ```
 
 ### `Image`
 
 A pure component (state captured by props, no handle). Declared via
-`#[whisker::module_component("Image")]`.
+`#[whisker::module_element(...)]`.
 
 | Prop    | Type                | Notes                                                                 |
 | ------- | ------------------- | --------------------------------------------------------------------- |
 | `src`   | `Signal<String>`    | Image URL (HTTPS recommended).                                        |
 | `mode`  | `Signal<ImageMode>` | Content fit. Defaults to `ImageMode::AspectFill`.                     |
-| `style` | `Signal<String>`    | Standard inline-style string. Width/height must be set (or via flex). |
+| `style` | `Style`             | Structured style. Width/height may be explicit or supplied by layout. |
 
 All props are reactive: swapping `src` re-fetches and swapping `mode`
 re-lays-out without a remount.
@@ -87,7 +100,7 @@ render! {
     Image(
         src: "https://example.com/cover.jpg",
         mode: ImageMode::AspectFill,
-        style: "width: 240px; height: 240px; border-radius: 8px;",
+        style: css!(width: px(240), height: px(240), border_radius: px(8)),
     )
 }
 ```
@@ -99,19 +112,19 @@ Rust, then streams it to a native replayer.
 
 ```toml
 [dependencies]
-whisker-svg = "0.2"
+whisker-svg = "0.12"
 ```
 
 ### `Svg`
 
 A pure component (declared with `#[component]`, wrapping an internal
-`module_component`).
+module element).
 
 | Prop      | Type             | Notes                                                                                                                                    |
 | --------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `content` | `Signal<String>` | SVG XML source. Must contain a top-level `<svg>` with a `viewBox`. Empty string renders nothing. A content swap recompiles + re-renders. |
 | `color`   | `Signal<String>` | CSS color applied to any `fill="currentColor"` / `stroke="currentColor"` paint.                                                          |
-| `style`   | `Signal<String>` | Standard inline-style string. Width/height MUST be set here (or via flex).                                                               |
+| `style`   | `Style`          | Structured style. Width/height may be explicit or supplied by layout.                                                                    |
 
 ```rust
 use whisker_svg::Svg;
@@ -123,7 +136,7 @@ render! {
                   stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>"#,
         color: "#1d9bf0",
-        style: "width: 24px; height: 24px;",
+        style: css!(width: px(24), height: px(24)),
     )
 }
 ```
@@ -151,7 +164,7 @@ binary (tree shaking).
 
 ```toml
 [dependencies]
-whisker-icons = "0.2"
+whisker-icons = "0.12"
 ```
 
 ### `Icon`
@@ -183,22 +196,22 @@ render! {
 
 Video playback element with imperative controls. A native UI element
 (`Video`) plus a typed handle (`VideoHandle`) bound on mount via
-[`ref:`](/docs/refs).
+[`element_ref:`](/docs/refs).
 
 ```toml
 [dependencies]
-whisker-video = "0.2"
+whisker-video = "0.12"
 ```
 
 ### `Video`
 
-Declared via `#[whisker::module_component("Video")]`.
+Declared via `#[whisker::module_element(...)]`.
 
-| Prop    | Type             | Notes                                               |
-| ------- | ---------------- | --------------------------------------------------- |
-| `src`   | `Signal<String>` | Media URL.                                          |
-| `style` | `Signal<String>` | Standard layout-styling string.                     |
-| `ref`   | `ElementRef`     | Pass `handle.r()` to bind a `VideoHandle` on mount. |
+| Prop          | Type             | Notes                                               |
+| ------------- | ---------------- | --------------------------------------------------- |
+| `src`         | `Signal<String>` | Media URL.                                          |
+| `style`       | `Style`          | Structured layout and paint.                        |
+| `element_ref` | `ElementRef`     | Pass `handle.r()` to bind a `VideoHandle` on mount. |
 
 ### `VideoHandle`
 
@@ -208,7 +221,7 @@ dispatches a fire-and-forget call to the native player.
 | Method  | Signature                          | Effect                                                    |
 | ------- | ---------------------------------- | --------------------------------------------------------- |
 | `new`   | `fn() -> VideoHandle`              | Allocate a fresh, unbound handle.                         |
-| `r`     | `fn(&self) -> ElementRef`          | The `ElementRef` to pass to `Video(ref: …)`.              |
+| `r`     | `fn(&self) -> ElementRef`          | The `ElementRef` to pass to `Video(element_ref: …)`.      |
 | `play`  | `fn(&self)`                        | Start or resume playback from the current position.       |
 | `pause` | `fn(&self)`                        | Pause at the current position.                            |
 | `seek`  | `fn(&self, position_seconds: f64)` | Seek to an absolute position (seconds; clamped natively). |
@@ -222,13 +235,13 @@ use whisker_video::{Video, VideoHandle};
 let video = VideoHandle::new();
 
 render! {
-    view(style: "flex-direction: column;") {
-        Video(ref: video.r(), src: "https://example.com/clip.mp4",
-              style: "width: 100%; height: 240px;")
-        view(style: "flex-direction: row;") {
-            text(value: "play",  on_tap: move |_| video.play())
-            text(value: "pause", on_tap: move |_| video.pause())
-            text(value: "+10s",  on_tap: move |_| video.seek(10.0))
+    View(style: css!(flex_direction: FlexDirection::Column)) {
+        Video(element_ref: video.r(), src: "https://example.com/clip.mp4",
+              style: css!(width: percent(100), height: px(240)))
+        View(style: css!(flex_direction: FlexDirection::Row)) {
+            Text(value: "play",  on_tap: move |_| video.play())
+            Text(value: "pause", on_tap: move |_| video.pause())
+            Text(value: "+10s",  on_tap: move |_| video.seek(10.0))
         }
     }
 }
@@ -243,7 +256,7 @@ and background-mode entries.
 
 ```toml
 [dependencies]
-whisker-audio = "0.2"
+whisker-audio = "0.12"
 ```
 
 ### `Player`
@@ -283,16 +296,16 @@ let player = Player::new("https://example.com/clip.mp3");
 let status = player.status();
 
 render! {
-    view(style: "flex-direction: column; padding: 16px;") {
-        text(value: computed(move || format!(
+    View(style: css!(flex_direction: FlexDirection::Column, padding: px(16))) {
+        Text(value: computed(move || format!(
             "{:.1}s / {:.1}s",
             status.get().position,
             status.get().duration,
         )))
-        view(on_tap: {
+        View(on_tap: {
             let p = player.clone();
             move |_| p.play()
-        }) { text(value: "play") }
+        }) { Text(value: "play") }
     }
 }
 ```
@@ -327,7 +340,7 @@ Island, status bar, home indicator, navigation bar).
 
 ```toml
 [dependencies]
-whisker-safe-area = "0.2"
+whisker-safe-area = "0.12"
 ```
 
 ### `safe_area_insets()`
@@ -367,7 +380,7 @@ let outer_style = move || {
 };
 
 render! {
-    view(style: outer_style()) {
+    View(style: outer_style()) {
         // ...
     }
 }
@@ -383,7 +396,7 @@ blobs.
 
 ```toml
 [dependencies]
-whisker-local-store = "0.2"
+whisker-local-store = "0.12"
 ```
 
 ### `WhiskerLocalStore`

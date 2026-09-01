@@ -13,7 +13,7 @@ them and notify exactly those readers when they change.
 
 This is the single idea to internalize:
 
-> **Reading a signal inside a view (or an effect/computed) subscribes
+> **Reading a signal inside a View(or an effect/computed) subscribes
 > that one spot to the signal. Writing the signal re-runs only the spots
 > that read it** — a text node, a style attribute, a derived value — and
 > nothing else.
@@ -69,13 +69,13 @@ use whisker::prelude::*;
 let count = signal(0);
 
 render! {
-    view {
+    View {
         // `count.get()` reads the signal here, so this text node
         // subscribes. When count changes, ONLY this text updates.
-        text { "Count: " {count.get()} }
+        Text(value: computed(move || format!("Count: {}", count.get())))
 
-        view(on_tap: move |_| count.update(|n| *n += 1)) {
-            text(value: "+1")
+        View(on_tap: move |_| count.update(|n| *n += 1)) {
+            Text(value: "+1")
         }
     }
 }
@@ -98,7 +98,7 @@ let count = signal(0);
 let label = computed(move || format!("You clicked {} times", count.get()));
 
 render! {
-    text(value: label)   // updates whenever count changes
+    Text(value: label)   // updates whenever count changes
 }
 ```
 
@@ -128,9 +128,9 @@ use whisker::prelude::*;
 let name = signal("world".to_string());
 
 render! {
-    text(value: name)        // reactive — re-renders when `name` changes
-    text(value: name.get())  // snapshot — captures the value once
-    text(value: "literal")   // static — never changes
+    Text(value: name)        // reactive — re-renders when `name` changes
+    Text(value: name.get())  // snapshot — captures the value once
+    Text(value: "literal")   // static — never changes
 }
 ```
 
@@ -156,10 +156,12 @@ fn counter() -> Element {
     });
 
     render! {
-        view {
-            text { "Count: " {count.get()} " (" {parity.get()} ")" }
-            view(on_tap: move |_| count.update(|n| *n += 1)) {
-                text(value: "Increment")
+        View {
+            Text(value: computed(move || {
+                format!("Count: {} ({})", count.get(), parity.get())
+            }))
+            View(on_tap: move |_| count.update(|n| *n += 1)) {
+                Text(value: "Increment")
             }
         }
     }
@@ -202,7 +204,7 @@ use whisker::prelude::*;
 fn parent() -> Element {
     let count = signal(0);
     render! {
-        view {
+        View {
             // `Display` only reads → hand it a read-only handle.
             Display(count: count.read_only())
             // `Controls` both reads and writes → hand it the RwSignal.

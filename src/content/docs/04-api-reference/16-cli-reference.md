@@ -1,144 +1,86 @@
 ---
 title: CLI Reference
-description: The whisker command and its subcommands.
+description: Run, build, scaffold, inspect, and format Whisker projects.
 order: 16
 ---
 
 # API Reference: CLI Reference
 
-The `whisker` command scaffolds, inspects, and dev-loops Whisker apps.
-
-## Installation
+Install the CLI from Cargo:
 
 ```sh
 cargo install whisker-cli
 ```
 
-The same package also installs a `cargo-whisker` shim, so every command
-below can be invoked either directly (`whisker run ios`) or through Cargo
-(`cargo whisker run ios`).
+The package installs both `whisker` and the `cargo whisker` shim. The examples
+below use the direct form.
 
-For Android builds, also install the build helper:
+## Global options
 
-```sh
-cargo install whisker-build
-```
+| Option            | Purpose                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| `-v`, `--verbose` | Show raw Cargo, native toolchain, device, and internal logs  |
+| `--no-tui`        | Use deterministic line output instead of the interactive TUI |
+| `--help`          | Show the exact options supported by the installed version    |
 
-## `whisker [--verbose] <subcommand>`
+The TUI is disabled automatically when output is piped or runs under CI.
 
-| Option            | Notes                                                                                                                                                                                                             |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-v`, `--verbose` | Show every step's full underlying output (raw `cargo` / `xcodebuild` / `simctl` streams + internal debug logs). Global; applies to any subcommand. Equivalent to `WHISKER_VERBOSE=1`, which subprocesses inherit. |
-
-The five subcommands are `doctor`, `run`, `new`, `new-module`, and `fmt`.
-
-## `whisker doctor`
-
-Inspect the local toolchain — Rust targets, Android NDK/SDK/JDK, and
-Xcode.
-
-| Option         | Notes                     |
-| -------------- | ------------------------- |
-| `--no-ios`     | Skip the iOS section.     |
-| `--no-android` | Skip the Android section. |
-
-## `whisker run <target>`
-
-Build, install, launch, and dev-loop a Whisker app — file watch + rebuild
-
-- subsecond hot patches pushed over WebSocket. Run it from inside the app
-  crate.
-
-| Argument / Option         | Default               | Notes                                                                                                                                                                               |
-| ------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<target>` (positional)   | required              | `ios` or `android`. **`ios` targets the iOS Simulator only — physical iOS devices are not supported** (see the note below). `android` works on both emulators and physical devices. |
-| `--manifest-path <PATH>`  | walk up from cwd      | Path to the app crate's `Cargo.toml`.                                                                                                                                               |
-| `--bind <ADDR>`           | `127.0.0.1:9876`      | WebSocket bind address the device dials (via `WHISKER_DEV_ADDR`) to receive patches.                                                                                                |
-| `--no-hot-patch`          | off                   | Opt out of Tier 1 subsecond hot-patching; fall back to Tier 2 cold rebuilds.                                                                                                        |
-| `--workspace-root <PATH>` | walk up from manifest | Override the workspace root (directory holding the `[workspace]` `Cargo.toml`).                                                                                                     |
-| `--show-native-logs`      | off                   | Stream every line of the device's stdout/stderr, including Lynx C++ engine chatter the curated default suppresses.                                                                  |
-| `--no-tui`                | auto                  | Disable the inline status bar. On by default when stderr is a TTY; auto-off when piping or under CI.                                                                                |
+## `whisker run`
 
 ```sh
+whisker run android
 whisker run ios
-whisker run android --bind 0.0.0.0:9876
+whisker run web
+whisker run desktop
 ```
 
-The positional `target` is required — there is no bare `whisker run`
-form. Pair `--show-native-logs` with `WHISKER_VERBOSE=1` (or `--verbose`)
-for the fullest output.
+`run` syncs `gen/<platform>/`, builds, installs or serves the app, launches the
+Host, watches source files, and applies hot patches when possible.
 
-> **iOS is Simulator-only.** `whisker run ios` builds, installs, launches,
-> and hot-reloads on the **iOS Simulator** only — running on a **physical
-> iOS device is not currently supported**. The run target is fixed to the
-> simulator, the dev-server address is delivered to the app via `simctl`
-> (which only launches simulator processes), and the subsecond hot-patch
-> `dlopen`s a dylib at runtime, which a non-jailbroken device blocks via
-> code signing. `whisker run android` works on emulators **and** physical
-> devices (it bridges the dev-server over `adb reverse`). To run on a real
-> iPhone/iPad, do a normal Xcode build/install — there is no hot-reload on
-> device. Tracking issue: [whiskerrs/whisker#223](https://github.com/whiskerrs/whisker/issues/223).
+| Option                    | Default                  | Purpose                           |
+| ------------------------- | ------------------------ | --------------------------------- |
+| `--manifest-path <PATH>`  | nearest package manifest | Select the app crate              |
+| `--bind <ADDR>`           | `127.0.0.1:9876`         | Dev server/Web address            |
+| `--no-hot-patch`          | off                      | Require explicit full reloads     |
+| `--workspace-root <PATH>` | discovered               | Override the Cargo workspace root |
 
-## `whisker new <name>`
+Interactive keys are shown in the TUI. Common actions are `r` for a hot reload,
+`R` for a full reload, `o` to relaunch/open, and `q` to quit.
 
-Scaffold a new Whisker app — a single-crate workspace with `Cargo.toml`, a
-`#[whisker::main]` `src/lib.rs`, the `whisker.rs`
-[`Config`](/docs/configuration-api) probe, `.gitignore`, and `README.md`.
-The result compiles standalone.
+`desktop` currently launches the macOS Host. The desktop rendering library is
+shared with Windows and Linux, but their launch shells are not yet exposed by
+this target.
 
-| Argument / Option       | Default                   | Notes                                                  |
-| ----------------------- | ------------------------- | ------------------------------------------------------ |
-| `<name>` (positional)   | required                  | Cargo crate name (kebab-case).                         |
-| `--path <PATH>`         | cwd                       | Parent directory; the crate lands at `<path>/<name>/`. |
-| `--bundle-id <ID>`      | `rs.example.<snake_name>` | iOS bundle id / Android `applicationId`.               |
-| `--display-name <NAME>` | title-cased crate name    | Human-readable app display name.                       |
+## `whisker build`
 
 ```sh
-whisker new my-app
-cd my-app
-whisker run ios
+whisker build appbundle
+whisker build apk
+whisker build ipa
+whisker build macos
+whisker build web
 ```
 
-## `whisker new-module <name>`
+The command syncs the same `gen/` project used by `run` and produces a
+distributable artifact. Android and iOS commands integrate with Whisker's
+credential store; macOS produces an `.app`; Web produces a static HTML,
+JavaScript, and WebAssembly bundle. Run `whisker build <kind> --help` for
+signing and output options.
 
-Scaffold a new Whisker module crate — `Cargo.toml` (with the
-`[package.metadata.whisker]` marker), `Package.swift`, `build.gradle.kts`,
-and skeleton Rust / Swift / Kotlin sources.
+Generated Android and iOS projects are ordinary Gradle and Xcode projects.
+After generation, their IDE or native build command can compile the app without
+placing `whisker run` around the build.
 
-| Argument / Option     | Default        | Notes                                                                                                            |
-| --------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `<name>` (positional) | required       | Cargo crate name (kebab-case, conventionally `whisker-` prefixed).                                               |
-| `--path <PATH>`       | cwd            | Parent directory; the crate lands at `<path>/<name>/`.                                                           |
-| `--shape <SHAPE>`     | `view-bearing` | `view-bearing` generates a native-view component; `function-only` generates a function-call-only module (no UI). |
+## Scaffolding and diagnostics
 
-```sh
-whisker new-module whisker-camera
-whisker new-module whisker-secure-store --shape function-only
-```
+| Command                     | Purpose                                                       |
+| --------------------------- | ------------------------------------------------------------- |
+| `whisker new <name>`        | Create an app crate and workspace                             |
+| `whisker new-module <name>` | Create Rust, Swift, Kotlin, Web, and desktop module structure |
+| `whisker doctor`            | Check Rust targets and native SDK/toolchain availability      |
+| `whisker credential ...`    | Create, import, or rotate signing credentials                 |
+| `whisker fmt ...`           | Run rustfmt plus Whisker macro formatting                     |
 
-See [First-party Modules](/docs/modules-api) for examples of the modules
-this command scaffolds, and the module authoring guide for filling in the
-platform code.
-
-## `whisker fmt [FILES…]`
-
-A **rustfmt drop-in**. It formats normal Rust by delegating to the real
-`rustfmt`, and additionally formats the `render!` and `css!` macro bodies —
-including the Rust expressions embedded inside them — that plain rustfmt
-leaves untouched.
-
-| Argument / Option       | Default | Notes                                                                                                                                               |
-| ----------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[FILES…]` (positional) | —       | Format each file in place.                                                                                                                          |
-| `--check`               | off     | Print a unified diff per file and exit non-zero if anything would change; don't write.                                                              |
-| `--stdin`               | off     | Read source from stdin, write the formatted result to stdout. The editor-integration entry point. With `--check`, diff to stderr and exit non-zero. |
-
-```sh
-whisker fmt src/lib.rs
-whisker fmt --check src/**/*.rs
-```
-
-There is no whisker-specific config: `whisker fmt` respects only your
-`rustfmt.toml` (`max_width`, `tab_spaces`, `edition`, …) and applies it to
-the macro bodies as well. See [Formatting](/docs/formatting) for the full
-behavior, the editor format-on-save setup, and known limitations.
+`build-ios`, `build-android`, and `modules` are internal build-system entry
+points. Generated Xcode/Gradle projects call them; application developers
+should not invoke them directly.

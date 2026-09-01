@@ -56,16 +56,15 @@ crash.
 
 ## Native-side logs
 
-When the problem is below your Rust — Lynx layout, the Swift/Kotlin
-host, a native module — you'll want the raw platform logs that the
-default view filters out.
+When the problem is below your application Rust — Host painting, the
+Swift/Kotlin shell, or a native module — enable verbose output or use the
+platform log tools.
 
-Stream them inline by adding `--show-native-logs`, optionally paired
-with verbose mode for the fullest picture:
+Show the underlying build and device streams with verbose mode:
 
 ```sh
-whisker run ios --show-native-logs
-WHISKER_VERBOSE=1 whisker run android --show-native-logs
+whisker --verbose run ios
+WHISKER_VERBOSE=1 whisker run android
 ```
 
 Or go straight to the platform tools in a separate terminal:
@@ -78,8 +77,8 @@ adb logcat
 xcrun simctl spawn booted log stream
 ```
 
-These show everything — Lynx C++ engine chatter, native crashes, system
-messages — which is exactly what you want when the issue isn't in Rust.
+These show Host diagnostics, native crashes, and system messages that are too
+noisy for the default TUI.
 
 ## Environment problems
 
@@ -97,17 +96,12 @@ don't care about.
 
 ## More output
 
-Two knobs turn up the verbosity:
+One global knob turns up the verbosity:
 
-- `--show-native-logs` — stream every line of the device's
-  stdout/stderr, including the Lynx engine chatter the curated default
-  suppresses.
 - `--verbose` / `WHISKER_VERBOSE=1` — show every step's full underlying
   output (raw `cargo` / `xcodebuild` / `simctl` streams and internal
   debug logs). It's global, applies to any subcommand, and subprocesses
   inherit the env var.
-
-Pair them for the most output Whisker can give you.
 
 ## Known gap
 

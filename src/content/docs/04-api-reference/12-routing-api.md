@@ -341,7 +341,7 @@ route's component, `Outlet` renders that route's active child:
 #[component]
 fn tabs_layout() -> Element {
     render! {
-        view(style: css!(flex_grow: 1.0)) {
+        View(style: css!(flex_grow: 1.0)) {
             Outlet {}     // renders the active child
         }
         MyTabBar {}       // persistent chrome

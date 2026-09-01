@@ -35,15 +35,15 @@ fn toggle() -> Element {
     let open = signal(false);
 
     render! {
-        view {
-            view(on_tap: move |_| open.set(!open.get())) {
-                text(value: "toggle")
+        View {
+            View(on_tap: move |_| open.set(!open.get())) {
+                Text(value: "toggle")
             }
             Show(
                 when: move || open.get(),
-                fallback: move || render! { text(value: "(hidden)") },
+                fallback: move || render! { Text(value: "(hidden)") },
             ) {
-                text(value: "now you see me")
+                Text(value: "now you see me")
             }
         }
     }
@@ -74,12 +74,12 @@ against the previous frame:
 #[component]
 fn todo_list(todos: Signal<Vec<Todo>>) -> Element {
     render! {
-        view {
+        View {
             ForEach(
                 each: move || todos.get(),
                 key: |todo: &Todo| todo.id,
                 children: |todo: Todo| render! {
-                    text(value: todo.title)
+                    Text(value: todo.title)
                 },
             )
         }

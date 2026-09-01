@@ -1,151 +1,58 @@
 ---
 title: Modules & Plugins
-description: How Whisker extends to native capabilities.
+description: Extend runtime capabilities and generated Host projects.
 order: 10
 ---
 
 # Modules & Plugins
 
-The Whisker core stays small on purpose. Anything that needs a real
-native widget, a platform service, or a tweak to the generated native
-project comes from one of two extension mechanisms: a **module** or a
-**plugin**. They sound similar but solve different problems — a module
-adds _code_ (a capability your app calls or renders), while a plugin
-adds _native project configuration_ (Info.plist keys, permissions,
-Gradle deps).
+Whisker keeps the rendering kernel small and has two extension points with
+different responsibilities.
 
-This page explains the mental model. When you're ready to build one,
-see [Authoring a Module](/docs/authoring-a-module) and
-[Authoring a Plugin](/docs/authoring-a-plugin).
+## Modules extend the running application
 
-## Whisker modules
+A **Whisker module** contributes either or both of:
 
-A **Whisker module** is a single cargo crate that ships Rust, Swift, and
-Kotlin _together_ to expose one native capability. From your app you add
-it to `Cargo.toml` like any other dependency, `use` its types, and the
-build wires the native side in for you.
+- a Host element, such as a text input, map, video surface, or native toggle;
+- a function-shaped Host service, such as storage, haptics, or system status.
 
-Modules come in two flavours:
+The Rust crate owns the typed public API and an element schema. Android, iOS,
+Web, and desktop each own an independently compiled Host implementation. The
+sides match stable module, element, property, event, and command names at
+runtime. This loose baseline means native IDE builds do not depend on generating
+Swift or Kotlin contracts from Rust source.
 
-- **A native view** — a component you drop into `render!` as a tag. For
-  example, [`whisker-image`](/docs/modules-api)'s `Image` is a real
-  native image view (Kingfisher on iOS, Coil on Android) that takes part
-  in layout like any other element:
+Every value crossing a module boundary is `WhiskerValue`. Built-in `View` and
+`Text` use the same element registry and frame protocol as third-party Host
+elements; the core does not give custom elements a second-class path.
 
-  ```rust
-  use whisker_image::{Image, ImageMode};
+## Plugins extend project generation
 
-  render! {
-      Image(src: "https://example.com/cover.jpg",
-            mode: ImageMode::AspectFill,
-            style: "width: 240px; height: 240px;")
-  }
-  ```
+A **plugin** changes the CNG project model before `gen/` is written. It can add
+permissions, dependencies, manifest/plist values, files, or native build
+settings. Plugins do not run inside the application and should not be used for
+runtime calls.
 
-- **A function-shaped module** — a native capability with no view of its
-  own, called from Rust. Under the hood these dispatch through
-  [`module!` / `PlatformModule`](/docs/platform-modules); the first-party
-  crates wrap that raw surface in a typed API. For example,
-  `whisker-audio`'s `Player` handle drives playback and exposes a
-  reactive status signal.
+| Need                                  | Use                                   |
+| ------------------------------------- | ------------------------------------- |
+| Render a native control               | module element                        |
+| Call a platform service               | module function                       |
+| Receive runtime events from a service | module event                          |
+| Add an Android permission             | plugin                                |
+| Add an Info.plist value               | plugin                                |
+| Add a native build dependency         | module package metadata and/or plugin |
 
-The first-party module crates — image, svg, icons, video, audio,
-safe-area, local-store — are documented in
-[First-party Modules](/docs/modules-api). They double as worked examples
-of every module shape.
+One package may contain both a module and a plugin when it needs runtime code
+and project configuration.
 
-### How a module is distributed
+## Discovery and linking
 
-This is the key mental model, and it differs from how the core is
-shipped.
+Module crates opt in with `[package.metadata.whisker]`. CNG walks the
+application's Cargo dependency graph during generation and records the native
+packages that the generated Host target must link. Android's Gradle plugin and
+iOS Swift Package Manager then use their native dependency systems during a
+normal Gradle/Xcode build. Web and desktop Host crates are ordinary optional
+Cargo dependencies selected for those targets.
 
-**A module's native sources travel on crates.io.** Each module crate's
-`Cargo.toml` declares an explicit `include` list that bundles the Swift
-and Kotlin sources alongside `src/lib.rs`:
-
-```toml
-# packages/whisker-image/Cargo.toml
-include = [
-    "Cargo.toml",
-    "Package.swift",
-    "build.gradle.kts",
-    "src/lib.rs",
-    "android/**/*.kt",
-    "ios/**/*.swift",
-    "README.md",
-]
-```
-
-When `cargo publish` packs the crate, those `ios/**/*.swift`,
-`android/**/*.kt`, `Package.swift`, and `build.gradle.kts` files go with
-it. The Whisker build then consumes them straight out of the cargo
-registry extraction — it walks your dependency tree, finds every crate
-carrying the `[package.metadata.whisker]` marker, and wires its Android
-Gradle subproject and iOS SwiftPM package into the host build. **No
-separate SwiftPM Registry or Maven Central publishing is needed for a
-module.** One `cargo publish` ships all three languages.
-
-Contrast this with the **core runtime**. The Swift/Kotlin runtime that
-every app links against is _not_ shipped this way — it's distributed as
-a remote SwiftPM package (resolved by tagged git URL on iOS) and as
-Maven AARs on Android. The reason is that static, generated native
-project manifests need a single stable reference to the runtime: every
-module's `Package.swift` points at the _same_ remote `whisker` package
-URL so the build graph ends up with one shared runtime identity rather
-than a copy per module. Modules ride on crates.io; the core runtime they
-all depend on lives behind a versioned remote package.
-
-## Whisker plugins
-
-A **Whisker plugin** doesn't add a capability your code calls — it
-contributes to the _generated native project_ during `whisker run` or a
-build. Plugins are how you reach into the parts of the iOS/Android
-project Whisker generates: `Info.plist` keys, Android manifest
-permissions, Gradle plugins and dependencies, and arbitrary extra files.
-
-A plugin is a cargo crate too, but you opt into it explicitly in your
-`whisker.rs`:
-
-```rust
-app.plugin::<WhiskerAudio>(|c| c
-    .microphone_permission("Record audio clips for podcasts.")
-    .record_audio_android(true));
-```
-
-During generation the build runs each registered plugin against an
-in-memory representation of the native project, letting it set plist
-values, push permissions, and so on. The full surface — the `Plugin`
-trait, the per-platform IR it mutates — is in the
-[Plugin API](/docs/plugin-api); registering one is covered in
-[Configuration](/docs/configuration-api).
-
-## A crate can be both
-
-The two mechanisms compose. `whisker-audio` ships **both**:
-
-- a _module_ — the `Player` handle and the native audio engine behind
-  it, and
-- a _plugin_ — `WhiskerAudio`, which contributes the microphone usage
-  description (iOS) and the `RECORD_AUDIO` permission (Android) needed
-  before the engine can record.
-
-Adding the dependency gives you the `Player` API immediately; the
-permission entries only appear once you register the plugin in
-`whisker.rs`. With no opt-in the plugin runs with its defaults and
-contributes nothing — you don't pay for permissions you didn't ask for.
-
-## Which one do I write?
-
-A quick rule of thumb:
-
-- **Module** — you're adding a _capability your code uses_: a native
-  widget to render, or a native function/service to call. It ships Rust
-  - Swift + Kotlin and is consumed as a normal crate dependency.
-- **Plugin** — you're adjusting the _native project itself_: a
-  permission, a plist key, a Gradle dependency, an extra bundled file.
-
-If you need both — a capability _and_ the project config that lets it
-run — ship both from the same crate, as `whisker-audio` does.
-
-When you're ready, head to [Authoring a Module](/docs/authoring-a-module)
-or [Authoring a Plugin](/docs/authoring-a-plugin).
+See [Authoring a Module](/docs/authoring-a-module) and
+[Authoring a Plugin](/docs/authoring-a-plugin) for implementation details.
