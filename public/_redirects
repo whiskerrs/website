@@ -1,0 +1,5 @@
+/examples/chat /examples/chat/ 301
+# Preserve assets before the SPA fallback, which also matches existing files.
+/examples/chat/*.js /examples/chat/:splat.js 200
+/examples/chat/*.wasm /examples/chat/:splat.wasm 200
+/examples/chat/* /examples/chat/ 200

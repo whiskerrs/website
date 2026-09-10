@@ -65,3 +65,28 @@ Then deploy:
 ```bash
 bun run deploy
 ```
+
+## Whisker Chat
+
+The standalone Web app is served at `/examples/chat/`. Its production HTML,
+JavaScript, and WebAssembly are checked into `public/examples/chat`, so normal
+website builds and deployments do not require the Rust toolchain.
+
+To refresh it, build Chat in the adjacent Whisker checkout and copy its output:
+
+```bash
+(cd ../whisker && cargo run -p whisker-cli --bin whisker -- build web --manifest-path examples/chat/Cargo.toml)
+cp ../whisker/examples/chat/gen/web/dist/{index.html,whisker_app.js,whisker_app_bg.wasm} public/examples/chat/
+bun run build
+```
+
+The deployment path is configured with `web.base_path("/examples/chat/")` in
+Chat's `whisker.rs`. API keys are entered by visitors; no credentials are needed
+for the build.
+
+`public/_redirects` preserves JavaScript and WebAssembly requests, then uses a
+wildcard to serve the app document for all routes under `/examples/chat/`.
+New screens need no additional rewrite rules. `public/_headers` requires
+revalidation of the app's stable asset filenames. To test these hosting rules
+locally, use `bunx wrangler dev --config dist/server/wrangler.json --local` after
+building the website.
