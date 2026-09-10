@@ -84,9 +84,11 @@ The deployment path is configured with `web.base_path("/examples/chat/")` in
 Chat's `whisker.rs`. API keys are entered by visitors; no credentials are needed
 for the build.
 
-`public/_redirects` preserves JavaScript and WebAssembly requests, then uses a
-wildcard to serve the app document for all routes under `/examples/chat/`.
-New screens need no additional rewrite rules. `public/_headers` requires
+`public/_redirects` uses exact rules for the JavaScript and WebAssembly files
+before the wildcard that serves the app document under `/examples/chat/`.
+New screens need no additional rewrite rules. If the build adds or renames an
+asset, update its exact rule too; otherwise the SPA fallback will serve HTML
+instead of that asset. `public/_headers` requires
 revalidation of the app's stable asset filenames. To test these hosting rules
 locally, use `bunx wrangler dev --config dist/server/wrangler.json --local` after
 building the website.
