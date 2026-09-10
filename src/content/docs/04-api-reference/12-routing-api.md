@@ -58,14 +58,14 @@ This page is the complete API reference.
                    (render the active route)
 ```
 
-| Layer      | Symbols                                                                                                     | Purpose                        |
-| ---------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| Route tree | [`routes!`](#the-routes-macro)                                                                              | Declare the screen structure   |
-| Handle     | [`RouterHandle`](#routerhandle)                                                                             | Signal-backed navigation state |
-| Context    | [`Router`](#router-component), [`use_navigator`](#hooks), [`use_param`](#hooks), [`use_pathname`](#hooks)   | Publish/read the router        |
-| Renderer   | [`Outlet`](#outlet), [`Stack`](#stack-renderer), [`Switch`](#switch-renderer), [`Layout`](#layout-renderer) | Turn state into UI             |
-| Animation  | [`RouteTransition`](#transitions)                                                                           | How screens enter/leave        |
-| Gestures   | [`SwipeBack`](#gestures), [`AndroidPredictiveBack`](#gestures)                                              | Native back gestures           |
+| Layer      | Symbols                                                                                                     | Purpose                         |
+| ---------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Route tree | [`routes!`](#the-routes-macro)                                                                              | Declare the screen structure    |
+| Handle     | [`RouterHandle`](#routerhandle)                                                                             | Signal-backed navigation state  |
+| Context    | [`Router`](#router-component), [`use_navigator`](#hooks), [`use_param`](#hooks), [`use_pathname`](#hooks)   | Publish/read the router         |
+| Renderer   | [`Outlet`](#outlet), [`Stack`](#stack-renderer), [`Switch`](#switch-renderer), [`Layout`](#layout-renderer) | Turn state into UI              |
+| Animation  | [`RouteTransition`](#transitions)                                                                           | How screens enter/leave         |
+| Host input | Installed internally by [`Router`](#router-component)                                                       | Back, gestures, browser history |
 
 ## The `routes!` macro
 
@@ -306,8 +306,8 @@ ancestor with the current position**. Ties break by **declaration order**
 ## Router component
 
 Takes a `RouteSet`, creates the `RouterHandle` internally, publishes it
-into context, and creates a positioned root view. Mount renderers and
-gestures as children:
+into context, creates a positioned root view, and installs the current Host's
+navigation driver. Mount renderers and application chrome as children:
 
 ```rust
 Router(routes: routes! {
@@ -317,15 +317,13 @@ Router(routes: routes! {
     }
 }) {
     Outlet {}
-    SwipeBack {}
-    AndroidPredictiveBack {}
 }
 ```
 
 | Prop       | Type       | Notes                                |
 | ---------- | ---------- | ------------------------------------ |
 | `routes`   | `RouteSet` | The route tree (output of `routes!`) |
-| `children` | `Children` | Renderers + gesture components       |
+| `children` | `Children` | Renderers + application chrome       |
 
 ## Renderers
 
@@ -409,15 +407,15 @@ sites.
 
 ### Built-in transitions
 
-| Constructor                          | Description                                                    |
-| ------------------------------------ | -------------------------------------------------------------- |
-| `RouteTransition::slide()`           | iOS-style horizontal slide with parallax and dim (iOS default) |
-| `RouteTransition::android_default()` | Subtle horizontal slide + fade (Android default)               |
-| `RouteTransition::fade()`            | Cross-fade opacity                                             |
-| `RouteTransition::modal()`           | Slide up from the bottom                                       |
-| `RouteTransition::none()`            | No animation — instant swap                                    |
+| Constructor                     | Description                                                    |
+| ------------------------------- | -------------------------------------------------------------- |
+| `RouteTransition::slide()`      | iOS-style horizontal slide with parallax and dim (iOS default) |
+| `RouteTransition::slide_fade()` | Subtle horizontal slide + fade (Android default)               |
+| `RouteTransition::fade()`       | Cross-fade opacity                                             |
+| `RouteTransition::modal()`      | Slide up from the bottom                                       |
+| `RouteTransition::none()`       | No animation — instant swap                                    |
 
-The default is **platform-aware**: `slide()` on iOS, `android_default()`
+The default is **platform-aware**: `slide()` on iOS, `slide_fade()`
 on Android.
 
 ### Per-route transition
@@ -486,28 +484,22 @@ A **push** drives `0.0 → 1.0`; a **pop** drives `1.0 → 0.0`. One
 controller drives both the Top and Under wrappers — the "gesture spans
 two routes" problem solved by composition.
 
-## Gestures
+## Platform navigation drivers
 
-Back gesture components are mounted as children of `Router`. Each reads
-the router context, renders no DOM of its own, and is a no-op on the
-platform it doesn't target.
+`Router` installs Host navigation input automatically. There is no empty
+gesture component to import or mount.
 
-| Component               | Platform    | Description                                       |
-| ----------------------- | ----------- | ------------------------------------------------- |
-| `SwipeBack`             | iOS         | Edge swipe-back gesture                           |
-| `AndroidPredictiveBack` | Android 13+ | System predictive back with Material card preview |
+| Platform | Input                                                                                                |
+| -------- | ---------------------------------------------------------------------------------------------------- |
+| Android  | System back on all supported versions; predictive-back progress and Material preview where available |
+| iOS      | Left-edge interactive swipe back                                                                     |
+| Web      | Initial URL plus browser back/forward through the History API                                        |
+| Desktop  | No Host navigation input; use `RouterHandle` operations                                              |
 
-```rust
-Router(routes: routes! { ... }) {
-    Outlet {}
-    SwipeBack {}
-    AndroidPredictiveBack {}
-}
-```
-
-Both gestures **scrub the existing transition** — they reuse the
-route's push/pop animation, replacing time with finger progress. No
-separate "interactive animation" is defined.
+Interactive inputs drive the Router's common coordinated two-screen
+controller. Android predictive back uses its Material card pose, while iOS
+uses the native-style slide pose; the continuous gesture state never enters
+`RouteState`.
 
 The Android predictive back implements the full Material shared-element
 card: the top screen shrinks to ~90%, rounds to the device corner

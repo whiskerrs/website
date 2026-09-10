@@ -32,7 +32,6 @@ Import what you need directly — the crate has no `prelude`:
 use whisker::prelude::*;
 use whisker_router::{
     routes, Router, Outlet,
-    SwipeBack, AndroidPredictiveBack,
     use_navigator, use_param,
 };
 ```
@@ -64,9 +63,9 @@ The full grammar is in the
 
 ## 3. Mount the Router
 
-`Router` takes the route tree, publishes the handle into context, and
-creates a positioned root container. Inside it, mount an `Outlet`
-(renders the active route) and optional gesture components:
+`Router` takes the route tree, publishes the handle into context, creates a
+positioned root container, and installs the current Host's navigation driver.
+Inside it, mount an `Outlet` to render the active route:
 
 ```rust
 #[whisker::main]
@@ -86,17 +85,15 @@ fn app() -> Element {
                 }
             }) {
                 Outlet {}
-                SwipeBack {}
-                AndroidPredictiveBack {}
             }
         }
     }
 }
 ```
 
-`Outlet` renders whichever screen the current state points to.
-`SwipeBack` and `AndroidPredictiveBack` layer on native back gestures
-— each is a no-op on the other platform, so pairing both is safe.
+`Outlet` renders whichever screen the current state points to. Native
+navigation input is automatic: Android system/predictive back, iOS edge swipe,
+and Web browser history are connected for the lifetime of the `Router`.
 
 ### Advanced: explicit handle
 
@@ -238,8 +235,6 @@ Router(routes: routes! {
     }
 }) {
     Outlet {}
-    SwipeBack {}
-    AndroidPredictiveBack {}
 }
 ```
 
