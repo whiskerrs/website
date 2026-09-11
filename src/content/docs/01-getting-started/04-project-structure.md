@@ -30,11 +30,11 @@ split it across modules and additional crates like any Rust project.
 ## `whisker.rs`
 
 App **configuration** — bundle id, display name, version, and per-platform
-settings. Its `main` function uses `whisker_config::run`:
+settings. Its `main` function uses `whisker_cng::run`:
 
 ```rust
 fn main() {
-    whisker_config::run(|app| {
+    whisker_cng::run(|app| {
         app.name("My App")
             .bundle_id("com.example.myapp")
             .version("1.0.0");
@@ -42,9 +42,9 @@ fn main() {
 }
 ```
 
-`whisker run` compiles `whisker.rs` as a tiny standalone probe and reads
-the resulting config to generate the native projects. It's intentionally
-separate from `src/lib.rs` so the config build stays fast. This is also
+`whisker.rs` generates platform projects when executed. `whisker run` and
+`whisker build` compile it separately from `src/lib.rs` and execute the same
+generation entry point before building the app. This is also
 where you register [plugins](/docs/modules-and-plugins). Full field list:
 [Configuration reference](/docs/configuration-api).
 
@@ -62,10 +62,10 @@ Cargo-based native project under `gen/macos/`, or a WASM/browser shell under
 
 ## `Cargo.toml`
 
-A normal crate manifest. It depends on `whisker` and `whisker-config`, and
-registers `whisker.rs` as a binary requiring the `whisker-config` feature. This
+A normal crate manifest. It depends on `whisker` and `whisker-cng` (with default
+features disabled), and registers `whisker.rs` as a binary requiring the `whisker-config` feature. This
 lets rust-analyzer provide completion without extra editor configuration and
-keeps the configuration binary out of default builds. See
+keeps the configuration binary and its generation engine out of default builds. See
 [Cargo registration](/docs/app-configuration#cargo-registration-and-editor-support).
 
 Add

@@ -370,7 +370,7 @@ whisker-foo = "0.12"
 ```rust
 // app/whisker.rs
 fn main() {
-    whisker_config::run(|app| {
+    whisker_cng::run(|app| {
         app.name("My App")
             .bundle_id("rs.example.myapp");
 

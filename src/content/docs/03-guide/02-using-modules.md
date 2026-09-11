@@ -203,7 +203,7 @@ contributes the matching `Info.plist` / `AndroidManifest.xml` entries:
 ```rust
 // whisker.rs
 fn main() {
-    whisker_config::run(|app| {
+    whisker_cng::run(|app| {
         app.name("Podcast")
             .bundle_id("rs.whisker.podcast");
 

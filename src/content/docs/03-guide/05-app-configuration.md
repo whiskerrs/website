@@ -7,24 +7,24 @@ order: 5
 # App Configuration
 
 Every Whisker app carries a `whisker.rs` file next to its `Cargo.toml`.
-Its `main` function calls `whisker_config::run` to fill a fresh `Config` and
-write JSON. The CLI reads that configuration to generate platform projects
-and launch the development session. Keep stdout reserved for the JSON result;
-use `eprintln!` for diagnostics.
+Its `main` function calls `whisker_cng::run` to configure the app and generate
+platform projects. CNG discovers modules, builds and applies native generation
+plugins, and writes the Host projects under `gen/`. Every execution performs
+generation; unchanged projects reuse their fingerprints.
 
 This page is the practical how-to. The exhaustive field-by-field
 reference is in [Configuration](/docs/configuration-api).
 
 ## The configuration entry point
 
-Configure the app inside the closure passed to `whisker_config::run`. Every
+Configure the app inside the closure passed to `whisker_cng::run`. Every
 builder method returns `&mut Self`, so calls chain, and the `ios`, `android`, and `plugin`
 methods each take a closure receiving a mutable reference to the nested
 config:
 
 ```rust
 fn main() {
-    whisker_config::run(|app| {
+    whisker_cng::run(|app| {
         app.name("MyApp")
             .bundle_id("dev.example.myapp")
             .version("1.0.0")
@@ -47,34 +47,49 @@ test = false
 bench = false
 
 [features]
-whisker-config = []
+whisker-config = ["whisker-cng/generate"]
 ```
 
-The application also depends directly on `whisker-config`, using the version
-provided by the CLI template. Rust-analyzer discovers the file through Cargo,
-so completion and navigation work without `linkedProjects` or a separate
-configuration package. The feature stays disabled by default; it does not need
-to be enabled for completion.
+The application also depends on `whisker-cng` with `default-features = false`,
+using the version provided by the CLI template. The `whisker-config` feature
+enables its generation engine. Normal application builds omit that engine,
+including Cargo dependency discovery and image processing.
 
+Rust-analyzer discovers the file through Cargo, so completion and navigation
+work without `linkedProjects` or a separate configuration package. Configuration
+types and the `run` interface remain available with the feature disabled.
 Add plugin crates with `cargo add`, then use their configuration APIs in
 `whisker.rs`. No second dependency list needs to be maintained.
 
-To inspect the JSON directly:
+To generate an Xcode project from the application directory:
 
 ```sh
-cargo run --bin whisker-config --features whisker-config
+cargo run --bin whisker-config --features whisker-config -- ios
 ```
 
-This command also compiles your application library. Whisker's own commands
-use a small separate probe so application compilation is unnecessary when
-evaluating configuration. The probe provides `whisker-config` and discovered
-plugin crates with their default features disabled; arbitrary application
-dependencies and application feature flags are not available there.
+Pass `android`, `desktop`, or `web` for another platform. Omit the platform to
+generate all four projects, or pass multiple names to generate a subset.
+`--manifest-path <application Cargo.toml>` after Cargo's `--` selects an
+application explicitly. Generation prepares projects; their normal Rust and
+native build steps run when you build them.
 
-Projects using `pub fn configure(app: &mut whisker_config::Config)` without a
-configuration bin remain supported. To enable editor support, add the manifest
-entries above and the `whisker-config` dependency, then move the function body
-into `fn main() { whisker_config::run(|app| { /* configuration */ }); }`.
+Direct `cargo run` also compiles your application library. `whisker run` and
+`whisker build` execute the same generator through a separate Cargo package
+that avoids application compilation. It provides CNG and discovered plugin
+crates with plugin default features disabled; arbitrary application dependencies
+and application feature flags are not inherited. Generation programs and plugin
+executables run on the host, even when the app uses a cross-compilation target.
+
+After all selected projects succeed, CNG writes
+`target/.whisker/generation.json` with their paths and application metadata.
+The CLI reads this completion report before continuing with builds and launches.
+Stdout is available for diagnostics; it is not a configuration JSON protocol.
+Generated reports and build caches are disposable and should not be committed.
+
+Legacy `pub fn configure(app: &mut whisker_config::Config)` files without a
+configuration bin remain supported through a generation entry point supplied
+by CNG. For editor support, add the manifest entries above and the CNG dependency,
+then move the function body into `fn main() { whisker_cng::run(|app| { /* configuration */ }); }`.
 
 ## Step 1: App-level identity
 
@@ -174,7 +189,7 @@ App icons ship as a **built-in plugin**, `AppIcon`, exported by
 (1024×1024 or larger) is enough for both platforms:
 
 ```rust
-use whisker_config::AppIcon;
+use whisker_cng::AppIcon;
 
 app.plugin::<AppIcon>(|c| {
     c.source("assets/icon.png");
@@ -258,10 +273,10 @@ audio plugin:
 
 ```rust
 use whisker_audio::WhiskerAudio;
-use whisker_config::AppIcon;
+use whisker_cng::AppIcon;
 
 fn main() {
-    whisker_config::run(|app| {
+    whisker_cng::run(|app| {
         app.name("Podcast")
             .bundle_id("dev.example.podcast")
             .version("1.0.0")
@@ -295,5 +310,4 @@ fn main() {
 ```
 
 Run it with `whisker run ios` or `whisker run android` — the CLI compiles
-this file, reads the serialized `Config`, and projects it into the native
-project before launching.
+and executes this generator before building and launching the native app.

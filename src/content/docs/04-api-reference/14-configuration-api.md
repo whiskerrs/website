@@ -7,23 +7,25 @@ order: 14
 # API Reference: Configuration
 
 Every Whisker app carries a `whisker.rs` binary whose `main` calls
-[`whisker_config::run`](https://docs.rs/whisker-config/latest/whisker_config/fn.run.html).
+[`whisker_cng::run`](https://docs.rs/whisker-cng/latest/whisker_cng/fn.run.html).
 The closure receives a fresh [`Config::default()`](#config). After the closure
-returns, `run` writes the configuration as JSON to stdout; it panics if
-serialization or writing fails. Use stderr for diagnostics.
+returns, CNG prepares plugins and generates the requested platform projects.
+Failures print a diagnostic and exit with status 1. Execution requires CNG's
+`generate` feature, enabled by the configuration binary's required feature.
 
-The CLI evaluates this configuration to generate platform projects and launch
-the development session. For Cargo registration, editor support, and inspecting
-JSON, see [App Configuration](/docs/app-configuration#cargo-registration-and-editor-support).
+CNG writes a completion report after generation; the CLI uses it to continue
+with application builds and launches. For Cargo registration, editor support,
+and direct execution, see
+[App Configuration](/docs/app-configuration#cargo-registration-and-editor-support).
 
-The types below come from the `whisker-config` crate, re-exported as
+The types below come from `whisker-config`, re-exported by `whisker-cng` and as
 [`whisker::config`](/docs/overview).
 
 ## A complete `whisker.rs`
 
 ```rust
 fn main() {
-    whisker_config::run(|app| {
+    whisker_cng::run(|app| {
         app.name("MyApp")
             .bundle_id("dev.example.myapp")
             .version("1.0.0")
@@ -143,7 +145,7 @@ that generates the app's launcher / home-screen icon for both platforms.
 Registered like any other plugin:
 
 ```rust
-use whisker_config::AppIcon;
+use whisker_cng::AppIcon;
 
 app.plugin::<AppIcon>(|c| {
     c.source("assets/icon.png");
