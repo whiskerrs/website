@@ -202,14 +202,16 @@ contributes the matching `Info.plist` / `AndroidManifest.xml` entries:
 
 ```rust
 // whisker.rs
-pub fn configure(app: &mut whisker_config::Config) {
-    app.name("Podcast")
-        .bundle_id("rs.whisker.podcast");
+fn main() {
+    whisker_config::run(|app| {
+        app.name("Podcast")
+            .bundle_id("rs.whisker.podcast");
 
-    app.plugin::<whisker_audio::WhiskerAudio>(|c| {
-        c.microphone_permission("Record clips for podcast episodes.")
-            .record_audio_android(true)
-            .enable_background_playback(true);
+        app.plugin::<whisker_audio::WhiskerAudio>(|c| {
+            c.microphone_permission("Record clips for podcast episodes.")
+                .record_audio_android(true)
+                .enable_background_playback(true);
+        });
     });
 }
 ```

@@ -6,19 +6,15 @@ order: 14
 
 # API Reference: Configuration
 
-Every Whisker app carries a `whisker.rs` file — an ordinary Rust source
-file that exposes a single `configure` function:
+Every Whisker app carries a `whisker.rs` binary whose `main` calls
+[`whisker_config::run`](https://docs.rs/whisker-config/latest/whisker_config/fn.run.html).
+The closure receives a fresh [`Config::default()`](#config). After the closure
+returns, `run` writes the configuration as JSON to stdout; it panics if
+serialization or writing fails. Use stderr for diagnostics.
 
-```rust
-pub fn configure(app: &mut Config);
-```
-
-`whisker run` compiles a tiny probe binary that includes your
-`whisker.rs`, calls `configure` with a fresh
-[`Config::default()`](#config), and serializes the resulting `Config` to
-JSON. The CLI parses that JSON and projects the fields it needs (paths,
-application id, bundle id, scheme, deployment target, …) into the native
-project it generates and the dev-server it launches.
+The CLI evaluates this configuration to generate platform projects and launch
+the development session. For Cargo registration, editor support, and inspecting
+JSON, see [App Configuration](/docs/app-configuration#cargo-registration-and-editor-support).
 
 The types below come from the `whisker-config` crate, re-exported as
 [`whisker::config`](/docs/overview).
@@ -26,25 +22,25 @@ The types below come from the `whisker-config` crate, re-exported as
 ## A complete `whisker.rs`
 
 ```rust
-use whisker_config::Config;
+fn main() {
+    whisker_config::run(|app| {
+        app.name("MyApp")
+            .bundle_id("dev.example.myapp")
+            .version("1.0.0")
+            .build_number(1);
 
-pub fn configure(app: &mut Config) {
-    app.name("MyApp")
-        .bundle_id("dev.example.myapp")
-        .version("1.0.0")
-        .build_number(1);
+        app.ios(|i| {
+            i.bundle_id("dev.example.MyApp")
+                .scheme("MyApp")
+                .deployment_target("14.0");
+        });
 
-    app.ios(|i| {
-        i.bundle_id("dev.example.MyApp")
-            .scheme("MyApp")
-            .deployment_target("14.0");
-    });
-
-    app.android(|a| {
-        a.application_id("dev.example.myapp")
-            .launcher_activity(".MainActivity")
-            .min_sdk(24)
-            .target_sdk(34);
+        app.android(|a| {
+            a.application_id("dev.example.myapp")
+                .launcher_activity(".MainActivity")
+                .min_sdk(24)
+                .target_sdk(34);
+        });
     });
 }
 ```

@@ -30,15 +30,15 @@ split it across modules and additional crates like any Rust project.
 ## `whisker.rs`
 
 App **configuration** — bundle id, display name, version, and per-platform
-settings. It's a small Rust file exposing a `configure` function:
+settings. Its `main` function uses `whisker_config::run`:
 
 ```rust
-use whisker_config::Config;
-
-pub fn configure(app: &mut Config) {
-    app.name("My App")
-        .bundle_id("com.example.myapp")
-        .version("1.0.0");
+fn main() {
+    whisker_config::run(|app| {
+        app.name("My App")
+            .bundle_id("com.example.myapp")
+            .version("1.0.0");
+    });
 }
 ```
 
@@ -62,7 +62,13 @@ Cargo-based native project under `gen/macos/`, or a WASM/browser shell under
 
 ## `Cargo.toml`
 
-A normal crate manifest. It depends on `whisker`, and you add
+A normal crate manifest. It depends on `whisker` and `whisker-config`, and
+registers `whisker.rs` as a binary requiring the `whisker-config` feature. This
+lets rust-analyzer provide completion without extra editor configuration and
+keeps the configuration binary out of default builds. See
+[Cargo registration](/docs/app-configuration#cargo-registration-and-editor-support).
+
+Add
 [first-party modules](/docs/modules-api) (like `whisker-router` or
 `whisker-image`) here as you need them.
 

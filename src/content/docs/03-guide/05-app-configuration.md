@@ -7,39 +7,74 @@ order: 5
 # App Configuration
 
 Every Whisker app carries a `whisker.rs` file next to its `Cargo.toml`.
-It's an ordinary Rust source file that exposes a single function:
-
-```rust
-pub fn configure(app: &mut Config);
-```
-
-`whisker run` compiles a tiny probe binary that includes your
-`whisker.rs`, calls `configure` with a fresh `Config::default()`, and
-serializes the result to JSON. The CLI reads that JSON and projects the
-fields it needs — bundle id, scheme, deployment target, application id,
-launcher activity — into the native iOS/Android project it generates and
-the dev server it launches.
+Its `main` function calls `whisker_config::run` to fill a fresh `Config` and
+write JSON. The CLI reads that configuration to generate platform projects
+and launch the development session. Keep stdout reserved for the JSON result;
+use `eprintln!` for diagnostics.
 
 This page is the practical how-to. The exhaustive field-by-field
 reference is in [Configuration](/docs/configuration-api).
 
-## The `configure` function
+## The configuration entry point
 
-The whole file is one function. Every builder method returns
-`&mut Self`, so calls chain, and the `ios`, `android`, and `plugin`
+Configure the app inside the closure passed to `whisker_config::run`. Every
+builder method returns `&mut Self`, so calls chain, and the `ios`, `android`, and `plugin`
 methods each take a closure receiving a mutable reference to the nested
 config:
 
 ```rust
-use whisker_config::Config;
-
-pub fn configure(app: &mut Config) {
-    app.name("MyApp")
-        .bundle_id("dev.example.myapp")
-        .version("1.0.0")
-        .build_number(1);
+fn main() {
+    whisker_config::run(|app| {
+        app.name("MyApp")
+            .bundle_id("dev.example.myapp")
+            .version("1.0.0")
+            .build_number(1);
+    });
 }
 ```
+
+## Cargo registration and editor support
+
+`whisker new` registers `whisker.rs` as a binary in your application's
+`Cargo.toml`:
+
+```toml
+[[bin]]
+name = "whisker-config"
+path = "whisker.rs"
+required-features = ["whisker-config"]
+test = false
+bench = false
+
+[features]
+whisker-config = []
+```
+
+The application also depends directly on `whisker-config`, using the version
+provided by the CLI template. Rust-analyzer discovers the file through Cargo,
+so completion and navigation work without `linkedProjects` or a separate
+configuration package. The feature stays disabled by default; it does not need
+to be enabled for completion.
+
+Add plugin crates with `cargo add`, then use their configuration APIs in
+`whisker.rs`. No second dependency list needs to be maintained.
+
+To inspect the JSON directly:
+
+```sh
+cargo run --bin whisker-config --features whisker-config
+```
+
+This command also compiles your application library. Whisker's own commands
+use a small separate probe so application compilation is unnecessary when
+evaluating configuration. The probe provides `whisker-config` and discovered
+plugin crates with their default features disabled; arbitrary application
+dependencies and application feature flags are not available there.
+
+Projects using `pub fn configure(app: &mut whisker_config::Config)` without a
+configuration bin remain supported. To enable editor support, add the manifest
+entries above and the `whisker-config` dependency, then move the function body
+into `fn main() { whisker_config::run(|app| { /* configuration */ }); }`.
 
 ## Step 1: App-level identity
 
@@ -223,36 +258,38 @@ audio plugin:
 
 ```rust
 use whisker_audio::WhiskerAudio;
-use whisker_config::{AppIcon, Config};
+use whisker_config::AppIcon;
 
-pub fn configure(app: &mut Config) {
-    app.name("Podcast")
-        .bundle_id("dev.example.podcast")
-        .version("1.0.0")
-        .build_number(1);
+fn main() {
+    whisker_config::run(|app| {
+        app.name("Podcast")
+            .bundle_id("dev.example.podcast")
+            .version("1.0.0")
+            .build_number(1);
 
-    app.ios(|i| {
-        i.bundle_id("dev.example.podcast")
-            .scheme("Podcast")
-            .deployment_target("14.0");
-    });
+        app.ios(|i| {
+            i.bundle_id("dev.example.podcast")
+                .scheme("Podcast")
+                .deployment_target("14.0");
+        });
 
-    app.android(|a| {
-        a.package("dev.example.podcast")
-            .application_id("dev.example.podcast")
-            .launcher_activity(".MainActivity")
-            .min_sdk(24)
-            .target_sdk(34);
-    });
+        app.android(|a| {
+            a.package("dev.example.podcast")
+                .application_id("dev.example.podcast")
+                .launcher_activity(".MainActivity")
+                .min_sdk(24)
+                .target_sdk(34);
+        });
 
-    app.plugin::<AppIcon>(|c| {
-        c.source("assets/icon.png");
-    });
+        app.plugin::<AppIcon>(|c| {
+            c.source("assets/icon.png");
+        });
 
-    app.plugin::<WhiskerAudio>(|c| {
-        c.microphone_permission("Record clips for podcast episodes.")
-            .record_audio_android(true)
-            .enable_background_playback(true);
+        app.plugin::<WhiskerAudio>(|c| {
+            c.microphone_permission("Record clips for podcast episodes.")
+                .record_audio_android(true)
+                .enable_background_playback(true);
+        });
     });
 }
 ```

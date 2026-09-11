@@ -369,18 +369,20 @@ whisker-foo = "0.12"
 
 ```rust
 // app/whisker.rs
-pub fn configure(app: &mut whisker_config::Config) {
-    app.name("My App")
-        .bundle_id("rs.example.myapp");
+fn main() {
+    whisker_config::run(|app| {
+        app.name("My App")
+            .bundle_id("rs.example.myapp");
 
-    app.plugin::<whisker_foo::WhiskerFoo>(|c| {
-        c.camera_permission("Scan QR codes to pair devices.")
-            .analytics_android(true);
+        app.plugin::<whisker_foo::WhiskerFoo>(|c| {
+            c.camera_permission("Scan QR codes to pair devices.")
+                .analytics_android(true);
+        });
+
+        // A plugin that takes no config still goes through the same call —
+        // the closure body is just empty.
+        app.plugin::<whisker_other::WhiskerOther>(|_| {});
     });
-
-    // A plugin that takes no config still goes through the same call —
-    // the closure body is just empty.
-    app.plugin::<whisker_other::WhiskerOther>(|_| {});
 }
 ```
 
