@@ -520,8 +520,9 @@ function HotReloadSection() {
               Hot reload built for the Rust edit-debug loop.
             </h2>
             <p className="mt-6 text-lg leading-8 text-slate-300">
-              Whisker patches changed function bodies into the running app and keeps state alive, so
-              a UI tweak can land on device in under a second on the Tier 1 path.
+              Whisker patches changed code into the running app and rebuilds only the components you
+              edited, so the rest of the app keeps its state and a UI tweak can land on device in
+              under a second on the Tier 1 path.
             </p>
           </div>
 
