@@ -77,9 +77,14 @@ placing `whisker run` around the build.
 | --------------------------- | ------------------------------------------------------------- |
 | `whisker new <name>`        | Create an app crate and workspace                             |
 | `whisker new-module <name>` | Create Rust, Swift, Kotlin, Web, and desktop module structure |
-| `whisker doctor`            | Check Rust targets and native SDK/toolchain availability      |
+| `whisker doctor`            | Check Rust targets and the Android SDK, NDK, JDK, and Xcode   |
 | `whisker credential ...`    | Create, import, or rotate signing credentials                 |
 | `whisker fmt ...`           | Run rustfmt plus Whisker macro formatting                     |
+
+The CLI and the app's `whisker` / `whisker-cng` dependencies must be the same
+version. After upgrading the CLI, update the app to match (`cargo update -p
+whisker -p whisker-cng`, or edit `Cargo.toml` across a minor version); `whisker
+run` stops with both versions and these instructions when they differ.
 
 `build-ios`, `build-android`, and `modules` are internal build-system entry
 points. Generated Xcode/Gradle projects call them; application developers

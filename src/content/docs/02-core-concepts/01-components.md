@@ -53,7 +53,9 @@ Use [`whisker fmt`](/docs/formatting) to format composition bodies. Plain
 ## App entry point
 
 Each app has one `#[whisker::main]` function. Keep it small and mount a root
-component so that component-level hot reload can preserve state:
+component. Hot reload rebuilds only the components you edit, and editing
+`app()` or the root component rebuilds the whole UI, so keep state in
+components below the root and above the ones you iterate on:
 
 ```rust
 #[whisker::main]
@@ -91,8 +93,9 @@ Required and optional props may appear in any order.
 
 The component function runs when it mounts. Signals and computed properties
 then update their exact renderer bindings; Whisker does not repeatedly diff a
-virtual tree. A hot-reload patch may remount the affected component when its
-body changes, while preserving compatible surrounding state.
+virtual tree. A hot-reload patch remounts a component when its source changes,
+which resets that component's own signals; other components keep their state.
+See [Hot Reload](/docs/hot-reload).
 
 ## Static and reactive props
 

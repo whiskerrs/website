@@ -9,7 +9,8 @@ order: 7
 `whisker run <target>` is more than a one-shot build. It watches your
 source, and on every save it decides — automatically — whether it can
 patch the running app in place or has to rebuild it from scratch. The
-fast path is usually under a second, with your app's state intact.
+fast path is usually under a second, and keeps the state of every component
+you didn't edit.
 
 ```sh
 whisker run ios
@@ -67,14 +68,33 @@ the changed code into a small patch object, ships it over the WebSocket,
 and applies it to the **already-running** app. No reinstall, no
 relaunch.
 
-The headline property is **state preservation**: signals, scroll
-positions, and animation phase survive the swap, because Whisker
-rewrites function pointers in the live process rather than replacing the
-whole binary. On a warm cache this is usually well under a second.
+Whisker then rebuilds only the `#[component]`s whose source changed. Each
+edited component is disposed and re-run from scratch, and the rest of the
+tree is left alone. Signals, scroll positions, and animation phase owned
+by components you didn't edit survive the patch. On a warm cache this is
+usually well under a second.
 
 This is the common path while iterating on UI and logic. Edit, save,
-watch the screen update — the counter you were poking at keeps its
-value.
+watch the screen update — the counter you were poking at keeps its value,
+as long as it lives in a component above the one you edited.
+
+### What survives a Tier 1 patch
+
+| You edited                                                   | What is rebuilt           | State                                   |
+| ------------------------------------------------------------ | ------------------------- | --------------------------------------- |
+| Anything inside a `#[component]` fn (markup, styles, a handler, an `effect`) | That component            | Its own signals reset; everything else is kept |
+| The root component (the one `app()` renders)                 | The whole UI              | Lost                                    |
+| `app()` itself                                               | The whole UI              | Lost                                    |
+| Code outside components (a helper fn, a type, a constant)    | The whole UI              | Lost                                    |
+
+A rebuild of the whole UI is still a Tier 1 patch: the process, the Host
+surface, and the dev session survive, so it is still sub-second. Only the
+reactive state is reset.
+
+To keep state across edits, own it in a component above the ones you iterate
+on, or provide it through [context](/docs/context). The `whisker new`
+template does this: `Counter` owns the count and `Card`, the part you edit,
+receives it.
 
 ## Tier 2 — cold rebuild
 
@@ -91,7 +111,7 @@ or has been disabled.
 
 | Change                                                | Tier              | State     |
 | ----------------------------------------------------- | ----------------- | --------- |
-| Edit a function body / view markup in a watched crate | Tier 1 (patch)    | Preserved |
+| Edit Rust code in a watched crate                     | Tier 1 (patch)    | See [What survives](#what-survives-a-tier-1-patch) |
 | Change a `Cargo.toml` (add/remove/bump a dependency)  | Tier 2 (rebuild)  | Lost      |
 | Add a `thread_local!` in the patched function         | Tier 2 (rebuild)  | Lost      |
 | Native config changes (the generated project changes) | Tier 2 (rebuild)  | Lost      |
@@ -134,6 +154,12 @@ the edit wasn't a pure code change — a `Cargo.toml` touch, a new
 dependency, a new `thread_local!`, or a change that reaches the native
 project will all force a rebuild. Re-run with `--verbose` (or
 `WHISKER_VERBOSE=1`) to see why the loop chose the tier it did.
+
+**State reset after an edit.** Hot reload rebuilds the component you edited
+from scratch, so its own signals reset. Move the state into a parent
+component or context. Edits to the root component, to `app()`, or to code
+outside any component rebuild the whole UI; see
+[What survives a Tier 1 patch](#what-survives-a-tier-1-patch).
 
 **The device can't reach the dev server.** Tier 1 needs a live WebSocket
 between the app and your machine. On Android the `adb reverse` bridge is
