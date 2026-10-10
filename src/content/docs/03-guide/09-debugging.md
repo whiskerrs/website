@@ -1,7 +1,7 @@
 ---
 title: Debugging & Logging
 description: Read logs and diagnose problems.
-order: 8
+order: 9
 ---
 
 # Debugging & Logging
