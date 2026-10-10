@@ -173,13 +173,20 @@ You only deal with those pins when you're the one releasing Whisker.
 
 ## App Store / Play submission
 
-There's nothing Whisker-specific about submission. `whisker` produces a
-**normal native app** — a signed APK/AAB and a signed `.ipa`. From
-there:
+`whisker` produces a **normal native app** — a signed AAB and a signed `.ipa`
+— and can upload it for you:
 
-- **iOS** — archive, then upload to App Store Connect (Xcode Organizer,
-  `xcrun altool`, or Transporter), and submit for review.
-- **Android** — upload the AAB to the Play Console and roll it out.
+```sh
+whisker submit ios
+whisker submit android
+```
+
+[Store Submission](/docs/store-submission) covers uploading builds, the
+credentials each store needs, and managing your store listing — descriptions,
+screenshots, release notes — from a `store.rs` file.
+
+The artifacts are also ordinary store uploads, so Xcode Organizer,
+Transporter, or the Play Console work too.
 
 Both stores require an app icon. Set one with the built-in `AppIcon`
 plugin — see [App Configuration](/docs/app-configuration#step-5-app-icon).

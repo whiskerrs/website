@@ -1,7 +1,7 @@
 ---
 title: Local Modules & Plugins
 description: Keep app-private native extensions inside the Cargo workspace.
-order: 9
+order: 10
 ---
 
 # Local Modules & Plugins

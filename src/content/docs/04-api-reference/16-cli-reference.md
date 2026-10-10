@@ -71,6 +71,46 @@ Generated Android and iOS projects are ordinary Gradle and Xcode projects.
 After generation, their IDE or native build command can compile the app without
 placing `whisker run` around the build.
 
+## `whisker submit`
+
+```sh
+whisker submit ios
+whisker submit android
+```
+
+`submit` uploads the artifact the last `whisker build` produced to App Store
+Connect or Google Play. It does not build. If the app has a
+[`store.rs`](/docs/store-submission#declaring-store-metadata-storers), the
+release notes declared there are sent with the binary.
+
+| Option           | Applies to | Purpose                                                           |
+| ---------------- | ---------- | ----------------------------------------------------------------- |
+| `--path <FILE>`  | both       | Upload this artifact instead of the last build's                  |
+| `--no-wait`      | `ios`      | Return without waiting for App Store Connect to process the build |
+| `--track <NAME>` | `android`  | Also release on a track; without it the bundle is only uploaded   |
+| `--draft`        | `android`  | With `--track`, create the release as a draft                     |
+
+## `whisker store`
+
+```sh
+whisker store push appstore
+whisker store push playstore
+whisker store pull appstore
+whisker store pull playstore
+```
+
+`store push` writes the store page metadata declared in `store.rs`: text,
+images, categories, and review details. `store pull` prints what a store
+currently holds as a complete `store.rs` on stdout and changes nothing.
+
+| Option             | Applies to      | Purpose                                                               |
+| ------------------ | --------------- | --------------------------------------------------------------------- |
+| `--dry-run`        | `push`          | List what would be written without contacting the store               |
+| `--create-version` | `push appstore` | Create the next version from `whisker.rs` when none is being prepared |
+
+See [Store Submission](/docs/store-submission) for the workflow and
+[Store Metadata](/docs/store-metadata) for everything `store.rs` can declare.
+
 ## Scaffolding and diagnostics
 
 | Command                     | Purpose                                                       |
@@ -78,7 +118,7 @@ placing `whisker run` around the build.
 | `whisker new <name>`        | Create an app crate and workspace                             |
 | `whisker new-module <name>` | Create Rust, Swift, Kotlin, Web, and desktop module structure |
 | `whisker doctor`            | Check Rust targets and the Android SDK, NDK, JDK, and Xcode   |
-| `whisker credential ...`    | Create, import, or rotate signing credentials                 |
+| `whisker credential ...`    | Create, import, or rotate signing and store credentials       |
 | `whisker fmt ...`           | Run rustfmt plus Whisker macro formatting                     |
 
 The CLI and the app's `whisker` / `whisker-cng` dependencies must be the same

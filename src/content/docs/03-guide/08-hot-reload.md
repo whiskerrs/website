@@ -1,7 +1,7 @@
 ---
 title: Hot Reload
 description: How the sub-second dev loop works, and how to troubleshoot it.
-order: 7
+order: 8
 ---
 
 # Hot Reload
