@@ -161,6 +161,17 @@ component or context. Edits to the root component, to `app()`, or to code
 outside any component rebuild the whole UI; see
 [What survives a Tier 1 patch](#what-survives-a-tier-1-patch).
 
+**A hot-reload crate fails to resolve.** Right after a Whisker release,
+`whisker run` can stop with `failed to select a version for the requirement
+whisker-subsecond = "…"`. Crates that only the `hot-reload` feature pulls in
+are missing from the ordinary dependency graph, so `cargo update` doesn't
+refresh their entries in Cargo's local index cache. Delete the cache and run
+again:
+
+```sh
+rm -rf ~/.cargo/registry/index/*/.cache
+```
+
 **The device can't reach the dev server.** Tier 1 needs a live WebSocket
 between the app and your machine. On Android the `adb reverse` bridge is
 set up for you; if it breaks, confirm the device is visible to `adb` and

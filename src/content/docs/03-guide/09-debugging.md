@@ -94,6 +94,13 @@ It inspects your local setup and reports what's missing or
 misconfigured. Use `--no-ios` / `--no-android` to skip a platform you
 don't care about.
 
+**The UI stops updating after patching in a local Whisker.** When you point
+an app at a Whisker checkout with `[patch.crates-io]`, patch every Whisker
+crate the app depends on, not only `whisker`. A crate left on crates.io pulls
+in its own `whisker-runtime`, and a signal from one copy never notifies a
+reader in the other: the screen just doesn't change, and nothing is logged.
+`cargo tree --duplicates` lists `whisker-runtime` twice when this happens.
+
 ## More output
 
 One global knob turns up the verbosity:

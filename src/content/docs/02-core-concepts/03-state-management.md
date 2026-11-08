@@ -54,6 +54,18 @@ bound). You **write** with `.set(v)` (replace) or `.update(|v| …)`
 (mutate in place — what you want for collections like
 `update(|v| v.push(item))` and for types that aren't `Clone`).
 
+`set` and `update` notify every reader even when the new value equals the old
+one. Readers behind a [`computed`](#deriving-values-with-computed) are spared,
+because a computed notifies only when its result changes. When a write may
+repeat the current value and something expensive reads the signal directly,
+compare first:
+
+```rust
+if count.get_untracked() != next {
+    count.set(next);
+}
+```
+
 There is **no call sugar**: a signal is read and written through these
 methods, never by calling it. Write `count.get()` and `count.set(1)`,
 not `count()` or `count(1)`. Full method tables live in the
@@ -242,6 +254,12 @@ reference-counted `Arc*` family instead. They stay alive as long as any
 handle remains, and they mirror the arena types' method shape (they're
 `Clone` rather than `Copy`). See
 [Arc signals](/docs/reactivity-api#arc-signals--arc_signal--the-arc-family).
+
+Converting an Arc signal into an arena handle (`let s: RwSignal<T> =
+arc.into()`) ties the new handle to the owner running at that moment. The Arc
+keeps the value alive, but that particular handle is freed with its owner, and
+reading it afterwards panics. Keep the `ArcRwSignal` itself in the `static` or
+map, and convert inside the component that reads it.
 
 ## Non-reactive storage: `StoredValue`
 

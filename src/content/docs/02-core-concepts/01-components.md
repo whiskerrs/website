@@ -140,6 +140,25 @@ A `children: Children` parameter adds the builder's trailing `body` method.
 `Children` is reusable, so framework-level components can project it more than
 once, although ordinary layout components usually call it once.
 
+## Moving a prop into a closure
+
+Hot reload can run a component's body again, so the body may borrow its props
+but never give one away. Moving a non-`Copy` prop such as `id: String` straight
+into a `move` closure fails with `E0507: cannot move out of value, a captured
+variable in an FnMut closure`. Clone it into a local first and move the local:
+
+```rust
+#[component]
+fn row(id: String) -> Element {
+    // effect(move || println!("showing {id}")); // E0507
+    let row_id = id.clone();
+    effect(move || println!("showing {row_id}"));
+    render! { Text(value: id.clone()) }
+}
+```
+
+`Copy` props, including every `Signal<T>` and signal handle, move freely.
+
 ## What's next
 
 - [Styling](/docs/styling)
