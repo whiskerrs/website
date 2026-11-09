@@ -17,6 +17,7 @@ export const Route = createFileRoute("/docs/$slug")({
             ...(doc.description ? [{ name: "description", content: doc.description }] : []),
           ]
         : [],
+      links: doc ? [{ rel: "alternate", type: "text/markdown", href: `/docs/${doc.slug}.md` }] : [],
     };
   },
   component: DocPage,

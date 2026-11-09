@@ -122,6 +122,9 @@ Before substantial work:
 - `vite.config.ts` skips the Cloudflare Vite plugin in Vitest mode because the
   generated Cloudflare Worker SSR environment conflicts with Vitest's
   `resolve.external` startup defaults.
+- `/llms.txt`, `/llms-full.txt` and `/docs/<slug>.md` are server routes built
+  from the raw page sources in `src/lib/docs-markdown.ts`; `vite.config.ts`
+  keeps the MDX plugin from compiling those `?raw` imports.
 
 ## Gotchas
 
@@ -131,8 +134,6 @@ Before substantial work:
 - Keep `Scripts` in the root document body or hydration will fail.
 - Before substantial TanStack-specific changes, run or consult
   `bunx @tanstack/intent@latest list` and load the matching local skill.
-- `bun run test` currently uses `--passWithNoTests` because the blank starter
-  has no test files yet.
 
 ## Next Steps
 

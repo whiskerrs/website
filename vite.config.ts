@@ -17,6 +17,12 @@ import rehypeHighlight from "rehype-highlight";
 
 export default defineConfig(({ mode }) => {
   const isTest = mode === "test";
+  const mdxPlugin = mdx({
+    mdExtensions: [".md"],
+    mdxExtensions: [".mdx"],
+    remarkPlugins: [remarkGfm, remarkFrontmatter, [remarkMdxFrontmatter, { name: "frontmatter" }]],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }], rehypeHighlight],
+  });
 
   return {
     resolve: { tsconfigPaths: true },
@@ -27,20 +33,13 @@ export default defineConfig(({ mode }) => {
       // MDX must run before the React plugin so `.md`/`.mdx` compile to JS first.
       {
         enforce: "pre",
-        ...mdx({
-          mdExtensions: [".md"],
-          mdxExtensions: [".mdx"],
-          remarkPlugins: [
-            remarkGfm,
-            remarkFrontmatter,
-            [remarkMdxFrontmatter, { name: "frontmatter" }],
-          ],
-          rehypePlugins: [
-            rehypeSlug,
-            [rehypeAutolinkHeadings, { behavior: "wrap" }],
-            rehypeHighlight,
-          ],
-        }),
+        ...mdxPlugin,
+        // The MDX plugin drops the query from the id, so it would compile the
+        // `?raw` page sources that back the Markdown copies of the docs.
+        transform(code, id) {
+          if (new URLSearchParams(id.split("?")[1]).has("raw")) return null;
+          return mdxPlugin.transform!.call(this, code, id);
+        },
       },
       tanstackStart(),
       viteReact({ include: /\.(jsx|js|mdx|md|tsx|ts)$/ }),

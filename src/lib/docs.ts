@@ -76,15 +76,20 @@ function titleCase(slug: string) {
     .join(" ");
 }
 
+export function slugFromPath(path: string) {
+  return stripOrderPrefix(pathParts(path).file);
+}
+
 export const docs: DocEntry[] = Object.entries(modules)
   .map(([path, mod]) => {
     const { dir, file } = pathParts(path);
     const fm = mod.frontmatter ?? {};
     const sectionSlug = stripOrderPrefix(dir);
     const known = SECTIONS[sectionSlug];
+    const slug = slugFromPath(path);
     return {
-      slug: stripOrderPrefix(file),
-      title: fm.title ?? titleCase(stripOrderPrefix(file)),
+      slug,
+      title: fm.title ?? titleCase(slug),
       description: fm.description,
       order: fm.order ?? prefixOrder(file) ?? 999,
       section: known?.label ?? titleCase(sectionSlug),
