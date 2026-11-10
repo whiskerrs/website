@@ -59,6 +59,57 @@ render! {
 swap `src` to re-fetch, swap `mode` to re-lay-out without a remount.
 Width and height must be set (here via `style`, or let flex size it).
 
+### Sized decoding and bounded caching
+
+`ImageCacheOptions` opts an image into URL-keyed temporary-file caching and a
+shared decoded-image LRU. This API accompanies
+[the managed-cache change](https://github.com/whiskerrs/whisker/pull/784); it requires
+a version containing that change.
+
+```rust
+use whisker_image::{Image, ImageCacheOptions, configure_image_cache};
+
+// Await during application setup before mounting images.
+configure_image_cache(32 * 1024 * 1024).await?;
+
+render! {
+    Image(
+        src: "https://example.com/cover.jpg?v=2",
+        cache: Some(ImageCacheOptions {
+            decode_width: Some(400),
+            decode_height: Some(300),
+        }),
+        style: css!(width: px(200), height: px(150)),
+    )
+}
+```
+
+Decode bounds are **physical pixels**, separate from layout size. Both bounds
+preserve aspect ratio inside the box; one bound infers the other. Sources are
+never enlarged. Omit both for original resolution; zero reports a load error.
+For sharp display, account for the screen scale and aspect-fill cropping.
+Animated sources use their first frame.
+
+Lookup checks decoded memory, the original temporary file, and then the network.
+The exact URL, including its query, identifies the original. Headers are sent on
+a miss but do not change the key, so account-dependent content needs distinct
+URLs. Each decode size has its own memory variant. All variants share a default
+64 MiB budget measured by decoded storage; least recently used entries are
+removed first. Lowering the budget trims it, zero disables retention, and an
+image larger than the budget can display without being retained.
+
+Memory eviction keeps the original file. Files can survive process restarts,
+but the OS can delete them at any time. There is no expiration timer. Await
+`remove_cached_image(url)` to remove the original and all memory variants;
+already visible images remain visible. The budget excludes visible image
+references, GPU resources and transient decoding allocations, which can exceed
+the retained image size. Ordinary images without `cache` keep their loader
+policy.
+
+Web delegates to the browser cache and cannot enforce file persistence, decode
+retention sizes or this memory budget. Cache configuration and removal return
+an error on Web.
+
 ## Icons — `whisker-icons`
 
 `Icon` renders a Lucide icon. Each icon is its own `pub const &str`
