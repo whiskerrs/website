@@ -389,3 +389,10 @@ error that names the command to run locally.
 - The App Store age rating declaration.
 - A review demo account's user name and password. `store.rs` is plain text in
   your repository, so these are deliberately not settable there.
+
+## Google token exchange endpoint
+
+Play service-account files must use `https://oauth2.googleapis.com/token` for
+`token_uri`. Other endpoints are rejected before an assertion is signed, and token
+requests do not follow redirects. Verify imported credential files rather than
+substituting a custom token endpoint.

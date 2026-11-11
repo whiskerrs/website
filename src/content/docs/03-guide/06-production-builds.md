@@ -195,3 +195,31 @@ Play requires a launcher icon).
 
 See the [CLI reference](/docs/cli-reference) for the development
 commands that produce the `gen/` projects these builds run against.
+
+## Signing credential trust
+
+Before a credential wizard saves data, verify every age public key it displays.
+Adding a key to `credentials/recipients.txt` lets that key decrypt future writes.
+The CLI asks for confirmation on first use or when the set changes and stores
+consent outside the repository in `~/.whisker/credential-recipients.json`.
+Non-interactive credential writes require `WHISKER_CREDENTIALS_RECIPIENTS` with the
+independently verified public keys, separated by commas or whitespace. Supply it
+through protected CI configuration rather than an unreviewed repository script.
+
+Age does not authenticate who authored an encrypted credential file. Protect both
+recipient lists and encrypted credentials with CODEOWNERS and required code-owner
+review. Signing-key staging is removed on normal exit, Ctrl-C, SIGTERM and Rust
+panic; SIGKILL, power loss or filesystem errors can leave protected temporary files.
+
+## Release network and feature settings
+
+Generated Android projects deny cleartext traffic in the main manifest and enable
+it only in a debug overlay. Production HTTP requires an explicit Android network
+policy. Inspect the merged release manifest when plugins supply application or
+network-security settings. Gradle distributions are pinned by the wrapper's
+SHA-256 checksum.
+
+Release archive and Gradle paths discard development `WHISKER_FEATURES` injection;
+the generated Xcode script and Gradle Rust task enforce the same boundary for IDE
+builds. Keep application features deliberate: this does not remove features that
+an application explicitly enables in Cargo configuration.

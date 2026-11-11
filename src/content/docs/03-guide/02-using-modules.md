@@ -300,3 +300,42 @@ reactive runtime runs — component bodies, event handlers, or effects.
   `whisker.rs`.
 - [Imperative Handles](/docs/refs) — the `element_ref:` pattern that binds
   handles like `VideoHandle`.
+
+## Web content and authentication boundaries
+
+WebView navigation and JavaScript messages have separate permissions.
+`origin_whitelist` checks parsed HTTP(S) origins, including the port. A pattern such
+as `https://*.example.com` allows subdomains on the default HTTPS port and excludes
+the apex. The broad default `https://*` and `http://*` patterns allow any host and
+port for their scheme. An empty or malformed list denies navigation on both mobile
+platforms, including the initial `url` prop. Android rejects mixed HTTP content
+inside HTTPS documents.
+
+Incoming bridge messages require an explicit `message_origins` list of exact
+HTTP(S) origins. It defaults to empty, so adding `on_message` alone does not enable
+receiving messages. Only main-frame messages with matching native origin metadata
+are delivered. Iframes and opaque origins, including the default inline HTML
+origin, are not accepted. Android also requires WebMessageListener support;
+unsupported WebViews cannot receive bridge messages.
+
+```rust
+let url = RwSignal::new("https://example.com".to_owned());
+render! {
+    WebView(
+        url: url,
+        message_origins: vec!["https://example.com".into()],
+        on_message: move |message: String| handle_page_message(message),
+    )
+}
+```
+
+System-browser start URLs must use HTTP or HTTPS. OAuth callback schemes are
+handled separately. Android forwards only ACTION_VIEW intents for registered app
+schemes, and callback interception compares URI components instead of prefixes.
+URL matching does not authenticate an authorization response: validate a fresh
+state value and complete PKCE verification before accepting a code.
+
+Android secure-store reserves `__whisker_secure_keyset__`; application operations on
+that key fail. Desktop local-store requires an absolute user data directory and
+uses owner-only Unix files instead of falling back to shared temporary storage.
+Use secure-store for secret values.

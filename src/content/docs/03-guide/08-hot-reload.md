@@ -181,3 +181,22 @@ firewall is in the way.
 
 Every flag mentioned here is documented in the
 [CLI reference](/docs/cli-reference).
+
+## Development connection security
+
+The authenticated native transport requires matching CLI and runtime versions.
+Rebuild the app after updating either side. Each session provisions a fresh secret;
+nonce-based proofs authenticate both peers without sending that secret in a
+WebSocket hello. Patch frames authenticate their complete contents, direction and
+sequence before the runtime writes or loads a library. Old, modified or replayed
+native frames are rejected.
+
+Keep the development channel on a trusted machine/device connection. Authentication
+does not encrypt WebSocket traffic, and access to the device debug secret gives
+access to that development session. Android launch stops if `adb reverse` or secret
+provisioning fails. Frames are finite: at most 256 MiB for a complete native patch,
+with 1 MiB patch metadata and control limits. Use a full rebuild for larger patches.
+
+Browser development requests must use the configured bind address and port, or
+`localhost` for a local bind. Cross-origin WebSocket requests and unexpected Host
+headers are rejected. Browser reload connections do not receive native libraries.
