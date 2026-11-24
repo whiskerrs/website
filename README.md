@@ -92,3 +92,18 @@ instead of that asset. `public/_headers` requires
 revalidation of the app's stable asset filenames. To test these hosting rules
 locally, use `bunx wrangler dev --config dist/server/wrangler.json --local` after
 building the website.
+
+## Commit City
+
+The `whisker-scene` demo is served at `/examples/commitcity/` and is checked
+into `public/examples/commitcity` the same way. It has a single screen, so it
+needs only the trailing-slash redirect in `public/_redirects`. To refresh it:
+
+```bash
+(cd ../whisker && cargo run -p whisker-cli --bin whisker -- build web --manifest-path examples/commitcity/Cargo.toml)
+cp ../whisker/examples/commitcity/gen/web/dist/{index.html,whisker_app.js,whisker_app_bg.wasm} public/examples/commitcity/
+bun run build
+```
+
+Its WebAssembly is about 17 MB because the Meshy-generated building models are
+embedded in it, which stays under Cloudflare's 25 MiB per-asset limit.

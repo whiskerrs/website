@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsChar123slugChar125DotmdRouteImport } from './routes/docs.{$slug}[.]md'
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
+import { Route as ApiGithubContributionsUserRouteImport } from './routes/api.github.contributions.$user'
 
 const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
   id: '/llms.txt',
@@ -53,6 +54,12 @@ const DocsSlugRoute = DocsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => DocsRoute,
 } as any)
+const ApiGithubContributionsUserRoute =
+  ApiGithubContributionsUserRouteImport.update({
+    id: '/api/github/contributions/$user',
+    path: '/api/github/contributions/$user',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/{$slug}.md': typeof DocsChar123slugChar125DotmdRoute
   '/docs/': typeof DocsIndexRoute
+  '/api/github/contributions/$user': typeof ApiGithubContributionsUserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByTo {
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/{$slug}.md': typeof DocsChar123slugChar125DotmdRoute
   '/docs': typeof DocsIndexRoute
+  '/api/github/contributions/$user': typeof ApiGithubContributionsUserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +89,7 @@ export interface FileRoutesById {
   '/docs/$slug': typeof DocsSlugRoute
   '/docs/{$slug}.md': typeof DocsChar123slugChar125DotmdRoute
   '/docs/': typeof DocsIndexRoute
+  '/api/github/contributions/$user': typeof ApiGithubContributionsUserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/docs/{$slug}.md'
     | '/docs/'
+    | '/api/github/contributions/$user'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/docs/{$slug}.md'
     | '/docs'
+    | '/api/github/contributions/$user'
   id:
     | '__root__'
     | '/'
@@ -108,6 +120,7 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/docs/{$slug}.md'
     | '/docs/'
+    | '/api/github/contributions/$user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -115,6 +128,7 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRouteWithChildren
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
+  ApiGithubContributionsUserRoute: typeof ApiGithubContributionsUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -168,6 +182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsSlugRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/api/github/contributions/$user': {
+      id: '/api/github/contributions/$user'
+      path: '/api/github/contributions/$user'
+      fullPath: '/api/github/contributions/$user'
+      preLoaderRoute: typeof ApiGithubContributionsUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -190,6 +211,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRouteWithChildren,
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
+  ApiGithubContributionsUserRoute: ApiGithubContributionsUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
