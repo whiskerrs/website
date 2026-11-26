@@ -1,5 +1,6 @@
 /examples/chat /examples/chat/ 301
 /examples/commitcity /examples/commitcity/ 301
+/examples/livecities /examples/livecities/ 301
 # Exact asset rules take precedence over the SPA wildcard.
 /examples/chat/whisker_app.js /examples/chat/whisker_app.js 200
 /examples/chat/whisker_app_bg.wasm /examples/chat/whisker_app_bg.wasm 200

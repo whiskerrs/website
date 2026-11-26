@@ -2,3 +2,5 @@
   Cache-Control: no-cache
 /examples/commitcity/*
   Cache-Control: no-cache
+/examples/livecities/*
+  Cache-Control: no-cache

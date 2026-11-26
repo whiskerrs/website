@@ -107,3 +107,19 @@ bun run build
 
 Its WebAssembly is about 17 MB because the Meshy-generated building models are
 embedded in it, which stays under Cloudflare's 25 MiB per-asset limit.
+
+## Live Cities
+
+The `whisker-map` demo is served at `/examples/livecities/` and is checked into
+`public/examples/livecities` the same way, with the four face icons it loads as
+assets. It also has a single screen. Its map tiles, glyphs and sprites come
+from OpenFreeMap at runtime. To refresh it:
+
+```bash
+(cd ../whisker && cargo run -p whisker-cli --bin whisker -- build web --manifest-path examples/livecities/Cargo.toml)
+cp ../whisker/examples/livecities/gen/web/dist/* public/examples/livecities/
+bun run build
+```
+
+Its WebAssembly, with the four avatar models embedded, is about 13 MB, under
+Cloudflare's 25 MiB per-asset limit.
